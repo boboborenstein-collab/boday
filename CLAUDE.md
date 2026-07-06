@@ -39,6 +39,52 @@ npm run preview
 - React Router v7
 - date-fns (date utilities)
 
+## Deployment & Infrastructure (all live, all free-tier)
+- **App**: https://boday.boapps.workers.dev — Cloudflare Workers static assets.
+  Deploy: `npm run build && npx wrangler deploy` (repo-root `wrangler.jsonc`).
+- **Push worker**: `worker-push/` — cron every minute. On-time reminders,
+  per-task re-nudge (Auto/Off/5m–2h; Auto = P1 hourly, P2 at 2h+6h), 9AM digest.
+  Deploy: `npx wrangler deploy` inside `worker-push/`. `GET /test` sends a test push.
+- **Supabase** (project cgsjsbsxuzawvgunrpqi): tables `tasks` / `completions` /
+  `push_subscriptions`, all `(id text pk, user_id text, data jsonb)`. Multi-user:
+  email+password auth (AuthGate), RLS ON ("own rows" policy), worker reads via
+  `SUPABASE_SERVICE_KEY` wrangler secret. App keys live in gitignored `.env`.
+- **Do NOT rename** the zustand persist key `cadence-v1` (wipes user data).
+
+## Roadmap — next things to build (user-approved 2026-07-06)
+
+**Next up (user's picks + Apple Calendar):**
+- **Apple Calendar integration** — two stages:
+  1. *BoDay → Calendar feed (build first)*: .ics subscription endpoint on the push
+     worker, per-user secret URL; all tasks as all-day entries, reminder-timed
+     tasks as timed events. User subscribes once via iPhone Settings → Calendar.
+  2. *Calendar → BoDay (later, optional)*: iOS Shortcut posting to a small
+     "inbox" endpoint (share-an-event or nightly auto-import). No web API exists
+     for reading iCloud calendars — Shortcuts is the only sane path.
+- **Snooze buttons on push notifications** — "remind me in 30m" from the push.
+- **Share/assign tasks between friends** — accounts exist; add task sharing.
+
+**High value, doable:**
+- Subtasks / checklists ("Pack for trip" with sub-items)
+- Evening digest (~8 PM "3 things left today", companion to 9 AM digest)
+- Compact "today at a glance" start screen
+
+**Medium effort:**
+- NLP parser upgrades ("every other Tuesday", "in 3 weeks", locations)
+- Weekly review screen (finished / kept carrying over / streak health)
+- Voice input (browser speech recognition)
+
+**Bigger swings:**
+- AI assist ("plan my day" ordering; voice note → structured tasks; small API cost — the one exception to free)
+- Shared lists/spaces (household grocery list, multi-account)
+
+**Maps/location constraints (researched):**
+- ✅ Possible: location attached to a task, map preview via OpenStreetMap
+  (Apple MapKit JS needs the $99 dev account — skip), tap-to-navigate link that
+  opens the Apple Maps app.
+- ❌ Not possible in a PWA: geofenced "remind me when I arrive" — iOS reserves
+  background location for App Store apps.
+
 ## Running Demo
 To launch and demo the app in the browser:
 ```bash
