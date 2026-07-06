@@ -33,7 +33,7 @@ export function SettingsView() {
   const tasks = useStore((s) => s.tasks)
   const completions = useStore((s) => s.completions)
   const importData = useStore((s) => s.importData)
-  const resetToSeed = useStore((s) => s.resetToSeed)
+  const clearAll = useStore((s) => s.clearAll)
 
   const fileRef = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
@@ -208,12 +208,12 @@ export function SettingsView() {
         <div className="mt-3">
           {confirmReset ? (
             <div className="flex items-center gap-2 rounded-xl border border-danger/40 bg-danger/10 px-3 py-2.5 text-sm">
-              <span className="flex-1 text-danger">Replace all data with demo content?</span>
+              <span className="flex-1 text-danger">Delete every task and all history?</span>
               <button
                 onClick={() => {
-                  resetToSeed()
+                  clearAll()
                   setConfirmReset(false)
-                  setMsg({ kind: 'ok', text: 'Reset to demo data.' })
+                  setMsg({ kind: 'ok', text: 'All data erased.' })
                 }}
                 className="rounded-lg bg-danger px-3 py-1.5 text-xs font-semibold text-white"
               >
@@ -231,7 +231,7 @@ export function SettingsView() {
               onClick={() => setConfirmReset(true)}
               className="text-xs text-faint transition-colors hover:text-muted"
             >
-              Reset to demo data…
+              Erase all data…
             </button>
           )}
         </div>

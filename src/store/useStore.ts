@@ -1,7 +1,5 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { makeSeed } from './seed'
-import { todayStr } from '../lib/date'
 import { DEFAULT_SETTINGS } from '../types'
 import type {
   OneTimeTask,
@@ -54,13 +52,14 @@ interface BoDayState {
   setOneTimeCompleted: (id: string, completed: boolean) => void
   toggleRecurringCompletion: (taskId: string, dateStr: string) => void
 
-  resetToSeed: () => void
+  clearAll: () => void
 }
 
 export const useStore = create<BoDayState>()(
   persist(
     (set) => ({
-      ...makeSeed(todayStr()),
+      tasks: [],
+      completions: [],
       settings: DEFAULT_SETTINGS,
 
       editorOpen: false,
@@ -136,7 +135,7 @@ export const useStore = create<BoDayState>()(
           }
         }),
 
-      resetToSeed: () => set({ ...makeSeed(todayStr()) }),
+      clearAll: () => set({ tasks: [], completions: [] }),
     }),
     {
       name: 'cadence-v1',
