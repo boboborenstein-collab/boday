@@ -10,6 +10,7 @@ import { CalendarView } from './views/CalendarView'
 import { StatsView } from './views/StatsView'
 import { SettingsView } from './views/SettingsView'
 import { startSync } from './lib/sync'
+import { isPushConfigured, subscribeToPush } from './lib/push'
 import { useLiveAlerts } from './hooks/useLiveAlerts'
 import { ToastContainer } from './components/ToastContainer'
 
@@ -53,6 +54,13 @@ export default function App() {
     return () => {
       cancelled = true
       dispose?.()
+    }
+  }, [])
+
+  // Keep this device's push subscription registered (idempotent, silent).
+  useEffect(() => {
+    if (isPushConfigured() && 'Notification' in window && Notification.permission === 'granted') {
+      subscribeToPush().catch(() => {})
     }
   }, [])
 

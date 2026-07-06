@@ -32,6 +32,7 @@ export default defineConfig({
           },
         ],
       },
+      workbox: { importScripts: ['push-sw.js'] },
       // Enable the service worker in `vite dev` so notifications can be tested later.
       devOptions: { enabled: true },
     }),

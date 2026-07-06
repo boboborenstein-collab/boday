@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useStore } from '../store/useStore'
 import { downloadExport, parseImport } from '../lib/dataTransfer'
 import { isSyncConfigured } from '../lib/sync'
+import { isPushConfigured, subscribeToPush } from '../lib/push'
 import {
   DownloadIcon,
   MoonIcon,
@@ -45,7 +46,16 @@ export function SettingsView() {
   )
   const enableNotifications = async () => {
     if (!notifSupported) return
-    setNotifPerm(await Notification.requestPermission())
+    const perm = await Notification.requestPermission()
+    setNotifPerm(perm)
+    if (perm === 'granted' && isPushConfigured()) {
+      try {
+        await subscribeToPush()
+        setMsg({ kind: 'ok', text: 'Push reminders enabled on this device.' })
+      } catch (e) {
+        setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Push setup failed.' })
+      }
+    }
   }
 
   const onImport = async (file: File) => {
