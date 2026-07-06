@@ -1,13 +1,13 @@
 // Web Push subscription management. After notification permission is granted,
-// subscribe this device and mirror the subscription to Supabase so the
-// reminder worker (worker-push/) can reach it.
+// subscribe this device and mirror the subscription to Supabase (keyed to the
+// signed-in user) so the reminder worker (worker-push/) can reach it.
+
+import { getSupabase, isSupabaseConfigured } from './supabaseClient'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
 export function isPushConfigured(): boolean {
-  return Boolean(VAPID_PUBLIC_KEY && SUPABASE_URL && SUPABASE_ANON_KEY && 'PushManager' in window)
+  return Boolean(VAPID_PUBLIC_KEY && isSupabaseConfigured() && 'PushManager' in window)
 }
 
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
@@ -22,6 +22,11 @@ function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
 export async function subscribeToPush(): Promise<void> {
   if (!isPushConfigured()) throw new Error('Push is not configured.')
 
+  const supabase = getSupabase()
+  const { data } = await supabase.auth.getSession()
+  const userId = data.session?.user.id
+  if (!userId) throw new Error('Sign in to enable push reminders.')
+
   const reg = await navigator.serviceWorker.ready
   const sub =
     (await reg.pushManager.getSubscription()) ??
@@ -30,24 +35,27 @@ export async function subscribeToPush(): Promise<void> {
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY!),
     }))
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_ANON_KEY!,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates',
+  const { error } = await supabase.from('push_subscriptions').upsert({
+    id: sub.endpoint,
+    user_id: userId,
+    data: {
+      subscription: sub.toJSON(),
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
-    body: JSON.stringify([
-      {
-        id: sub.endpoint,
-        user_id: 'owner',
-        data: {
-          subscription: sub.toJSON(),
-          tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-      },
-    ]),
   })
-  if (!res.ok) throw new Error(`Saving subscription failed (${res.status}).`)
+  if (error) throw new Error(`Saving subscription failed: ${error.message}`)
+}
+
+/** Remove this device's push registration (used on sign-out). Best-effort. */
+export async function unsubscribeFromPush(): Promise<void> {
+  if (!isPushConfigured()) return
+  try {
+    const reg = await navigator.serviceWorker.ready
+    const sub = await reg.pushManager.getSubscription()
+    if (!sub) return
+    await getSupabase().from('push_subscriptions').delete().eq('id', sub.endpoint)
+    await sub.unsubscribe()
+  } catch {
+    // best-effort cleanup
+  }
 }

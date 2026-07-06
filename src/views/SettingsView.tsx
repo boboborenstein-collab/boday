@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useStore } from '../store/useStore'
 import { downloadExport, parseImport } from '../lib/dataTransfer'
 import { isSyncConfigured } from '../lib/sync'
-import { isPushConfigured, subscribeToPush } from '../lib/push'
+import { isPushConfigured, subscribeToPush, unsubscribeFromPush } from '../lib/push'
+import { getSupabase } from '../lib/supabaseClient'
 import {
   DownloadIcon,
   MoonIcon,
@@ -39,6 +40,21 @@ export function SettingsView() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
+
+  const [accountEmail, setAccountEmail] = useState<string | null>(null)
+  useEffect(() => {
+    if (!isSyncConfigured()) return
+    getSupabase()
+      .auth.getSession()
+      .then(({ data }) => setAccountEmail(data.session?.user.email ?? null))
+  }, [])
+
+  const signOut = async () => {
+    await unsubscribeFromPush()
+    await getSupabase().auth.signOut()
+    clearAll() // don't leave this account's tasks on a shared device
+    window.location.reload()
+  }
 
   const notifSupported = typeof window !== 'undefined' && 'Notification' in window
   const [notifPerm, setNotifPerm] = useState<NotificationPermission | null>(
@@ -247,8 +263,8 @@ export function SettingsView() {
         </div>
       </Section>
 
-      {/* Sync */}
-      <Section title="Sync across devices">
+      {/* Account */}
+      <Section title="Account">
         <div className="rounded-xl border border-border bg-surface/70 p-4">
           <div className="flex items-center gap-2">
             <span
@@ -257,15 +273,23 @@ export function SettingsView() {
               }`}
             />
             <span className="text-sm font-medium">
-              {isSyncConfigured() ? 'Cloud sync configured' : 'Local-first (no account needed)'}
+              {isSyncConfigured()
+                ? `Signed in${accountEmail ? ` as ${accountEmail}` : ''} — syncing`
+                : 'Local-first (no account needed)'}
             </span>
           </div>
           <p className="mt-2 text-xs text-muted">
-            BoDay works offline on every device. To sync your tasks between the
-            desktop app and iPhone, add your Supabase credentials to{' '}
-            <code className="rounded bg-surface-3 px-1 py-0.5">.env</code> — the sync
-            engine is already wired and will activate automatically.
+            Your tasks sync privately to your account across devices. Signing out
+            clears the tasks stored on this device.
           </p>
+          {isSyncConfigured() && (
+            <button
+              onClick={signOut}
+              className="mt-3 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-border-strong hover:text-text"
+            >
+              Sign out
+            </button>
+          )}
         </div>
       </Section>
 

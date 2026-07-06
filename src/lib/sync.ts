@@ -21,13 +21,11 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 import { useStore } from '../store/useStore'
+import { getSupabase, isSupabaseConfigured } from './supabaseClient'
 import type { Task, TaskCompletion } from '../types'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
-
 export function isSyncConfigured(): boolean {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
+  return isSupabaseConfigured()
 }
 
 // Each row stores the full app object as a jsonb envelope, so the schema
@@ -57,12 +55,12 @@ export async function startSync(): Promise<() => void> {
   let pulledTaskIds = new Set<string>()
   let pulledCompletionIds = new Set<string>()
 
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!)
+  const supabase = getSupabase()
 
-  // Single-user app: every device shares one fixed identity so the same
-  // dataset appears everywhere without a login flow.
-  const userId = 'owner'
+  // Sync runs per signed-in user; the auth gate guarantees a session exists.
+  const { data: sessionData } = await supabase.auth.getSession()
+  const userId = sessionData.session?.user.id
+  if (!userId) return () => {}
 
   let applyingRemote = false
 
@@ -121,8 +119,16 @@ export async function startSync(): Promise<() => void> {
   // Realtime: any change from another device re-pulls + merges.
   const channel = supabase
     .channel('boday-sync')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => void pull())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'completions' }, () => void pull())
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${userId}` },
+      () => void pull(),
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'completions', filter: `user_id=eq.${userId}` },
+      () => void pull(),
+    )
     .subscribe()
 
   // Local → remote: debounced push on any data change we didn't cause.

@@ -9,6 +9,8 @@ import { buildPushPayload, type PushSubscription } from '@block65/webcrypto-web-
 interface Env {
   SUPABASE_URL: string
   SUPABASE_KEY: string
+  /** Service-role key (secret). Required once RLS is enabled — the publishable key can no longer read. */
+  SUPABASE_SERVICE_KEY?: string
   VAPID_PUBLIC_KEY: string
   VAPID_PRIVATE_KEY: string
   VAPID_SUBJECT: string
@@ -104,18 +106,24 @@ function nowIn(tz: string): { today: string; hhmm: string } {
 }
 
 // ── supabase REST ────────────────────────────────────────────────────────────
-async function sbSelect(env: Env, table: string): Promise<{ id: string; data: unknown }[]> {
-  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${table}?select=id,data`, {
-    headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${env.SUPABASE_KEY}` },
+function sbKey(env: Env): string {
+  return env.SUPABASE_SERVICE_KEY || env.SUPABASE_KEY
+}
+
+async function sbSelect(env: Env, table: string): Promise<{ id: string; user_id: string; data: unknown }[]> {
+  const key = sbKey(env)
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${table}?select=id,user_id,data`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
   })
   if (!res.ok) throw new Error(`${table} fetch failed: ${res.status}`)
   return res.json()
 }
 
 async function sbDelete(env: Env, table: string, id: string): Promise<void> {
+  const key = sbKey(env)
   await fetch(`${env.SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, {
     method: 'DELETE',
-    headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${env.SUPABASE_KEY}` },
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
   })
 }
 
@@ -161,9 +169,20 @@ export default {
     ])
     if (!subRows.length) return
 
-    const tasks = taskRows.map((r) => r.data as Task)
-    const completions = compRows.map((r) => r.data as Completion)
-    const doneToday = new Set(completions.map((c) => `${c.taskId}|${c.completionDate}`))
+    // Group by user so each device only gets its owner's reminders.
+    const tasksByUser = new Map<string, Task[]>()
+    for (const r of taskRows) {
+      const list = tasksByUser.get(r.user_id) ?? []
+      list.push(r.data as Task)
+      tasksByUser.set(r.user_id, list)
+    }
+    const doneByUser = new Map<string, Set<string>>()
+    for (const r of compRows) {
+      const c = r.data as Completion
+      const set = doneByUser.get(r.user_id) ?? new Set<string>()
+      set.add(`${c.taskId}|${c.completionDate}`)
+      doneByUser.set(r.user_id, set)
+    }
 
     const vapid = {
       subject: env.VAPID_SUBJECT,
@@ -174,6 +193,8 @@ export default {
     for (const row of subRows) {
       const { subscription, tz } = row.data as { subscription: PushSubscription; tz?: string }
       const { today, hhmm } = nowIn(tz || 'America/New_York')
+      const tasks = tasksByUser.get(row.user_id) ?? []
+      const doneToday = doneByUser.get(row.user_id) ?? new Set<string>()
 
       // A task is "pending today" if it should be acted on and isn't done yet.
       const pendingToday = (t: Task): boolean => {

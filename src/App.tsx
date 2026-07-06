@@ -14,6 +14,7 @@ import { startSync } from './lib/sync'
 import { isPushConfigured, subscribeToPush } from './lib/push'
 import { useLiveAlerts } from './hooks/useLiveAlerts'
 import { ToastContainer } from './components/ToastContainer'
+import { AuthGate } from './components/AuthGate'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -41,7 +42,8 @@ function AnimatedRoutes() {
   )
 }
 
-export default function App() {
+/** Runs only when signed in (mounted inside AuthGate). */
+function SignedInApp() {
   // Activate cross-device sync if Supabase creds are present (no-op otherwise).
   useEffect(() => {
     let cancelled = false
@@ -78,5 +80,13 @@ export default function App() {
       <CommandPalette />
       <ToastContainer />
     </BrowserRouter>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthGate>
+      <SignedInApp />
+    </AuthGate>
   )
 }
