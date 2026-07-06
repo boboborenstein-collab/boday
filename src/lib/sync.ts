@@ -30,14 +30,9 @@ export function isSyncConfigured(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
 }
 
-// Row shapes mirror the app types with a user_id added by the engine.
-type TaskRow = Task & { user_id: string }
-type CompletionRow = TaskCompletion & { user_id: string }
-
-function stripUser<T extends { user_id?: string }>(row: T): Omit<T, 'user_id'> {
-  const { user_id: _omit, ...rest } = row
-  return rest
-}
+// Each row stores the full app object as a jsonb envelope, so the schema
+// never drifts from the app's types.
+type Row<T> = { id: string; user_id: string; data: T }
 
 /** Merge remote rows into local state, remote winning on id collisions. */
 function mergeById<T extends { id: string }>(local: T[], remote: T[], pulledIds?: Set<string>): T[] {
@@ -65,15 +60,9 @@ export async function startSync(): Promise<() => void> {
   const { createClient } = await import('@supabase/supabase-js')
   const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!)
 
-  // Identify the user. Anonymous auth gives a stable per-session identity;
-  // signing in with the same email on another device shares the dataset.
-  let { data } = await supabase.auth.getSession()
-  if (!data.session) {
-    const res = await supabase.auth.signInAnonymously()
-    data = res.data
-  }
-  const userId = data.session?.user.id
-  if (!userId) return () => {}
+  // Single-user app: every device shares one fixed identity so the same
+  // dataset appears everywhere without a login flow.
+  const userId = 'owner'
 
   let applyingRemote = false
 
@@ -91,10 +80,10 @@ export async function startSync(): Promise<() => void> {
     applyingRemote = true
     const s = useStore.getState()
     useStore.setState({
-      tasks: mergeById(s.tasks, (tRows ?? []).map((r) => stripUser(r as TaskRow) as Task), precedingTasks),
+      tasks: mergeById(s.tasks, (tRows ?? []).map((r) => (r as Row<Task>).data), precedingTasks),
       completions: mergeById(
         s.completions,
-        (cRows ?? []).map((r) => stripUser(r as CompletionRow) as TaskCompletion),
+        (cRows ?? []).map((r) => (r as Row<TaskCompletion>).data),
         precedingCompletions
       ),
     })
@@ -102,8 +91,8 @@ export async function startSync(): Promise<() => void> {
   }
 
   const push = async (tasks: Task[], completions: TaskCompletion[]) => {
-    const taskRows: TaskRow[] = tasks.map((t) => ({ ...t, user_id: userId }))
-    const compRows: CompletionRow[] = completions.map((c) => ({ ...c, user_id: userId }))
+    const taskRows: Row<Task>[] = tasks.map((t) => ({ id: t.id, user_id: userId, data: t }))
+    const compRows: Row<TaskCompletion>[] = completions.map((c) => ({ id: c.id, user_id: userId, data: c }))
 
     const deletedTaskIds = Array.from(pulledTaskIds).filter((id) => !tasks.some((t) => t.id === id))
     const deletedCompIds = Array.from(pulledCompletionIds).filter((id) => !completions.some((c) => c.id === id))
