@@ -1,0 +1,1 @@
+{"main": {"id": "root", "type": "split", "direction": "vertical"}, "left": {"id": "left", "type": "mobile-drawer", "currentTab": 0}, "right": {"id": "right", "type": "mobile-drawer", "currentTab": -1}}

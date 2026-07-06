@@ -1,0 +1,298 @@
+import { useRef, useState } from 'react'
+import { motion } from 'motion/react'
+import { useStore } from '../store/useStore'
+import { downloadExport, parseImport } from '../lib/dataTransfer'
+import { isSyncConfigured } from '../lib/sync'
+import {
+  DownloadIcon,
+  MoonIcon,
+  SparklesIcon,
+  SunIcon,
+  UploadIcon,
+} from '../components/icons'
+import type { AccentKey, ThemeMode } from '../types'
+
+const ACCENTS: { key: AccentKey; color: string }[] = [
+  { key: 'indigo', color: '#6366f1' },
+  { key: 'violet', color: '#8b5cf6' },
+  { key: 'emerald', color: '#10b981' },
+  { key: 'rose', color: '#f43f5e' },
+  { key: 'amber', color: '#f59e0b' },
+  { key: 'sky', color: '#0ea5e9' },
+]
+
+const THEMES: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
+  { value: 'system', label: 'System', icon: <SparklesIcon className="size-4" /> },
+  { value: 'light', label: 'Light', icon: <SunIcon className="size-4" /> },
+  { value: 'dark', label: 'Dark', icon: <MoonIcon className="size-4" /> },
+]
+
+export function SettingsView() {
+  const settings = useStore((s) => s.settings)
+  const update = useStore((s) => s.updateSettings)
+  const tasks = useStore((s) => s.tasks)
+  const completions = useStore((s) => s.completions)
+  const importData = useStore((s) => s.importData)
+  const resetToSeed = useStore((s) => s.resetToSeed)
+
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+  const [confirmReset, setConfirmReset] = useState(false)
+
+  const onImport = async (file: File) => {
+    try {
+      const text = await file.text()
+      const data = parseImport(text)
+      importData(data)
+      setMsg({ kind: 'ok', text: `Imported ${data.tasks.length} tasks.` })
+    } catch (e) {
+      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Import failed.' })
+    }
+  }
+
+  return (
+    <div>
+      <header className="mb-5">
+        <div className="text-sm font-medium text-accent">Settings</div>
+        <h1 className="text-2xl font-bold tracking-tight">Make it yours</h1>
+      </header>
+
+      {/* Appearance */}
+      <Section title="Appearance">
+        <Row label="Theme">
+          <div className="flex rounded-lg border border-border bg-surface-2 p-0.5 text-xs font-medium">
+            {THEMES.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => update({ theme: t.value })}
+                className="relative flex items-center gap-1.5 rounded-md px-2.5 py-1.5"
+              >
+                {settings.theme === t.value && (
+                  <motion.span
+                    layoutId="themePill"
+                    className="absolute inset-0 rounded-md bg-surface-3"
+                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span
+                  className={`relative flex items-center gap-1.5 ${
+                    settings.theme === t.value ? 'text-text' : 'text-muted'
+                  }`}
+                >
+                  {t.icon}
+                  {t.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Row>
+        <Row label="Accent">
+          <div className="flex gap-2">
+            {ACCENTS.map((a) => (
+              <motion.button
+                key={a.key}
+                whileTap={{ scale: 0.85 }}
+                onClick={() => update({ accent: a.key })}
+                aria-label={a.key}
+                className={`size-7 rounded-full ring-2 ring-offset-2 ring-offset-bg transition-all ${
+                  settings.accent === a.key ? 'ring-text' : 'ring-transparent'
+                }`}
+                style={{ backgroundColor: a.color }}
+              />
+            ))}
+          </div>
+        </Row>
+      </Section>
+
+      {/* Preferences */}
+      <Section title="Preferences">
+        <Toggle
+          label="Sound & haptics"
+          description="A soft chime when you complete a task"
+          checked={settings.sound}
+          onChange={(v) => update({ sound: v })}
+        />
+        <Toggle
+          label="Reduce motion"
+          description="Minimise animations across the app"
+          checked={settings.reduceMotion}
+          onChange={(v) => update({ reduceMotion: v })}
+        />
+        <Row label="Week starts on">
+          <div className="flex rounded-lg border border-border bg-surface-2 p-0.5 text-xs font-medium">
+            {([
+              { v: 0 as const, l: 'Sunday' },
+              { v: 1 as const, l: 'Monday' },
+            ]).map((o) => (
+              <button
+                key={o.v}
+                onClick={() => update({ weekStartsOn: o.v })}
+                className={`rounded-md px-2.5 py-1.5 ${
+                  settings.weekStartsOn === o.v ? 'bg-surface-3 text-text' : 'text-muted'
+                }`}
+              >
+                {o.l}
+              </button>
+            ))}
+          </div>
+        </Row>
+      </Section>
+
+      {/* Data */}
+      <Section title="Your data">
+        <p className="mb-3 text-xs text-faint">
+          Everything is stored privately on this device. Export a backup or move
+          your data to another device.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => downloadExport(tasks, completions)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium transition-colors hover:border-border-strong"
+          >
+            <DownloadIcon className="size-4" /> Export
+          </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium transition-colors hover:border-border-strong"
+          >
+            <UploadIcon className="size-4" /> Import
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) onImport(f)
+              e.target.value = ''
+            }}
+          />
+        </div>
+        {msg && (
+          <div
+            className={`mt-3 rounded-lg px-3 py-2 text-xs ${
+              msg.kind === 'ok'
+                ? 'bg-success-soft text-success'
+                : 'bg-danger/10 text-danger'
+            }`}
+          >
+            {msg.text}
+          </div>
+        )}
+        <div className="mt-3">
+          {confirmReset ? (
+            <div className="flex items-center gap-2 rounded-xl border border-danger/40 bg-danger/10 px-3 py-2.5 text-sm">
+              <span className="flex-1 text-danger">Replace all data with demo content?</span>
+              <button
+                onClick={() => {
+                  resetToSeed()
+                  setConfirmReset(false)
+                  setMsg({ kind: 'ok', text: 'Reset to demo data.' })
+                }}
+                className="rounded-lg bg-danger px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setConfirmReset(false)}
+                className="rounded-lg px-2 py-1.5 text-xs text-muted"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmReset(true)}
+              className="text-xs text-faint transition-colors hover:text-muted"
+            >
+              Reset to demo data…
+            </button>
+          )}
+        </div>
+      </Section>
+
+      {/* Sync */}
+      <Section title="Sync across devices">
+        <div className="rounded-xl border border-border bg-surface/70 p-4">
+          <div className="flex items-center gap-2">
+            <span
+              className={`size-2 rounded-full ${
+                isSyncConfigured() ? 'bg-success' : 'bg-faint'
+              }`}
+            />
+            <span className="text-sm font-medium">
+              {isSyncConfigured() ? 'Cloud sync configured' : 'Local-first (no account needed)'}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-muted">
+            BoDay works offline on every device. To sync your tasks between the
+            desktop app and iPhone, add your Supabase credentials to{' '}
+            <code className="rounded bg-surface-3 px-1 py-0.5">.env</code> — the sync
+            engine is already wired and will activate automatically.
+          </p>
+        </div>
+      </Section>
+
+      <p className="mt-8 text-center text-xs text-faint">BoDay · v0.2 · made with care</p>
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-6">
+      <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-faint">
+        {title}
+      </h2>
+      <div className="rounded-2xl border border-border bg-surface/40 p-4">{children}</div>
+    </section>
+  )
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+      <span className="text-sm font-medium">{label}</span>
+      {children}
+    </div>
+  )
+}
+
+function Toggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string
+  description?: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2.5">
+      <div>
+        <div className="text-sm font-medium">{label}</div>
+        {description && <div className="text-xs text-faint">{description}</div>}
+      </div>
+      <button
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+          checked ? 'bg-accent' : 'bg-surface-3'
+        }`}
+      >
+        <motion.span
+          layout
+          transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow-sm ${
+            checked ? 'left-[1.375rem]' : 'left-0.5'
+          }`}
+        />
+      </button>
+    </div>
+  )
+}
