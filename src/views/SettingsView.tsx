@@ -39,6 +39,15 @@ export function SettingsView() {
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
 
+  const notifSupported = typeof window !== 'undefined' && 'Notification' in window
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission | null>(
+    notifSupported ? Notification.permission : null,
+  )
+  const enableNotifications = async () => {
+    if (!notifSupported) return
+    setNotifPerm(await Notification.requestPermission())
+  }
+
   const onImport = async (file: File) => {
     try {
       const text = await file.text()
@@ -118,6 +127,22 @@ export function SettingsView() {
           checked={settings.reduceMotion}
           onChange={(v) => update({ reduceMotion: v })}
         />
+        {notifSupported && (
+          <Row label="Notifications">
+            {notifPerm === 'granted' ? (
+              <span className="text-xs font-medium text-accent">On</span>
+            ) : notifPerm === 'denied' ? (
+              <span className="text-xs text-faint">Blocked — enable in iOS Settings</span>
+            ) : (
+              <button
+                onClick={enableNotifications}
+                className="rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium transition-colors hover:border-border-strong"
+              >
+                Enable
+              </button>
+            )}
+          </Row>
+        )}
         <Row label="Week starts on">
           <div className="flex rounded-lg border border-border bg-surface-2 p-0.5 text-xs font-medium">
             {([
