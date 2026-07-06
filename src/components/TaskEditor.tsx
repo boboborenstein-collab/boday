@@ -75,6 +75,9 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [priority, setPriority] = useState<Priority>(existing?.priority ?? 3)
   const [reminderTime, setReminderTime] = useState(existing?.reminderTime ?? '')
+  const [renudgeMinutes, setRenudgeMinutes] = useState<number | null | undefined>(
+    existing?.renudgeMinutes,
+  )
   const [tags, setTags] = useState<string[]>(existing?.tags ?? [])
   const [tagInput, setTagInput] = useState('')
 
@@ -129,6 +132,7 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
       priority,
       tags: tags.length ? tags : undefined,
       reminderTime: reminderTime || null,
+      renudgeMinutes: reminderTime ? renudgeMinutes : undefined,
     }
 
     if (type === 'one_time') {
@@ -402,6 +406,36 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
           )}
         </div>
       </Field>
+
+      {reminderTime && (
+        <Field label="Re-nudge until done">
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              { v: undefined, l: 'Auto' },
+              { v: null, l: 'Off' },
+              { v: 15, l: '15m' },
+              { v: 30, l: '30m' },
+              { v: 60, l: '1h' },
+              { v: 120, l: '2h' },
+            ] as { v: number | null | undefined; l: string }[]).map((o) => (
+              <button
+                key={o.l}
+                onClick={() => setRenudgeMinutes(o.v)}
+                className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  renudgeMinutes === o.v
+                    ? 'border-accent bg-accent-soft text-accent'
+                    : 'border-border bg-surface-2 text-muted hover:border-border-strong'
+                }`}
+              >
+                {o.l}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-xs text-faint">
+            Auto = hourly for P1, at 2h &amp; 6h for P2. Off = remind once only.
+          </p>
+        </Field>
+      )}
 
       <div className="mt-6 flex items-center gap-3">
         {existing && (

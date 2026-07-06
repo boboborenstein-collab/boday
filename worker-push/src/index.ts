@@ -26,6 +26,7 @@ interface OneTimeTask {
   title: string
   priority: number
   reminderTime: string | null
+  renudgeMinutes?: number | null
   scheduledDate: string
   completed: boolean
 }
@@ -35,6 +36,7 @@ interface RecurringTask {
   title: string
   priority: number
   reminderTime: string | null
+  renudgeMinutes?: number | null
   startDate: string
   endDate: string | null
   recurrence: Recurrence
@@ -162,13 +164,27 @@ export default {
         //    fires when the minutes elapsed since the reminder hit the schedule).
         if (t.reminderTime && t.reminderTime < hhmm) {
           const since = minutesBetween(t.reminderTime, hhmm)
-          if (t.priority === 1 && since % 60 === 0) {
+          const ago = since % 60 === 0 ? `${since / 60}h` : `${since}m`
+          if (t.renudgeMinutes === null || t.renudgeMinutes === 0) {
+            // explicitly off
+          } else if (typeof t.renudgeMinutes === 'number') {
+            // per-task cadence chosen in the editor
+            if (since % t.renudgeMinutes === 0) {
+              messages.push(
+                t.priority === 1
+                  ? { title: '🔴 BoDay — OVERDUE (P1)', body: `STILL NOT DONE: ${t.title} — ${ago} past its time` }
+                  : { title: '🟠 BoDay — still pending', body: `${t.title} was due ${ago} ago` },
+              )
+            }
+          } else if (t.priority === 1 && since % 60 === 0) {
+            // default: P1 nags hourly
             messages.push({
               title: '🔴 BoDay — OVERDUE (P1)',
-              body: `STILL NOT DONE: ${t.title} — ${since / 60}h past its time`,
+              body: `STILL NOT DONE: ${t.title} — ${ago} past its time`,
             })
           } else if (t.priority === 2 && (since === 120 || since === 360)) {
-            messages.push({ title: '🟠 BoDay — still pending', body: `${t.title} was due ${since / 60}h ago` })
+            // default: P2 nudges at 2h and 6h
+            messages.push({ title: '🟠 BoDay — still pending', body: `${t.title} was due ${ago} ago` })
           }
         }
       }

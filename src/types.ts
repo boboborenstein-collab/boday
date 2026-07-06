@@ -31,6 +31,11 @@ interface BaseTask {
   tags?: string[]
   /** 'HH:mm' local time, or null for no reminder. */
   reminderTime?: string | null
+  /**
+   * Re-nudge cadence in minutes after a missed reminder (push notifications).
+   * null/0 = off; undefined = default by priority (P1 hourly, P2 at 2h & 6h).
+   */
+  renudgeMinutes?: number | null
   /** ISO timestamp. */
   createdAt: string
 }
