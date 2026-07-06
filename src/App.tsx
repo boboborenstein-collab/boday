@@ -41,11 +41,19 @@ function AnimatedRoutes() {
 export default function App() {
   // Activate cross-device sync if Supabase creds are present (no-op otherwise).
   useEffect(() => {
+    let cancelled = false
     let dispose: (() => void) | undefined
     startSync().then((d) => {
-      dispose = d
+      if (cancelled) {
+        d()
+      } else {
+        dispose = d
+      }
     })
-    return () => dispose?.()
+    return () => {
+      cancelled = true
+      dispose?.()
+    }
   }, [])
 
   useLiveAlerts()

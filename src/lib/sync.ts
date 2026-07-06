@@ -40,10 +40,15 @@ function stripUser<T extends { user_id?: string }>(row: T): Omit<T, 'user_id'> {
 }
 
 /** Merge remote rows into local state, remote winning on id collisions. */
-function mergeById<T extends { id: string }>(local: T[], remote: T[]): T[] {
+function mergeById<T extends { id: string }>(local: T[], remote: T[], pulledIds?: Set<string>): T[] {
   const map = new Map<string, T>()
   for (const r of local) map.set(r.id, r)
-  for (const r of remote) map.set(r.id, r)
+  for (const r of remote) {
+    if (pulledIds?.has(r.id) && !map.has(r.id)) {
+      continue
+    }
+    map.set(r.id, r)
+  }
   return [...map.values()]
 }
 
@@ -53,6 +58,9 @@ function mergeById<T extends { id: string }>(local: T[], remote: T[]): T[] {
  */
 export async function startSync(): Promise<() => void> {
   if (!isSyncConfigured()) return () => {}
+
+  let pulledTaskIds = new Set<string>()
+  let pulledCompletionIds = new Set<string>()
 
   const { createClient } = await import('@supabase/supabase-js')
   const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!)
@@ -74,13 +82,20 @@ export async function startSync(): Promise<() => void> {
       supabase.from('tasks').select('*').eq('user_id', userId),
       supabase.from('completions').select('*').eq('user_id', userId),
     ])
+    const precedingTasks = new Set(pulledTaskIds)
+    const precedingCompletions = new Set(pulledCompletionIds)
+
+    pulledTaskIds = new Set((tRows ?? []).map((r) => r.id))
+    pulledCompletionIds = new Set((cRows ?? []).map((r) => r.id))
+
     applyingRemote = true
     const s = useStore.getState()
     useStore.setState({
-      tasks: mergeById(s.tasks, (tRows ?? []).map((r) => stripUser(r as TaskRow) as Task)),
+      tasks: mergeById(s.tasks, (tRows ?? []).map((r) => stripUser(r as TaskRow) as Task), precedingTasks),
       completions: mergeById(
         s.completions,
         (cRows ?? []).map((r) => stripUser(r as CompletionRow) as TaskCompletion),
+        precedingCompletions
       ),
     })
     applyingRemote = false
@@ -89,10 +104,24 @@ export async function startSync(): Promise<() => void> {
   const push = async (tasks: Task[], completions: TaskCompletion[]) => {
     const taskRows: TaskRow[] = tasks.map((t) => ({ ...t, user_id: userId }))
     const compRows: CompletionRow[] = completions.map((c) => ({ ...c, user_id: userId }))
+
+    const deletedTaskIds = Array.from(pulledTaskIds).filter((id) => !tasks.some((t) => t.id === id))
+    const deletedCompIds = Array.from(pulledCompletionIds).filter((id) => !completions.some((c) => c.id === id))
+
     await Promise.all([
       taskRows.length && supabase.from('tasks').upsert(taskRows),
       compRows.length && supabase.from('completions').upsert(compRows),
     ])
+
+    await Promise.all([
+      deletedTaskIds.length && supabase.from('tasks').delete().eq('user_id', userId).in('id', deletedTaskIds),
+      deletedCompIds.length && supabase.from('completions').delete().eq('user_id', userId).in('id', deletedCompIds),
+    ])
+
+    for (const t of tasks) pulledTaskIds.add(t.id)
+    for (const id of deletedTaskIds) pulledTaskIds.delete(id)
+    for (const c of completions) pulledCompletionIds.add(c.id)
+    for (const id of deletedCompIds) pulledCompletionIds.delete(id)
   }
 
   // Initial reconcile: pull remote, then push the merged set back up.

@@ -3,7 +3,7 @@
 // it is unit-testable and reusable unchanged against Supabase rows in Phase 3.
 
 import { differenceInCalendarDays, getDay, getDate } from 'date-fns'
-import { fromDateStr } from './date'
+import { fromDateStr, toDateStr } from './date'
 import type {
   DayItem,
   OneTimeTask,
@@ -82,6 +82,12 @@ export function buildTodayList(
           task,
           completed: false,
           carriedOverFromDays: carryOverDays(task, today),
+        })
+      } else if (task.completed && task.completedAt && toDateStr(new Date(task.completedAt)) === today) {
+        items.push({
+          task,
+          completed: true,
+          carriedOverFromDays: 0,
         })
       }
     } else {

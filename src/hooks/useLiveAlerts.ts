@@ -4,16 +4,12 @@ import { buildTodayList } from '../lib/recurrence'
 import { todayStr } from '../lib/date'
 
 export function useLiveAlerts() {
-  const tasks = useStore((s) => s.tasks)
-  const completions = useStore((s) => s.completions)
-  const settings = useStore((s) => s.settings)
-  
   // Track which task-time combinations we've already alerted for so we don't spam.
   const alerted = useRef<Set<string>>(new Set())
 
   useEffect(() => {
-    // Check every 30 seconds
-    const interval = setInterval(() => {
+    const check = () => {
+      const { tasks, completions, settings } = useStore.getState()
       const today = todayStr()
       const now = new Date()
       // format HH:mm
@@ -41,11 +37,16 @@ export function useLiveAlerts() {
       if (shouldPlaySound && settings.sound) {
         playChime()
       }
-    }, 30000)
+    }
+
+    // Run an immediate check on mount
+    check()
+
+    // Check every 30 seconds
+    const interval = setInterval(check, 30000)
     
-    // Also run an immediate check on mount
     return () => clearInterval(interval)
-  }, [tasks, completions, settings.sound])
+  }, [])
 }
 
 function triggerAlert(title: string) {

@@ -226,7 +226,7 @@ function Group({ label, children }: { label: string; children: React.ReactNode }
 function Item({ cmd, active, onHover }: { cmd: Cmd; active: boolean; onHover: () => void }) {
   return (
     <button
-      onMouseMove={onHover}
+      onMouseEnter={onHover}
       onClick={cmd.run}
       className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
         active ? 'bg-accent-soft text-text' : 'text-muted'

@@ -14,6 +14,9 @@ const DAYS: Record<string, number> = {
  * Converts "read 20 mins every morning p1" -> RecurringTask
  */
 export function parseNaturalLanguage(input: string): TaskDraft {
+  const replaceIgnoreCase = (str: string, match: string) =>
+    str.replace(new RegExp(match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i'), '')
+
   let title = input
   const lower = input.toLowerCase()
   let priority: Priority = 3
@@ -21,13 +24,13 @@ export function parseNaturalLanguage(input: string): TaskDraft {
 
   // Priority extraction
   const p1Match = lower.match(/\b(urgent|p1)\b/i)
-  if (p1Match) { priority = 1; title = title.replace(p1Match[0], '') }
+  if (p1Match) { priority = 1; title = replaceIgnoreCase(title, p1Match[0]) }
   
   const p2Match = lower.match(/\b(high|p2)\b/i)
-  if (p2Match) { priority = 2; title = title.replace(p2Match[0], '') }
+  if (p2Match) { priority = 2; title = replaceIgnoreCase(title, p2Match[0]) }
 
   const p4Match = lower.match(/\b(low|p4)\b/i)
-  if (p4Match) { priority = 4; title = title.replace(p4Match[0], '') }
+  if (p4Match) { priority = 4; title = replaceIgnoreCase(title, p4Match[0]) }
 
   // Reminder time extraction (e.g. "at 2pm", "at 14:30")
   const timeMatch = lower.match(/\bat\s+([0-9]{1,2})(?::([0-9]{2}))?\s*(am|pm)?\b/)
@@ -40,7 +43,7 @@ export function parseNaturalLanguage(input: string): TaskDraft {
     if (ampm === 'am' && hour === 12) hour = 0
     
     reminderTime = `${String(hour).padStart(2, '0')}:${min}`
-    title = title.replace(timeMatch[0], '')
+    title = replaceIgnoreCase(title, timeMatch[0])
   }
 
   // Recurrence extraction
@@ -71,7 +74,7 @@ export function parseNaturalLanguage(input: string): TaskDraft {
   const everyDayMatch = lower.match(/\bevery\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b/)
   if (everyDayMatch) {
     const day = DAYS[everyDayMatch[1]]
-    title = title.replace(everyDayMatch[0], '')
+    title = replaceIgnoreCase(title, everyDayMatch[0])
     return {
       type: 'recurring',
       title: title.trim().replace(/\s+/g, ' '),
@@ -99,7 +102,7 @@ export function parseNaturalLanguage(input: string): TaskDraft {
       if (lower.includes(`next ${dayStr}`)) d = addDays(d, 7)
       
       scheduledDate = format(d, 'yyyy-MM-dd')
-      title = title.replace(nextDayMatch[0], '')
+      title = replaceIgnoreCase(title, nextDayMatch[0])
     }
   }
 
