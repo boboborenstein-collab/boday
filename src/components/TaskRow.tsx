@@ -15,11 +15,13 @@ interface TaskRowProps {
   dateStr: string
   /** Current streak for recurring tasks (0 hides the flame). */
   streak?: number
+  /** Whether to show overdue text instead of carried text. */
+  overdue?: boolean
 }
 
 const SWIPE_THRESHOLD = 80
 
-export function TaskRow({ item, dateStr, streak = 0 }: TaskRowProps) {
+export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowProps) {
   const { task, completed, carriedOverFromDays } = item
   const setOneTimeCompleted = useStore((s) => s.setOneTimeCompleted)
   const toggleRecurring = useStore((s) => s.toggleRecurringCompletion)
@@ -152,7 +154,7 @@ export function TaskRow({ item, dateStr, streak = 0 }: TaskRowProps) {
                   carriedOverFromDays === 1 ? '' : 's'
                 } ago`}
               >
-                carried {carriedOverFromDays}d
+                {overdue ? `${carriedOverFromDays}d overdue` : `carried ${carriedOverFromDays}d`}
               </span>
             )}
           </div>

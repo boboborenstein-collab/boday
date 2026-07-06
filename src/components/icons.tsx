@@ -33,6 +33,13 @@ export const ListIcon = (p: IconProps) => (
   </svg>
 )
 
+export const ChecklistIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="m3 5 2 2 4-4M3 12l2 2 4-4M3 19l2 2 4-4" />
+    <path d="M13 6h8M13 12h8M13 18h8" />
+  </svg>
+)
+
 export const CalendarIcon = (p: IconProps) => (
   <svg {...base} {...p}>
     <rect x="3" y="4" width="18" height="18" rx="2" />

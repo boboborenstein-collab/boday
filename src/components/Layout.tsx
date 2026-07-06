@@ -6,6 +6,7 @@ import {
   CalendarIcon,
   ChartIcon,
   ListIcon,
+  ChecklistIcon,
   PlusIcon,
   SearchIcon,
   SettingsIcon,
@@ -13,6 +14,7 @@ import {
 
 const NAV = [
   { to: '/', label: 'Today', icon: ListIcon },
+  { to: '/tasks', label: 'Tasks', icon: ChecklistIcon },
   { to: '/calendar', label: 'Calendar', icon: CalendarIcon },
   { to: '/stats', label: 'Stats', icon: ChartIcon },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
@@ -90,7 +92,7 @@ export function Layout({ children }: { children: ReactNode }) {
             to={NAV[1].to}
             label={NAV[1].label}
             Icon={NAV[1].icon}
-            active={pathname.startsWith('/calendar')}
+            active={pathname.startsWith('/tasks')}
           />
 
           <motion.button
@@ -107,12 +109,18 @@ export function Layout({ children }: { children: ReactNode }) {
             to={NAV[2].to}
             label={NAV[2].label}
             Icon={NAV[2].icon}
-            active={pathname.startsWith('/stats')}
+            active={pathname.startsWith('/calendar')}
           />
           <NavItem
             to={NAV[3].to}
             label={NAV[3].label}
             Icon={NAV[3].icon}
+            active={pathname.startsWith('/stats')}
+          />
+          <NavItem
+            to={NAV[4].to}
+            label={NAV[4].label}
+            Icon={NAV[4].icon}
             active={pathname.startsWith('/settings')}
           />
         </div>

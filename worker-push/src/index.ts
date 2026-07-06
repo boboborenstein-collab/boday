@@ -24,6 +24,7 @@ interface OneTimeTask {
   id: string
   type: 'one_time'
   title: string
+  priority: number
   reminderTime: string | null
   scheduledDate: string
   completed: boolean
@@ -32,6 +33,7 @@ interface RecurringTask {
   id: string
   type: 'recurring'
   title: string
+  priority: number
   reminderTime: string | null
   startDate: string
   endDate: string | null
@@ -51,6 +53,16 @@ function utc(dateStr: string): number {
 const dayOfWeek = (dateStr: string) => new Date(utc(dateStr)).getUTCDay()
 const dayOfMonth = (dateStr: string) => new Date(utc(dateStr)).getUTCDate()
 const diffDays = (a: string, b: string) => Math.round((utc(a) - utc(b)) / 86_400_000)
+
+/** Local time of the once-a-day summary push. */
+const DIGEST_TIME = '09:00'
+
+/** Minutes from 'HH:mm' a to 'HH:mm' b (same day, b >= a). */
+function minutesBetween(a: string, b: string): number {
+  const [ah, am] = a.split(':').map(Number)
+  const [bh, bm] = b.split(':').map(Number)
+  return bh * 60 + bm - (ah * 60 + am)
+}
 
 function occursOn(task: RecurringTask, dateStr: string): boolean {
   if (dateStr < task.startDate) return false
@@ -129,16 +141,55 @@ export default {
       const { subscription, tz } = row.data as { subscription: PushSubscription; tz?: string }
       const { today, hhmm } = nowIn(tz || 'America/New_York')
 
-      const due = tasks.filter((t) => {
-        if (t.reminderTime !== hhmm) return false
+      // A task is "pending today" if it should be acted on and isn't done yet.
+      const pendingToday = (t: Task): boolean => {
         if (t.type === 'one_time') return !t.completed && t.scheduledDate <= today
         return occursOn(t, today) && !doneToday.has(`${t.id}|${today}`)
-      })
+      }
 
-      for (const task of due) {
+      const messages: { title: string; body: string }[] = []
+
+      for (const t of tasks) {
+        if (!pendingToday(t)) continue
+
+        // 1) On-time reminder at the task's own reminder time.
+        if (t.reminderTime === hhmm) {
+          messages.push({ title: 'BoDay', body: `Time for: ${t.title}` })
+          continue
+        }
+
+        // 2) Escalating re-nudges after a missed reminder (same day, stateless:
+        //    fires when the minutes elapsed since the reminder hit the schedule).
+        if (t.reminderTime && t.reminderTime < hhmm) {
+          const since = minutesBetween(t.reminderTime, hhmm)
+          if (t.priority === 1 && since % 60 === 0) {
+            messages.push({
+              title: '🔴 BoDay — OVERDUE (P1)',
+              body: `STILL NOT DONE: ${t.title} — ${since / 60}h past its time`,
+            })
+          } else if (t.priority === 2 && (since === 120 || since === 360)) {
+            messages.push({ title: '🟠 BoDay — still pending', body: `${t.title} was due ${since / 60}h ago` })
+          }
+        }
+      }
+
+      // 3) Morning digest at DIGEST_TIME local: today's plan + overdue emphasis.
+      if (hhmm === DIGEST_TIME) {
+        const pending = tasks.filter(pendingToday)
+        const overdue = pending.filter((t) => t.type === 'one_time' && t.scheduledDate < today)
+        const p1Overdue = overdue.filter((t) => t.priority === 1)
+        if (pending.length) {
+          let body = `${pending.length} task${pending.length === 1 ? '' : 's'} on your plate today`
+          if (overdue.length) body += ` — ⚠️ ${overdue.length} overdue`
+          if (p1Overdue.length) body += `. 🔴 Top priority: ${p1Overdue[0].title}`
+          messages.push({ title: 'BoDay — your day', body })
+        }
+      }
+
+      for (const msg of messages) {
         const payload = await buildPushPayload(
           {
-            data: JSON.stringify({ title: 'BoDay', body: `Time for: ${task.title}`, url: '/' }),
+            data: JSON.stringify({ ...msg, url: '/' }),
             options: { ttl: 300, urgency: 'high' },
           },
           subscription,

@@ -6,6 +6,7 @@ import { TaskEditor } from './components/TaskEditor'
 import { CommandPalette } from './components/CommandPalette'
 import { ThemeController } from './components/ThemeController'
 import { TodayView } from './views/TodayView'
+import { TasksView } from './views/TasksView'
 import { CalendarView } from './views/CalendarView'
 import { StatsView } from './views/StatsView'
 import { SettingsView } from './views/SettingsView'
@@ -29,6 +30,7 @@ function AnimatedRoutes() {
       >
         <Routes location={location}>
           <Route path="/" element={<TodayView />} />
+          <Route path="/tasks" element={<TasksView />} />
           <Route path="/calendar" element={<CalendarView />} />
           <Route path="/stats" element={<StatsView />} />
           <Route path="/settings" element={<SettingsView />} />
