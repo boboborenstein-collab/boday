@@ -413,6 +413,8 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
             {([
               { v: undefined, l: 'Auto' },
               { v: null, l: 'Off' },
+              { v: 5, l: '5m' },
+              { v: 10, l: '10m' },
               { v: 15, l: '15m' },
               { v: 30, l: '30m' },
               { v: 60, l: '1h' },

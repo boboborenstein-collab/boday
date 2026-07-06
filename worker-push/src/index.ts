@@ -121,6 +121,38 @@ async function sbDelete(env: Env, table: string, id: string): Promise<void> {
 
 // ── main ─────────────────────────────────────────────────────────────────────
 export default {
+  // Manual test: GET /test sends a test push to every subscription and
+  // reports the push service's response status for each.
+  async fetch(req: Request, env: Env): Promise<Response> {
+    const url = new URL(req.url)
+    if (url.pathname !== '/test') return new Response('boday-push ok', { status: 200 })
+
+    const subRows = await sbSelect(env, 'push_subscriptions')
+    const vapid = {
+      subject: env.VAPID_SUBJECT,
+      publicKey: env.VAPID_PUBLIC_KEY,
+      privateKey: env.VAPID_PRIVATE_KEY,
+    }
+    const results: unknown[] = []
+    for (const row of subRows) {
+      const { subscription } = row.data as { subscription: PushSubscription }
+      try {
+        const payload = await buildPushPayload(
+          {
+            data: JSON.stringify({ title: 'BoDay', body: 'Test push — it works! 🎉', url: '/' }),
+            options: { ttl: 300, urgency: 'high' },
+          },
+          subscription,
+          vapid,
+        )
+        const res = await fetch(subscription.endpoint, payload)
+        results.push({ endpoint: subscription.endpoint.slice(0, 60), status: res.status, body: await res.text() })
+      } catch (e) {
+        results.push({ endpoint: subscription.endpoint.slice(0, 60), error: String(e) })
+      }
+    }
+    return Response.json(results)
+  },
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
     const [taskRows, compRows, subRows] = await Promise.all([
       sbSelect(env, 'tasks'),
@@ -202,6 +234,8 @@ export default {
         }
       }
 
+      console.log(`tick tz=${tz} today=${today} hhmm=${hhmm} tasks=${tasks.length} messages=${messages.length}`)
+
       for (const msg of messages) {
         const payload = await buildPushPayload(
           {
@@ -212,6 +246,7 @@ export default {
           vapid,
         )
         const res = await fetch(subscription.endpoint, payload)
+        console.log(`sent "${msg.body}" -> ${res.status}`)
         // Expired/revoked subscription: clean it up so we stop trying.
         if (res.status === 404 || res.status === 410) {
           await sbDelete(env, 'push_subscriptions', row.id)
