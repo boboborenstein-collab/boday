@@ -9,7 +9,8 @@
     "SUPABASE_URL": "https://cgsjsbsxuzawvgunrpqi.supabase.co",
     "SUPABASE_KEY": "sb_publishable_VooWw0NDmWy9x8hOTqoBRw_4TGE2-xz",
     "VAPID_PUBLIC_KEY": "BPE5dCMkzTaS3TjQFq-e5U9yVkGDhCpi4MpMVKVWKZNqxxo3FqIFKFRANgL8sT8tw-PBhwR2xy_ujFOQ4cLniEA",
-    "VAPID_SUBJECT": "mailto:bobo.borenstein@gmail.com"
+    "VAPID_SUBJECT": "mailto:bobo.borenstein@gmail.com",
+    "ADMIN_EMAIL": "bobo.borenstein@gmail.com"
   }
   // VAPID_PRIVATE_KEY is a secret: npx wrangler secret put VAPID_PRIVATE_KEY
 }

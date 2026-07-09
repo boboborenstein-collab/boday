@@ -14,6 +14,7 @@ interface Env {
   VAPID_PUBLIC_KEY: string
   VAPID_PRIVATE_KEY: string
   VAPID_SUBJECT: string
+  ADMIN_EMAIL: string
 }
 
 type Recurrence =
@@ -127,12 +128,134 @@ async function sbDelete(env: Env, table: string, id: string): Promise<void> {
   })
 }
 
+// ── invite-only signup ───────────────────────────────────────────────────────
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS },
+  })
+}
+
+function serviceHeaders(env: Env): Record<string, string> {
+  const key = sbKey(env)
+  return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }
+}
+
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+function generateCode(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(4))
+  let s = ''
+  for (const b of bytes) s += CODE_ALPHABET[b % CODE_ALPHABET.length]
+  return `BODAY-${s}`
+}
+
+/** Resolve the caller's Supabase user from their access token; null if invalid. */
+async function getCaller(req: Request, env: Env): Promise<{ id: string; email: string } | null> {
+  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '')
+  if (!token) return null
+  const res = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+    headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) return null
+  return res.json()
+}
+
+async function handleSignup(req: Request, env: Env): Promise<Response> {
+  const body = (await req.json().catch(() => ({}))) as {
+    email?: string
+    password?: string
+    code?: string
+  }
+  const email = body.email?.trim()
+  const password = body.password ?? ''
+  const code = body.code?.trim().toUpperCase()
+  if (!email || password.length < 6 || !code) {
+    return json({ error: 'Enter your email, a password of at least 6 characters, and an invite code.' }, 400)
+  }
+
+  const rows = (await (
+    await fetch(
+      `${env.SUPABASE_URL}/rest/v1/invite_codes?code=eq.${encodeURIComponent(code)}&select=code,used_by`,
+      { headers: serviceHeaders(env) },
+    )
+  ).json()) as { code: string; used_by: string | null }[]
+  if (!rows.length || rows[0].used_by) {
+    return json({ error: "That invite code isn't valid." }, 400)
+  }
+
+  const createRes = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: serviceHeaders(env),
+    body: JSON.stringify({ email, password, email_confirm: true }),
+  })
+  const created = (await createRes.json()) as { id?: string; msg?: string; message?: string }
+  if (!createRes.ok || !created.id) {
+    return json({ error: created.msg || created.message || 'Could not create the account.' }, 400)
+  }
+
+  await fetch(`${env.SUPABASE_URL}/rest/v1/invite_codes?code=eq.${encodeURIComponent(code)}`, {
+    method: 'PATCH',
+    headers: { ...serviceHeaders(env), Prefer: 'return=minimal' },
+    body: JSON.stringify({ used_by: created.id, used_at: new Date().toISOString() }),
+  })
+
+  return json({ ok: true })
+}
+
+async function handleInvites(req: Request, env: Env): Promise<Response> {
+  const caller = await getCaller(req, env)
+  if (!caller) return json({ error: 'Sign in required.' }, 401)
+  if (caller.email !== env.ADMIN_EMAIL) return json({ error: 'Admin only.' }, 403)
+
+  if (req.method === 'POST') {
+    const code = generateCode()
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/invite_codes`, {
+      method: 'POST',
+      headers: { ...serviceHeaders(env), Prefer: 'return=minimal' },
+      body: JSON.stringify({ code }),
+    })
+    if (!res.ok) return json({ error: `Could not create code (${res.status}).` }, 500)
+    return json({ code })
+  }
+
+  // GET: list codes newest-first, resolving claimant emails.
+  const rows = (await (
+    await fetch(
+      `${env.SUPABASE_URL}/rest/v1/invite_codes?select=code,created_at,used_by,used_at&order=created_at.desc`,
+      { headers: serviceHeaders(env) },
+    )
+  ).json()) as { code: string; created_at: string; used_by: string | null; used_at: string | null }[]
+
+  const invites = await Promise.all(
+    rows.map(async (r) => {
+      let used_by_email: string | null = null
+      if (r.used_by) {
+        const res = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${r.used_by}`, {
+          headers: serviceHeaders(env),
+        })
+        if (res.ok) used_by_email = ((await res.json()) as { email?: string }).email ?? null
+      }
+      return { code: r.code, created_at: r.created_at, used_by_email, used_at: r.used_at }
+    }),
+  )
+  return json({ invites })
+}
+
 // ── main ─────────────────────────────────────────────────────────────────────
 export default {
   // Manual test: GET /test sends a test push to every subscription and
   // reports the push service's response status for each.
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
+    if (url.pathname === '/signup' && req.method === 'POST') return handleSignup(req, env)
+    if (url.pathname === '/invites') return handleInvites(req, env)
     if (url.pathname !== '/test') return new Response('boday-push ok', { status: 200 })
 
     const subRows = await sbSelect(env, 'push_subscriptions')
