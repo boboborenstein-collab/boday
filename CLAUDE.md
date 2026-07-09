@@ -45,6 +45,12 @@ npm run preview
 - **Push worker**: `worker-push/` — cron every minute. On-time reminders,
   per-task re-nudge (Auto/Off/5m–2h; Auto = P1 hourly, P2 at 2h+6h), 9AM digest.
   Deploy: `npx wrangler deploy` inside `worker-push/`. `GET /test` sends a test push.
+- **Invite-only signup** (2026-07-08): public Supabase signups DISABLED.
+  Signup goes through the push worker: `POST /signup` {email, password, code}
+  validates a one-time code from the `invite_codes` table and creates the user
+  via the admin API; `POST/GET /invites` (admin bearer token, `ADMIN_EMAIL` =
+  bobo.borenstein@gmail.com) mints/lists codes. Admin UI: Settings → Invites
+  (visible only to the admin). Client: `src/lib/invites.ts`.
 - **Supabase** (project cgsjsbsxuzawvgunrpqi): tables `tasks` / `completions` /
   `push_subscriptions`, all `(id text pk, user_id text, data jsonb)`. Multi-user:
   email+password auth (AuthGate), RLS ON ("own rows" policy), worker reads via
