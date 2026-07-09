@@ -5,6 +5,7 @@ import { downloadExport, parseImport } from '../lib/dataTransfer'
 import { isSyncConfigured } from '../lib/sync'
 import { isPushConfigured, subscribeToPush, unsubscribeFromPush } from '../lib/push'
 import { getSupabase } from '../lib/supabaseClient'
+import { ADMIN_EMAIL, createInvite, listInvites, type Invite } from '../lib/invites'
 import {
   DownloadIcon,
   MoonIcon,
@@ -48,6 +49,7 @@ export function SettingsView() {
       .auth.getSession()
       .then(({ data }) => setAccountEmail(data.session?.user.email ?? null))
   }, [])
+  const isAdmin = accountEmail === ADMIN_EMAIL
 
   const signOut = async () => {
     await unsubscribeFromPush()
@@ -263,6 +265,9 @@ export function SettingsView() {
         </div>
       </Section>
 
+      {/* Invites (admin only) */}
+      {isAdmin && <InvitesSection />}
+
       {/* Account */}
       <Section title="Account">
         <div className="rounded-xl border border-border bg-surface/70 p-4">
@@ -295,6 +300,80 @@ export function SettingsView() {
 
       <p className="mt-8 text-center text-xs text-faint">BoDay · v0.2 · made with care</p>
     </div>
+  )
+}
+
+function InvitesSection() {
+  const [invites, setInvites] = useState<Invite[] | null>(null)
+  const [newCode, setNewCode] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const refresh = () => listInvites().then(setInvites).catch(() => setInvites([]))
+  useEffect(() => {
+    refresh()
+  }, [])
+
+  const generate = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const code = await createInvite()
+      setNewCode(code)
+      setCopied(false)
+      refresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not create a code.')
+    }
+    setBusy(false)
+  }
+
+  const copy = async () => {
+    if (!newCode) return
+    await navigator.clipboard.writeText(newCode)
+    setCopied(true)
+  }
+
+  return (
+    <Section title="Invites">
+      <p className="mb-3 text-xs text-faint">
+        Generate a one-time code and text it to a friend — they'll use it to sign up.
+      </p>
+      <button
+        onClick={generate}
+        disabled={busy}
+        className="w-full rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent shadow-glow disabled:opacity-60"
+      >
+        {busy ? 'One moment…' : 'Generate invite code'}
+      </button>
+      {newCode && (
+        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
+          <span className="font-mono text-base font-bold tracking-widest">{newCode}</span>
+          <button
+            onClick={copy}
+            className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium transition-colors hover:border-border-strong"
+          >
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+      )}
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+      {invites && invites.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-1.5">
+          {invites.map((inv) => (
+            <li key={inv.code} className="flex items-center justify-between gap-2 text-xs">
+              <span className="font-mono text-muted">{inv.code}</span>
+              <span className={inv.used_by_email ? 'text-faint' : 'font-medium text-success'}>
+                {inv.used_by_email
+                  ? `used by ${inv.used_by_email}${inv.used_at ? ` on ${new Date(inv.used_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : ''}`
+                  : 'unused'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
   )
 }
 
