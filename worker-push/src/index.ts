@@ -128,6 +128,127 @@ async function sbDelete(env: Env, table: string, id: string): Promise<void> {
   })
 }
 
+async function sbUpsert(
+  env: Env,
+  table: string,
+  row: { id: string; user_id: string; data: unknown },
+): Promise<void> {
+  const key = sbKey(env)
+  await fetch(`${env.SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal',
+    },
+    body: JSON.stringify([row]),
+  })
+}
+
+// ── Shabbat / Yom Tov quiet mode ─────────────────────────────────────────────
+// While a user is inside a Shabbat or holiday window (candle lighting →
+// havdalah, from Hebcal for their saved location) ALL pushes are suppressed:
+// reminders, re-nudges and the digest. Windows are cached in the user_prefs
+// row and refreshed by this worker every ~3 days.
+
+interface QuietWindow {
+  start: string
+  end: string
+  title: string
+}
+interface UserPrefsData {
+  quiet?: { enabled: boolean; geonameid: number; locationName?: string }
+  cache?: { fetchedAt: string; windows: QuietWindow[] }
+}
+
+/** Pair Hebcal candles/havdalah items into absolute quiet windows. */
+function computeQuietWindows(
+  items: { category: string; date: string; title: string }[],
+): QuietWindow[] {
+  const sorted = items
+    .filter((i) => i.category === 'candles' || i.category === 'havdalah')
+    .sort((a, b) => a.date.localeCompare(b.date))
+  const windows: QuietWindow[] = []
+  let open: { start: string; title: string } | null = null
+  for (const it of sorted) {
+    if (it.category === 'candles') {
+      // A second candle lighting inside an open window (multi-day chag,
+      // chag into Shabbat) keeps the window open — ignore it.
+      if (!open) open = { start: it.date, title: it.title }
+    } else if (open) {
+      windows.push({ start: open.start, end: it.date, title: open.title })
+      open = null
+    }
+  }
+  return windows
+}
+
+const dateStrUTC = (d: Date) => d.toISOString().slice(0, 10)
+
+/** Refresh a user's cached quiet windows from Hebcal if stale. Never throws. */
+async function freshQuietWindows(
+  env: Env,
+  row: { id: string; user_id: string; data: unknown },
+): Promise<QuietWindow[]> {
+  const data = (row.data ?? {}) as UserPrefsData
+  const quiet = data.quiet
+  if (!quiet?.enabled || !quiet.geonameid) return []
+
+  const cached = data.cache
+  const now = Date.now()
+  const lastEnd = cached?.windows.length
+    ? Date.parse(cached.windows[cached.windows.length - 1].end)
+    : 0
+  const stale =
+    !cached ||
+    now - Date.parse(cached.fetchedAt) > 72 * 3_600_000 ||
+    lastEnd < now + 48 * 3_600_000
+
+  if (!stale) return cached.windows
+
+  try {
+    const start = dateStrUTC(new Date(now - 86_400_000))
+    const end = dateStrUTC(new Date(now + 9 * 86_400_000))
+    const res = await fetch(
+      `https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&c=on&M=on&geonameid=${quiet.geonameid}&start=${start}&end=${end}`,
+    )
+    if (!res.ok) throw new Error(`hebcal ${res.status}`)
+    const body = (await res.json()) as { items?: { category: string; date: string; title: string }[] }
+    const windows = computeQuietWindows(body.items ?? [])
+    await sbUpsert(env, 'user_prefs', {
+      id: row.id,
+      user_id: row.user_id,
+      data: { ...data, cache: { fetchedAt: new Date(now).toISOString(), windows } },
+    })
+    return windows
+  } catch (e) {
+    console.log(`quiet window refresh failed for ${row.user_id}: ${String(e)}`)
+    return cached?.windows ?? []
+  }
+}
+
+function inQuietWindow(windows: QuietWindow[], now: number): QuietWindow | null {
+  for (const w of windows) {
+    if (Date.parse(w.start) <= now && now <= Date.parse(w.end)) return w
+  }
+  return null
+}
+
+/** GET /geo?q= — CORS-friendly proxy for Hebcal's location autocomplete. */
+async function handleGeo(req: Request): Promise<Response> {
+  const q = new URL(req.url).searchParams.get('q')?.trim()
+  if (!q) return json([])
+  try {
+    const res = await fetch(`https://www.hebcal.com/complete.php?q=${encodeURIComponent(q)}`)
+    if (!res.ok) return json([])
+    const items = (await res.json()) as { id: number; value: string }[]
+    return json(items.slice(0, 8).map((i) => ({ geonameid: i.id, name: i.value })))
+  } catch {
+    return json([])
+  }
+}
+
 // ── invite-only signup ───────────────────────────────────────────────────────
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -256,6 +377,7 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
     if (url.pathname === '/signup' && req.method === 'POST') return handleSignup(req, env)
     if (url.pathname === '/invites') return handleInvites(req, env)
+    if (url.pathname === '/geo') return handleGeo(req)
     if (url.pathname !== '/test') return new Response('boday-push ok', { status: 200 })
 
     const subRows = await sbSelect(env, 'push_subscriptions')
@@ -285,12 +407,19 @@ export default {
     return Response.json(results)
   },
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
-    const [taskRows, compRows, subRows] = await Promise.all([
+    const [taskRows, compRows, subRows, prefRows] = await Promise.all([
       sbSelect(env, 'tasks'),
       sbSelect(env, 'completions'),
       sbSelect(env, 'push_subscriptions'),
+      sbSelect(env, 'user_prefs').catch(() => []),
     ])
     if (!subRows.length) return
+
+    // Quiet windows per user (refreshing stale caches from Hebcal).
+    const quietByUser = new Map<string, QuietWindow[]>()
+    for (const r of prefRows) {
+      quietByUser.set(r.user_id, await freshQuietWindows(env, r))
+    }
 
     // Group by user so each device only gets its owner's reminders.
     const tasksByUser = new Map<string, Task[]>()
@@ -316,6 +445,13 @@ export default {
     for (const row of subRows) {
       const { subscription, tz } = row.data as { subscription: PushSubscription; tz?: string }
       const { today, hhmm } = nowIn(tz || 'America/New_York')
+
+      // Shabbat / Yom Tov: total silence for this user.
+      const quietWin = inQuietWindow(quietByUser.get(row.user_id) ?? [], Date.now())
+      if (quietWin) {
+        console.log(`quiet mode active for ${row.user_id} until ${quietWin.end}`)
+        continue
+      }
       const tasks = tasksByUser.get(row.user_id) ?? []
       const doneToday = doneByUser.get(row.user_id) ?? new Set<string>()
 
