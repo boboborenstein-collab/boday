@@ -187,7 +187,7 @@ export function CalendarView() {
                   item={item}
                   dateStr={selected}
                   streak={
-                    item.task.type === 'recurring'
+                    item.task.type === 'recurring' && !item.task.excludeFromStats
                       ? currentStreak(item.task, completions, selected)
                       : 0
                   }

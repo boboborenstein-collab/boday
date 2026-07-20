@@ -57,7 +57,7 @@ export function TodayView() {
   const streaks = useMemo(() => {
     const map = new Map<string, number>()
     for (const it of items) {
-      if (it.task.type === 'recurring') {
+      if (it.task.type === 'recurring' && !it.task.excludeFromStats) {
         map.set(it.task.id, currentStreak(it.task, completions, today))
       }
     }

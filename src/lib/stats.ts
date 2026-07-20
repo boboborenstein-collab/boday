@@ -22,6 +22,8 @@ export function dailyStats(
   today: string,
   days: number,
 ): DayStat[] {
+  // Tasks flagged excludeFromStats never enter the motivational aggregates.
+  tasks = tasks.filter((t) => !t.excludeFromStats)
   const end = fromDateStr(today)
   const out: DayStat[] = []
   for (let i = days - 1; i >= 0; i--) {
@@ -73,7 +75,7 @@ export function overview(
     else break
   }
 
-  const recurring = tasks.filter((t) => t.type === 'recurring')
+  const recurring = tasks.filter((t) => t.type === 'recurring' && !t.excludeFromStats)
   let topStreak: Overview['topStreak'] = null
   for (const t of recurring) {
     if (t.type !== 'recurring') continue
@@ -95,6 +97,9 @@ export function overview(
 
 /** All-time completions count (one-time done + recurring completion rows). */
 export function lifetimeCompleted(tasks: Task[], completions: TaskCompletion[]): number {
-  const oneTimeDone = tasks.filter((t) => t.type === 'one_time' && t.completed).length
-  return oneTimeDone + completions.length
+  const excluded = new Set(tasks.filter((t) => t.excludeFromStats).map((t) => t.id))
+  const oneTimeDone = tasks.filter(
+    (t) => t.type === 'one_time' && t.completed && !t.excludeFromStats,
+  ).length
+  return oneTimeDone + completions.filter((c) => !excluded.has(c.taskId)).length
 }

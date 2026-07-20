@@ -12,8 +12,8 @@
 //                     occurrence is independent and history is preserved.
 // ─────────────────────────────────────────────────────────────────────────
 
-/** P1 (highest) … P4 (lowest). */
-export type Priority = 1 | 2 | 3 | 4
+/** P1 (highest) … P4 (lowest); 5 = Torah, a separate category that sorts last. */
+export type Priority = 1 | 2 | 3 | 4 | 5
 
 export type Recurrence =
   | { kind: 'daily' }
@@ -36,6 +36,11 @@ interface BaseTask {
    * null/0 = off; undefined = default by priority (P1 hourly, P2 at 2h & 6h).
    */
   renudgeMinutes?: number | null
+  /**
+   * Leave this task out of streaks / stats / motivational aggregates.
+   * undefined/false = counted (the default).
+   */
+  excludeFromStats?: boolean
   /** ISO timestamp. */
   createdAt: string
 }
