@@ -21,6 +21,8 @@ import { formatDateLong } from '../lib/format'
 import { TaskRow } from '../components/TaskRow'
 import { PRIORITY_STYLES } from '../components/priorityStyles'
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from '../components/icons'
+import { useJewishCalendar } from '../hooks/useJewishCalendar'
+import type { JewishDayInfo } from '../lib/hebcal'
 import type { DayItem } from '../types'
 
 const LABELS_SUN = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
@@ -67,6 +69,10 @@ export function CalendarView() {
     () => buildDayList(tasks, completions, selected),
     [tasks, completions, selected],
   )
+
+  // Shabbat & holiday info (Hebcal) for the visible range; empty when toggled off.
+  const jewishDays = useJewishCalendar(cells[0].dateStr, cells[cells.length - 1].dateStr)
+  const selectedJewish = jewishDays.get(selected)
 
   const step = (d: 1 | -1) => {
     setDir(d)
@@ -153,6 +159,7 @@ export function CalendarView() {
                 isToday={cell.dateStr === today}
                 isSelected={cell.dateStr === selected}
                 items={cell.items}
+                jewish={jewishDays.get(cell.dateStr)}
                 onSelect={() => setSelected(cell.dateStr)}
               />
             ))}
@@ -174,6 +181,21 @@ export function CalendarView() {
             <PlusIcon className="size-3.5" /> Add
           </button>
         </div>
+        {selectedJewish && (
+          <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-border bg-surface/70 px-4 py-2.5 text-xs">
+            {selectedJewish.holidays.map((h) => (
+              <span key={h} className="font-medium text-accent">
+                ✡ {h}
+              </span>
+            ))}
+            {selectedJewish.candles && (
+              <span className="text-muted">🕯️ Candle lighting {selectedJewish.candles}</span>
+            )}
+            {selectedJewish.havdalah && (
+              <span className="text-muted">✨ Havdalah {selectedJewish.havdalah}</span>
+            )}
+          </div>
+        )}
         {selectedItems.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-faint">
             Nothing scheduled.
@@ -228,6 +250,7 @@ function CalendarCell({
   isToday,
   isSelected,
   items,
+  jewish,
   onSelect,
 }: {
   label: string
@@ -235,18 +258,30 @@ function CalendarCell({
   isToday: boolean
   isSelected: boolean
   items: DayItem[]
+  jewish?: JewishDayInfo
   onSelect: () => void
 }) {
   const dots = items.slice(0, 4)
   const allDone = items.length > 0 && items.every((i) => i.completed)
+  const marker = jewish?.holidays.length ? '✡' : jewish?.candles || jewish?.havdalah ? '🕯' : null
   return (
     <motion.button
       whileTap={{ scale: 0.92 }}
       onClick={onSelect}
-      className={`flex aspect-square flex-col items-center justify-start gap-1 rounded-lg py-1.5 text-sm transition-colors ${
+      className={`relative flex aspect-square flex-col items-center justify-start gap-1 rounded-lg py-1.5 text-sm transition-colors ${
         isSelected ? 'bg-accent-soft ring-1 ring-accent' : 'hover:bg-surface-2'
       } ${inMonth ? '' : 'opacity-35'}`}
     >
+      {marker && (
+        <span
+          className={`absolute right-0.5 top-0.5 text-[9px] leading-none ${
+            marker === '✡' ? 'text-accent' : 'opacity-70'
+          }`}
+          title={jewish?.holidays.join(', ') || 'Shabbat'}
+        >
+          {marker}
+        </span>
+      )}
       <span
         className={`grid size-6 place-items-center rounded-full text-[13px] ${
           isToday ? 'bg-accent font-semibold text-on-accent' : 'text-text'

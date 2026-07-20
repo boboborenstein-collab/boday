@@ -15,6 +15,7 @@ import { isPushConfigured, subscribeToPush } from './lib/push'
 import { useLiveAlerts } from './hooks/useLiveAlerts'
 import { ToastContainer } from './components/ToastContainer'
 import { AuthGate } from './components/AuthGate'
+import { QuietOverlay } from './components/QuietOverlay'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -79,6 +80,7 @@ function SignedInApp() {
       <TaskEditor />
       <CommandPalette />
       <ToastContainer />
+      <QuietOverlay />
     </BrowserRouter>
   )
 }

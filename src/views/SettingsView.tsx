@@ -6,6 +6,7 @@ import { isSyncConfigured } from '../lib/sync'
 import { isPushConfigured, subscribeToPush, unsubscribeFromPush } from '../lib/push'
 import { getSupabase } from '../lib/supabaseClient'
 import { ADMIN_EMAIL, createInvite, listInvites, type Invite } from '../lib/invites'
+import { ShabbatSettings } from '../components/ShabbatSettings'
 import {
   DownloadIcon,
   MoonIcon,
@@ -190,6 +191,8 @@ export function SettingsView() {
           </div>
         </Row>
       </Section>
+
+      <ShabbatSettings />
 
       {/* Data */}
       <Section title="Your data">

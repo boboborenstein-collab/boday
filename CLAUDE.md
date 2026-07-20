@@ -51,6 +51,16 @@ npm run preview
   via the admin API; `POST/GET /invites` (admin bearer token, `ADMIN_EMAIL` =
   bobo.borenstein@gmail.com) mints/lists codes. Admin UI: Settings → Invites
   (visible only to the admin). Client: `src/lib/invites.ts`.
+- **Shabbat/Yom Tov quiet mode + skip** (2026-07-20): `user_prefs` table (same
+  row shape) holds per-user `{ quiet: { enabled, geonameid, locationName },
+  cache: { fetchedAt, windows } }`. The cron worker suppresses ALL pushes inside
+  candle-lighting→havdalah windows (source: Hebcal API, cache refreshed ~3 days
+  by the worker); `GET /geo?q=` proxies Hebcal's location autocomplete (no CORS
+  on their end). App side: `src/lib/hebcal.ts` (+ QuietOverlay, ShabbatSettings,
+  useJewishCalendar) — Settings → "Shabbat & holidays" section, calendar ✡/🕯
+  markers. Recurring tasks can be SKIPPED for a day: stored as a completions row
+  with `skipped: true` — silences the worker (row exists) but counts as missed
+  in streaks/stats.
 - **Supabase** (project cgsjsbsxuzawvgunrpqi): tables `tasks` / `completions` /
   `push_subscriptions`, all `(id text pk, user_id text, data jsonb)`. Multi-user:
   email+password auth (AuthGate), RLS ON ("own rows" policy), worker reads via
