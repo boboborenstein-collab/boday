@@ -41,11 +41,12 @@
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
-  /* Priority scale (P1 highest → P4 lowest) */
+  /* Priority scale (P1 highest → P4 lowest; P5 = Torah category) */
   --color-p1: #fb5a5a;
   --color-p2: #f5a524;
   --color-p3: #4d8df6;
   --color-p4: #8b8b9c;
+  --color-p5: #14b8a6;
 
   /* Carry-over flag */
   --color-carry: #f5a524;

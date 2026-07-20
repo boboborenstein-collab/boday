@@ -5,7 +5,7 @@ export interface PriorityMeta {
   label: string
   short: string
   /** Semantic Tailwind color name (maps to --color-pN token). */
-  color: 'p1' | 'p2' | 'p3' | 'p4'
+  color: 'p1' | 'p2' | 'p3' | 'p4' | 'p5'
 }
 
 export const PRIORITIES: PriorityMeta[] = [
@@ -13,6 +13,7 @@ export const PRIORITIES: PriorityMeta[] = [
   { value: 2, label: 'High', short: 'P2', color: 'p2' },
   { value: 3, label: 'Medium', short: 'P3', color: 'p3' },
   { value: 4, label: 'Low', short: 'P4', color: 'p4' },
+  { value: 5, label: 'Torah', short: 'T', color: 'p5' },
 ]
 
 export function priorityMeta(p: Priority): PriorityMeta {

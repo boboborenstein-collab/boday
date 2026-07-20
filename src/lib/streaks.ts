@@ -48,6 +48,57 @@ export function currentStreak(
   return streak
 }
 
+/**
+ * Lifetime history for a recurring task, from `startDate` through `today`.
+ * Today's occurrence is still "open": it counts as scheduled but never as
+ * missed, and it only enters `pct` once completed.
+ */
+export interface RecurringHistory {
+  /** Calendar days the task has been on (start → today, inclusive). */
+  daysOn: number
+  /** Scheduled occurrences so far (including today's, if any). */
+  scheduled: number
+  completed: number
+  /** Past occurrences with no completion. */
+  missed: number
+  /** completed / (completed + missed), or 0 with no closed occurrences. */
+  pct: number
+}
+
+export function recurringHistory(
+  task: RecurringTask,
+  completions: TaskCompletion[],
+  today: string,
+): RecurringHistory {
+  const done = new Set(
+    completions
+      .filter((c) => c.taskId === task.id)
+      .map((c) => c.completionDate),
+  )
+
+  const start = fromDateStr(task.startDate)
+  let cursor = fromDateStr(today)
+  const daysOn = Math.max(0, differenceInCalendarDays(cursor, start) + 1)
+  let scheduled = 0
+  let completed = 0
+  let missed = 0
+  let walked = 0
+
+  while (differenceInCalendarDays(cursor, start) >= 0 && walked < MAX_LOOKBACK_DAYS) {
+    const ds = toDateStr(cursor)
+    if (occursOn(task, ds)) {
+      scheduled++
+      if (done.has(ds)) completed++
+      else if (ds !== today) missed++
+    }
+    cursor = subDays(cursor, 1)
+    walked++
+  }
+
+  const closed = completed + missed
+  return { daysOn, scheduled, completed, missed, pct: closed ? completed / closed : 0 }
+}
+
 /** Total number of recorded completions for a recurring task. */
 export function totalCompletions(
   task: RecurringTask,

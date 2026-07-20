@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useStore } from '../store/useStore'
 import { todayStr } from '../lib/date'
 import { PRIORITIES } from '../lib/priority'
+import { recurringHistory } from '../lib/streaks'
 import { PRIORITY_STYLES } from './priorityStyles'
 import { RepeatIcon, TrashIcon, XIcon } from './icons'
-import type { Priority, Recurrence, Task } from '../types'
+import type { Priority, Recurrence, RecurringTask, Task } from '../types'
 
 const DOW = [
   { i: 0, label: 'S' },
@@ -78,6 +79,7 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
   const [renudgeMinutes, setRenudgeMinutes] = useState<number | null | undefined>(
     existing?.renudgeMinutes,
   )
+  const [countInStats, setCountInStats] = useState(!existing?.excludeFromStats)
   const [tags, setTags] = useState<string[]>(existing?.tags ?? [])
   const [tagInput, setTagInput] = useState('')
 
@@ -133,6 +135,7 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
       tags: tags.length ? tags : undefined,
       reminderTime: reminderTime || null,
       renudgeMinutes: reminderTime ? renudgeMinutes : undefined,
+      excludeFromStats: countInStats ? undefined : true,
     }
 
     if (type === 'one_time') {
@@ -201,6 +204,8 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
           : 'Resets every scheduled day — never piles up.'}
       </p>
 
+      {existing?.type === 'recurring' && <RecurringHistoryStrip task={existing} />}
+
       <Field label="Title">
         <input
           autoFocus
@@ -228,7 +233,7 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
       </Field>
 
       <Field label="Priority">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 gap-2">
           {PRIORITIES.map((p) => {
             const active = priority === p.value
             const ps = PRIORITY_STYLES[p.value]
@@ -439,6 +444,32 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
         </Field>
       )}
 
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
+        <div>
+          <div className="text-sm font-medium">Count in streaks &amp; stats</div>
+          <div className="text-xs text-faint">
+            Off = a quick reminder that shouldn&apos;t affect your momentum.
+          </div>
+        </div>
+        <button
+          role="switch"
+          aria-checked={countInStats}
+          aria-label="Count in streaks and stats"
+          onClick={() => setCountInStats((v) => !v)}
+          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+            countInStats ? 'bg-accent' : 'bg-surface-3'
+          }`}
+        >
+          <motion.span
+            layout
+            transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+            className={`absolute top-0.5 size-5 rounded-full bg-white shadow-sm ${
+              countInStats ? 'left-[1.375rem]' : 'left-0.5'
+            }`}
+          />
+        </button>
+      </div>
+
       <div className="mt-6 flex items-center gap-3">
         {existing && (
           <motion.button
@@ -466,6 +497,25 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
           Completions are tracked per day, so you keep streaks &amp; history.
         </p>
       )}
+    </div>
+  )
+}
+
+/** "On for 12d · 2 missed · 85% so far" — history strip for an existing routine. */
+function RecurringHistoryStrip({ task }: { task: RecurringTask }) {
+  const completions = useStore((s) => s.completions)
+  const h = recurringHistory(task, completions, todayStr())
+  return (
+    <div className="mb-4 flex items-center justify-between rounded-xl bg-surface-2 px-3.5 py-2 text-xs text-muted">
+      <span>
+        On for <span className="font-semibold text-text">{h.daysOn}d</span>
+      </span>
+      <span>
+        <span className="font-semibold text-text">{h.missed}</span> missed
+      </span>
+      <span>
+        <span className="font-semibold text-text">{Math.round(h.pct * 100)}%</span> so far
+      </span>
     </div>
   )
 }

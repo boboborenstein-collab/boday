@@ -14,4 +14,5 @@ export const PRIORITY_STYLES: Record<Priority, PriorityStyle> = {
   2: { text: 'text-p2', bg: 'bg-p2', softBg: 'bg-p2/15', bar: 'bg-p2' },
   3: { text: 'text-p3', bg: 'bg-p3', softBg: 'bg-p3/15', bar: 'bg-p3' },
   4: { text: 'text-p4', bg: 'bg-p4', softBg: 'bg-p4/15', bar: 'bg-p4' },
+  5: { text: 'text-p5', bg: 'bg-p5', softBg: 'bg-p5/15', bar: 'bg-p5' },
 }
