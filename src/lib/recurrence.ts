@@ -56,7 +56,15 @@ function completionKey(taskId: string, dateStr: string): string {
 }
 
 function buildCompletionSet(completions: TaskCompletion[]): Set<string> {
-  return new Set(completions.map((c) => completionKey(c.taskId, c.completionDate)))
+  return new Set(
+    completions.filter((c) => !c.skipped).map((c) => completionKey(c.taskId, c.completionDate)),
+  )
+}
+
+function buildSkippedSet(completions: TaskCompletion[]): Set<string> {
+  return new Set(
+    completions.filter((c) => c.skipped).map((c) => completionKey(c.taskId, c.completionDate)),
+  )
 }
 
 /**
@@ -73,6 +81,7 @@ export function buildTodayList(
   today: string,
 ): DayItem[] {
   const done = buildCompletionSet(completions)
+  const skipped = buildSkippedSet(completions)
   const items: DayItem[] = []
 
   for (const task of tasks) {
@@ -81,12 +90,14 @@ export function buildTodayList(
         items.push({
           task,
           completed: false,
+          skipped: false,
           carriedOverFromDays: carryOverDays(task, today),
         })
       } else if (task.completed && task.completedAt && toDateStr(new Date(task.completedAt)) === today) {
         items.push({
           task,
           completed: true,
+          skipped: false,
           carriedOverFromDays: 0,
         })
       }
@@ -95,6 +106,7 @@ export function buildTodayList(
         items.push({
           task,
           completed: done.has(completionKey(task.id, today)),
+          skipped: skipped.has(completionKey(task.id, today)),
           carriedOverFromDays: 0,
         })
       }
@@ -116,18 +128,20 @@ export function buildDayList(
   dateStr: string,
 ): DayItem[] {
   const done = buildCompletionSet(completions)
+  const skipped = buildSkippedSet(completions)
   const items: DayItem[] = []
 
   for (const task of tasks) {
     if (task.type === 'one_time') {
       if (task.scheduledDate === dateStr) {
-        items.push({ task, completed: task.completed, carriedOverFromDays: 0 })
+        items.push({ task, completed: task.completed, skipped: false, carriedOverFromDays: 0 })
       }
     } else {
       if (occursOn(task, dateStr)) {
         items.push({
           task,
           completed: done.has(completionKey(task.id, dateStr)),
+          skipped: skipped.has(completionKey(task.id, dateStr)),
           carriedOverFromDays: 0,
         })
       }
@@ -162,14 +176,15 @@ export function summarizeDay(
 
 /**
  * Sort order for a day list:
- *   1. Incomplete before complete (done items sink).
+ *   1. Incomplete before complete/skipped (settled items sink).
  *   2. Higher priority first (P1 → P4).
  *   3. More overdue carry-overs first.
  *   4. Stable-ish by creation time.
  */
 export function sortDayItems(items: DayItem[]): DayItem[] {
+  const settled = (i: DayItem) => i.completed || i.skipped
   return [...items].sort((a, b) => {
-    if (a.completed !== b.completed) return a.completed ? 1 : -1
+    if (settled(a) !== settled(b)) return settled(a) ? 1 : -1
     if (a.task.priority !== b.task.priority) return a.task.priority - b.task.priority
     if (a.carriedOverFromDays !== b.carriedOverFromDays) {
       return b.carriedOverFromDays - a.carriedOverFromDays

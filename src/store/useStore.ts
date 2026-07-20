@@ -51,6 +51,8 @@ interface BoDayState {
   // ── Completion ──────────────────────────────────────────────────────────
   setOneTimeCompleted: (id: string, completed: boolean) => void
   toggleRecurringCompletion: (taskId: string, dateStr: string) => void
+  /** Skip a recurring occurrence: silences today's reminders, counts as missed. */
+  toggleRecurringSkip: (taskId: string, dateStr: string) => void
 
   clearAll: () => void
 }
@@ -117,6 +119,16 @@ export const useStore = create<BoDayState>()(
           const existing = s.completions.find(
             (c) => c.taskId === taskId && c.completionDate === dateStr,
           )
+          if (existing?.skipped) {
+            // Completing a skipped occurrence upgrades the skip to a real completion.
+            return {
+              completions: s.completions.map((c) =>
+                c.id === existing.id
+                  ? { ...c, skipped: undefined, completedAt: new Date().toISOString() }
+                  : c,
+              ),
+            }
+          }
           if (existing) {
             return {
               completions: s.completions.filter((c) => c.id !== existing.id),
@@ -130,6 +142,30 @@ export const useStore = create<BoDayState>()(
                 taskId,
                 completionDate: dateStr,
                 completedAt: new Date().toISOString(),
+              },
+            ],
+          }
+        }),
+
+      toggleRecurringSkip: (taskId, dateStr) =>
+        set((s) => {
+          const existing = s.completions.find(
+            (c) => c.taskId === taskId && c.completionDate === dateStr,
+          )
+          // Already completed for real — skip doesn't apply.
+          if (existing && !existing.skipped) return {}
+          if (existing) {
+            return { completions: s.completions.filter((c) => c.id !== existing.id) }
+          }
+          return {
+            completions: [
+              ...s.completions,
+              {
+                id: uuid(),
+                taskId,
+                completionDate: dateStr,
+                completedAt: new Date().toISOString(),
+                skipped: true,
               },
             ],
           }

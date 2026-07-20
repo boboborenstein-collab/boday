@@ -178,3 +178,10 @@ export const TrophyIcon = (p: IconProps) => (
     <path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
   </svg>
 )
+
+export const SkipIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="m6 5 8 7-8 7V5Z" />
+    <path d="M18 5v14" />
+  </svg>
+)

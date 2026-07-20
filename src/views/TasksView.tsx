@@ -30,6 +30,7 @@ function TaskSection({ title, tasks, today, isOverdue = false }: SectionProps) {
               item={{
                 task,
                 completed: task.completed,
+                skipped: false,
                 carriedOverFromDays: isOverdue ? carryOverDays(task, today) : 0,
               }}
               dateStr={today}

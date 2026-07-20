@@ -64,9 +64,9 @@ export function TodayView() {
     return map
   }, [items, completions, today])
 
-  const remaining = items.filter((i) => !i.completed).length
+  const remaining = items.filter((i) => !i.completed && !i.skipped).length
   const carried = items.filter((i) => i.carriedOverFromDays > 0).length
-  const highPriority = items.filter((i) => !i.completed && i.task.priority === 1).length
+  const highPriority = items.filter((i) => !i.completed && !i.skipped && i.task.priority === 1).length
   const done = items.filter((i) => i.completed).length
   const progress = items.length ? done / items.length : 0
   const allDone = items.length > 0 && remaining === 0

@@ -101,5 +101,5 @@ export function lifetimeCompleted(tasks: Task[], completions: TaskCompletion[]):
   const oneTimeDone = tasks.filter(
     (t) => t.type === 'one_time' && t.completed && !t.excludeFromStats,
   ).length
-  return oneTimeDone + completions.filter((c) => !excluded.has(c.taskId)).length
+  return oneTimeDone + completions.filter((c) => !c.skipped && !excluded.has(c.taskId)).length
 }

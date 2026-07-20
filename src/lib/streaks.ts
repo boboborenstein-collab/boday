@@ -22,7 +22,12 @@ export function currentStreak(
 ): number {
   const done = new Set(
     completions
-      .filter((c) => c.taskId === task.id)
+      .filter((c) => c.taskId === task.id && !c.skipped)
+      .map((c) => c.completionDate),
+  )
+  const skipped = new Set(
+    completions
+      .filter((c) => c.taskId === task.id && c.skipped)
       .map((c) => c.completionDate),
   )
 
@@ -36,8 +41,9 @@ export function currentStreak(
     if (occursOn(task, ds)) {
       if (done.has(ds)) {
         streak++
-      } else if (ds === today) {
+      } else if (ds === today && !skipped.has(ds)) {
         // Today's occurrence is still open — forgive it, keep counting back.
+        // An explicitly skipped today is NOT open: it counts as missed.
       } else {
         break
       }
@@ -72,7 +78,12 @@ export function recurringHistory(
 ): RecurringHistory {
   const done = new Set(
     completions
-      .filter((c) => c.taskId === task.id)
+      .filter((c) => c.taskId === task.id && !c.skipped)
+      .map((c) => c.completionDate),
+  )
+  const skippedDates = new Set(
+    completions
+      .filter((c) => c.taskId === task.id && c.skipped)
       .map((c) => c.completionDate),
   )
 
@@ -89,7 +100,8 @@ export function recurringHistory(
     if (occursOn(task, ds)) {
       scheduled++
       if (done.has(ds)) completed++
-      else if (ds !== today) missed++
+      // A skipped today already counts as missed; an untouched today stays open.
+      else if (ds !== today || skippedDates.has(ds)) missed++
     }
     cursor = subDays(cursor, 1)
     walked++
@@ -99,10 +111,10 @@ export function recurringHistory(
   return { daysOn, scheduled, completed, missed, pct: closed ? completed / closed : 0 }
 }
 
-/** Total number of recorded completions for a recurring task. */
+/** Total number of recorded completions for a recurring task (skips excluded). */
 export function totalCompletions(
   task: RecurringTask,
   completions: TaskCompletion[],
 ): number {
-  return completions.filter((c) => c.taskId === task.id).length
+  return completions.filter((c) => c.taskId === task.id && !c.skipped).length
 }

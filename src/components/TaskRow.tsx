@@ -5,7 +5,7 @@ import { priorityMeta } from '../lib/priority'
 import { describeRecurrence, formatReminder } from '../lib/format'
 import { celebrate } from '../lib/feedback'
 import { PRIORITY_STYLES } from './priorityStyles'
-import { CheckIcon, ClockIcon, FlameIcon, RepeatIcon, TrashIcon } from './icons'
+import { CheckIcon, ClockIcon, FlameIcon, RepeatIcon, SkipIcon, TrashIcon } from './icons'
 import { Confetti } from './Confetti'
 import type { DayItem } from '../types'
 
@@ -22,9 +22,10 @@ interface TaskRowProps {
 const SWIPE_THRESHOLD = 80
 
 export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowProps) {
-  const { task, completed, carriedOverFromDays } = item
+  const { task, completed, skipped, carriedOverFromDays } = item
   const setOneTimeCompleted = useStore((s) => s.setOneTimeCompleted)
   const toggleRecurring = useStore((s) => s.toggleRecurringCompletion)
+  const toggleSkip = useStore((s) => s.toggleRecurringSkip)
   const deleteTask = useStore((s) => s.deleteTask)
   const openEditor = useStore((s) => s.openEditor)
   const sound = useStore((s) => s.settings.sound)
@@ -100,7 +101,7 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
           <button onClick={() => openEditor(task.id)} className="flex-1 text-left">
             <div
               className={`text-[15px] font-medium leading-snug transition-colors ${
-                completed ? 'text-faint line-through' : 'text-text'
+                completed ? 'text-faint line-through' : skipped ? 'text-faint' : 'text-text'
               }`}
             >
               {task.title}
@@ -119,7 +120,13 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
                   {formatReminder(task.reminderTime)}
                 </span>
               )}
-              {task.type === 'recurring' && streak > 0 && (
+              {skipped && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-surface-3 px-1.5 py-0.5 text-[10px] font-medium text-faint">
+                  <SkipIcon className="size-3" />
+                  skipped today
+                </span>
+              )}
+              {task.type === 'recurring' && streak > 0 && !skipped && (
                 <span className="inline-flex items-center gap-1 text-warning">
                   <FlameIcon className="size-3.5" />
                   {streak}
@@ -156,6 +163,21 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
               >
                 {overdue ? `${carriedOverFromDays}d overdue` : `carried ${carriedOverFromDays}d`}
               </span>
+            )}
+            {task.type === 'recurring' && !completed && (
+              <button
+                onClick={() => toggleSkip(task.id, dateStr)}
+                title={skipped ? 'Undo skip' : 'Skip today — no more reminders, counts as missed'}
+                aria-label={skipped ? 'Undo skip' : 'Skip today'}
+                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
+                  skipped
+                    ? 'text-muted hover:text-text'
+                    : 'text-faint hover:bg-surface-2 hover:text-muted'
+                }`}
+              >
+                <SkipIcon className="size-3" />
+                {skipped ? 'undo' : 'skip'}
+              </button>
             )}
           </div>
         </div>

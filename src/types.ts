@@ -65,7 +65,12 @@ export interface RecurringTask extends BaseTask {
 
 export type Task = OneTimeTask | RecurringTask
 
-/** A row exists ONLY for a date on which a recurring task was checked off. */
+/**
+ * A row exists ONLY for a date on which a recurring task was checked off —
+ * or explicitly skipped (`skipped: true`): a skip silences reminders for the
+ * rest of that day (the push worker sees the row) but counts as MISSED in
+ * streaks and stats, and the task resets normally the next occurrence.
+ */
 export interface TaskCompletion {
   id: string
   taskId: string
@@ -73,6 +78,7 @@ export interface TaskCompletion {
   completionDate: string
   /** ISO timestamp. */
   completedAt: string
+  skipped?: boolean
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -91,6 +97,10 @@ export interface Settings {
   sound: boolean
   /** 0 = Sunday, 1 = Monday — used by the calendar grid. */
   weekStartsOn: 0 | 1
+  /** Show Shabbat candle-lighting/havdalah times on the calendar (Hebcal). */
+  showShabbatOnCalendar: boolean
+  /** Show Jewish holidays on the calendar (Hebcal). */
+  showHolidaysOnCalendar: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -99,12 +109,16 @@ export const DEFAULT_SETTINGS: Settings = {
   reduceMotion: false,
   sound: true,
   weekStartsOn: 0,
+  showShabbatOnCalendar: true,
+  showHolidaysOnCalendar: true,
 }
 
 /** View-model for one row in a day list (Today or a Calendar day). */
 export interface DayItem {
   task: Task
   completed: boolean
+  /** Recurring only: the user hit "skip" for this date (counts as missed). */
+  skipped: boolean
   /**
    * For carried-over one-time tasks in the Today view: how many days ago it
    * was originally scheduled (> 0 means "carried over"). Always 0 for
