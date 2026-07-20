@@ -23,9 +23,9 @@ export function useJewishCalendar(startDateStr: string, endDateStr: string): Map
 
     async function load() {
       const prefs = await loadQuietPrefs()
-      const geonameid = prefs?.geonameid ?? null
+      const locationId = prefs?.locationId ?? null
 
-      const items = await fetchHebcalItems(startDateStr, endDateStr, geonameid)
+      const items = await fetchHebcalItems(startDateStr, endDateStr, locationId)
       if (!isMounted) return
 
       const rawMap = buildDayInfo(items)

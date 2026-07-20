@@ -169,13 +169,13 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
                 onClick={() => toggleSkip(task.id, dateStr)}
                 title={skipped ? 'Undo skip' : 'Skip today — no more reminders, counts as missed'}
                 aria-label={skipped ? 'Undo skip' : 'Skip today'}
-                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
+                className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
                   skipped
-                    ? 'text-muted hover:text-text'
-                    : 'text-faint hover:bg-surface-2 hover:text-muted'
+                    ? 'border-border-strong text-muted hover:text-text'
+                    : 'border-border text-muted hover:border-border-strong hover:bg-surface-2 hover:text-text'
                 }`}
               >
-                <SkipIcon className="size-3" />
+                <SkipIcon className="size-3.5" />
                 {skipped ? 'undo' : 'skip'}
               </button>
             )}

@@ -19,7 +19,7 @@ export function QuietOverlay() {
 
     async function init() {
       const prefs = await loadQuietPrefs()
-      if (!prefs?.enabled || !prefs.geonameid) return
+      if (!prefs?.enabled || !prefs.locationId) return
 
       const today = new Date()
       const yesterday = new Date(today)
@@ -30,7 +30,7 @@ export function QuietOverlay() {
       const start = yesterday.toISOString().split('T')[0]
       const end = plus9.toISOString().split('T')[0]
 
-      const items = await fetchHebcalItems(start, end, prefs.geonameid)
+      const items = await fetchHebcalItems(start, end, prefs.locationId)
       windows = computeQuietWindows(items)
 
       checkWindow()

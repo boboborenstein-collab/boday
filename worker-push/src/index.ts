@@ -158,8 +158,19 @@ interface QuietWindow {
   title: string
 }
 interface UserPrefsData {
-  quiet?: { enabled: boolean; geonameid: number; locationName?: string }
+  /**
+   * locationId is 'geoname:<id>' or 'zip:<code>' — Hebcal's autocomplete
+   * returns BOTH shapes (a ZIP search hits its zip index, not geonames), and
+   * the Hebcal API takes a different query param for each (geonameid vs zip).
+   */
+  quiet?: { enabled: boolean; locationId: string; locationName?: string }
   cache?: { fetchedAt: string; windows: QuietWindow[] }
+}
+
+/** 'geoname:5110302' -> '&geonameid=5110302'; 'zip:07631' -> '&zip=07631'. */
+function locationQueryParam(locationId: string): string {
+  const [kind, id] = locationId.split(':')
+  return kind === 'zip' ? `&zip=${encodeURIComponent(id)}` : `&geonameid=${encodeURIComponent(id)}`
 }
 
 /** Pair Hebcal candles/havdalah items into absolute quiet windows. */
@@ -193,7 +204,7 @@ async function freshQuietWindows(
 ): Promise<QuietWindow[]> {
   const data = (row.data ?? {}) as UserPrefsData
   const quiet = data.quiet
-  if (!quiet?.enabled || !quiet.geonameid) return []
+  if (!quiet?.enabled || !quiet.locationId) return []
 
   const cached = data.cache
   const now = Date.now()
@@ -211,7 +222,7 @@ async function freshQuietWindows(
     const start = dateStrUTC(new Date(now - 86_400_000))
     const end = dateStrUTC(new Date(now + 9 * 86_400_000))
     const res = await fetch(
-      `https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&c=on&M=on&geonameid=${quiet.geonameid}&start=${start}&end=${end}`,
+      `https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&c=on&M=on&start=${start}&end=${end}${locationQueryParam(quiet.locationId)}`,
     )
     if (!res.ok) throw new Error(`hebcal ${res.status}`)
     const body = (await res.json()) as { items?: { category: string; date: string; title: string }[] }
@@ -242,8 +253,12 @@ async function handleGeo(req: Request): Promise<Response> {
   try {
     const res = await fetch(`https://www.hebcal.com/complete.php?q=${encodeURIComponent(q)}`)
     if (!res.ok) return json([])
-    const items = (await res.json()) as { id: number; value: string }[]
-    return json(items.slice(0, 8).map((i) => ({ geonameid: i.id, name: i.value })))
+    const items = (await res.json()) as { id: number | string; geo: string; value: string }[]
+    return json(
+      items
+        .slice(0, 8)
+        .map((i) => ({ locationId: `${i.geo === 'zip' ? 'zip' : 'geoname'}:${i.id}`, name: i.value })),
+    )
   } catch {
     return json([])
   }

@@ -4,7 +4,8 @@ const WORKER_URL = 'https://boday-push.boapps.workers.dev'
 
 export interface QuietPrefs {
   enabled: boolean
-  geonameid: number | null
+  /** 'geoname:5110302' or 'zip:07631' — see hebcal search results. */
+  locationId: string | null
   locationName: string
 }
 
@@ -27,7 +28,7 @@ export interface HebcalItem {
   hebrew?: string
 }
 
-export async function searchLocations(q: string): Promise<{ geonameid: number; name: string }[]> {
+export async function searchLocations(q: string): Promise<{ locationId: string; name: string }[]> {
   try {
     const res = await fetch(`${WORKER_URL}/geo?q=${encodeURIComponent(q)}`)
     if (!res.ok) return []
@@ -37,54 +38,76 @@ export async function searchLocations(q: string): Promise<{ geonameid: number; n
   }
 }
 
-export async function fetchHebcalItems(
-  startDateStr: string,
-  endDateStr: string,
-  geonameid: number | null,
-): Promise<HebcalItem[]> {
-  const cacheKey = 'boday-hebcal-cache-v1'
-  const mapKey = `${startDateStr}|${endDateStr}|${geonameid ?? 'none'}`
+/** 'geoname:5110302' -> '&geonameid=5110302'; 'zip:07631' -> '&zip=07631'. */
+function locationQueryParam(locationId: string): string {
+  const [kind, id] = locationId.split(':')
+  return kind === 'zip' ? `&zip=${encodeURIComponent(id)}` : `&geonameid=${encodeURIComponent(id)}`
+}
 
+function readCache(mapKey: string): HebcalItem[] | null {
   try {
-    const cachedStr = localStorage.getItem(cacheKey)
-    if (cachedStr) {
-      const parsed = JSON.parse(cachedStr)
-      const entry = parsed[mapKey]
-      if (entry && Date.now() - entry.fetchedAt < 24 * 60 * 60 * 1000) {
-        return entry.data
-      }
-    }
+    const parsed = JSON.parse(localStorage.getItem('boday-hebcal-cache-v1') ?? '{}')
+    const entry = parsed[mapKey]
+    if (entry && Date.now() - entry.fetchedAt < 24 * 60 * 60 * 1000) return entry.data
   } catch {
     // Ignore cache read errors
   }
+  return null
+}
 
-  let url = `https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start=${startDateStr}&end=${endDateStr}`
-  if (geonameid !== null) {
-    url += `&c=on&M=on&geonameid=${geonameid}`
+function writeCache(mapKey: string, items: HebcalItem[]): void {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('boday-hebcal-cache-v1') ?? '{}')
+    parsed[mapKey] = { fetchedAt: Date.now(), data: items }
+    localStorage.setItem('boday-hebcal-cache-v1', JSON.stringify(parsed))
+  } catch {
+    // Ignore cache write errors
   }
+}
+
+async function fetchHebcalOnce(
+  startDateStr: string,
+  endDateStr: string,
+  locationId: string | null,
+): Promise<HebcalItem[]> {
+  const url =
+    `https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start=${startDateStr}&end=${endDateStr}` +
+    (locationId ? `&c=on&M=on${locationQueryParam(locationId)}` : '')
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`hebcal ${res.status}`)
+  const data = await res.json()
+  return (data.items ?? []) as HebcalItem[]
+}
+
+export async function fetchHebcalItems(
+  startDateStr: string,
+  endDateStr: string,
+  locationId: string | null,
+): Promise<HebcalItem[]> {
+  const mapKey = `${startDateStr}|${endDateStr}|${locationId ?? 'none'}`
+  const cached = readCache(mapKey)
+  if (cached) return cached
 
   try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('Network error')
-    const data = await res.json()
-    const items: HebcalItem[] = data.items || []
-
-    try {
-      const cachedStr = localStorage.getItem(cacheKey)
-      const parsed = cachedStr ? JSON.parse(cachedStr) : {}
-      parsed[mapKey] = { fetchedAt: Date.now(), data: items }
-      localStorage.setItem(cacheKey, JSON.stringify(parsed))
-    } catch {
-      // Ignore cache write errors
-    }
+    const items = await fetchHebcalOnce(startDateStr, endDateStr, locationId)
+    writeCache(mapKey, items)
     return items
   } catch (e) {
-    try {
-      const cachedStr = localStorage.getItem(cacheKey)
-      if (cachedStr) {
-        const parsed = JSON.parse(cachedStr)
-        if (parsed[mapKey]) return parsed[mapKey].data
+    console.log(`hebcal fetch failed: ${String(e)}`)
+    // A bad/stale location (or a transient Hebcal error) shouldn't blank out
+    // holidays too — fall back to a location-less fetch for at least those.
+    if (locationId) {
+      try {
+        const items = await fetchHebcalOnce(startDateStr, endDateStr, null)
+        writeCache(`${startDateStr}|${endDateStr}|none`, items)
+        return items
+      } catch {
+        // Fall through to the stale-cache check below.
       }
+    }
+    try {
+      const parsed = JSON.parse(localStorage.getItem('boday-hebcal-cache-v1') ?? '{}')
+      if (parsed[mapKey]) return parsed[mapKey].data
     } catch {
       // Ignore
     }
@@ -144,7 +167,7 @@ export async function loadQuietPrefs(): Promise<QuietPrefs | null> {
   const userId = sessionData.session?.user.id
   if (!userId) return null
 
-  const defaultPrefs: QuietPrefs = { enabled: false, geonameid: null, locationName: '' }
+  const defaultPrefs: QuietPrefs = { enabled: false, locationId: null, locationName: '' }
 
   try {
     const { data, error } = await getSupabase()
@@ -157,7 +180,7 @@ export async function loadQuietPrefs(): Promise<QuietPrefs | null> {
       const quiet = data.data.quiet as QuietPrefs
       const prefs: QuietPrefs = {
         enabled: Boolean(quiet.enabled),
-        geonameid: quiet.geonameid ?? null,
+        locationId: quiet.locationId ?? null,
         locationName: quiet.locationName || '',
       }
       localStorage.setItem('boday-quiet-prefs-v1', JSON.stringify(prefs))

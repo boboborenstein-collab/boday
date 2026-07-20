@@ -67,11 +67,11 @@ export function ShabbatSettings() {
   const showShabbatOnCalendar = useStore((s) => s.settings.showShabbatOnCalendar)
   const showHolidaysOnCalendar = useStore((s) => s.settings.showHolidaysOnCalendar)
 
-  const [prefs, setPrefs] = useState<QuietPrefs>({ enabled: false, geonameid: null, locationName: '' })
+  const [prefs, setPrefs] = useState<QuietPrefs>({ enabled: false, locationId: null, locationName: '' })
   const [nextWindow, setNextWindow] = useState<QuietWindow | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<{ geonameid: number; name: string }[]>([])
+  const [searchResults, setSearchResults] = useState<{ locationId: string; name: string }[]>([])
   const [searching, setSearching] = useState(false)
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -82,14 +82,14 @@ export function ShabbatSettings() {
   }, [])
 
   useEffect(() => {
-    if (prefs.enabled && prefs.geonameid) {
+    if (prefs.enabled && prefs.locationId) {
       const today = new Date()
       const start = today.toISOString().split('T')[0]
       const plus9 = new Date(today)
       plus9.setDate(plus9.getDate() + 9)
       const end = plus9.toISOString().split('T')[0]
 
-      fetchHebcalItems(start, end, prefs.geonameid).then((items) => {
+      fetchHebcalItems(start, end, prefs.locationId).then((items) => {
         const windows = computeQuietWindows(items)
         const now = Date.now()
         const upcoming = windows.find((w) => Date.parse(w.end) > now)
@@ -98,7 +98,7 @@ export function ShabbatSettings() {
     } else {
       setNextWindow(null)
     }
-  }, [prefs.enabled, prefs.geonameid])
+  }, [prefs.enabled, prefs.locationId])
 
   const handleQuietToggle = (enabled: boolean) => {
     const nextPrefs = { ...prefs, enabled }
@@ -126,8 +126,8 @@ export function ShabbatSettings() {
     }, 300)
   }
 
-  const handleSelectLocation = (geonameid: number, locationName: string) => {
-    const nextPrefs = { ...prefs, geonameid, locationName }
+  const handleSelectLocation = (locationId: string, locationName: string) => {
+    const nextPrefs = { ...prefs, locationId, locationName }
     setPrefs(nextPrefs)
     saveQuietPrefs(nextPrefs)
     setSearchQuery('')
@@ -160,8 +160,8 @@ export function ShabbatSettings() {
           <div className="mt-1 flex flex-col gap-1 rounded-lg border border-border bg-surface bg-opacity-50 p-1">
             {searchResults.map((r) => (
               <button
-                key={r.geonameid}
-                onClick={() => handleSelectLocation(r.geonameid, r.name)}
+                key={r.locationId}
+                onClick={() => handleSelectLocation(r.locationId, r.name)}
                 className="rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-surface-2"
               >
                 {r.name}
@@ -183,7 +183,7 @@ export function ShabbatSettings() {
         onChange={(v) => updateSettings({ showHolidaysOnCalendar: v })}
       />
 
-      {prefs.enabled && prefs.geonameid && nextWindow && (
+      {prefs.enabled && prefs.locationId && nextWindow && (
         <div className="py-2.5">
           <div className="text-xs text-muted">
             🕯️ Next: {format(new Date(nextWindow.start), 'EEE h:mmaaa')} →{' '}
