@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useStore } from '../store/useStore'
@@ -504,18 +504,51 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
 /** "On for 12d · 2 missed · 85% so far" — history strip for an existing routine. */
 function RecurringHistoryStrip({ task }: { task: RecurringTask }) {
   const completions = useStore((s) => s.completions)
+  const updateTask = useStore((s) => s.updateTask)
+  const [confirming, setConfirming] = useState(false)
   const h = recurringHistory(task, completions, todayStr())
+
+  // Second tap must land within a few seconds, or the confirm arms itself off.
+  useEffect(() => {
+    if (!confirming) return
+    const t = setTimeout(() => setConfirming(false), 4000)
+    return () => clearTimeout(t)
+  }, [confirming])
+
+  const handleReset = () => {
+    if (!confirming) {
+      setConfirming(true)
+      return
+    }
+    // Streak/history only ever look at occurrences from startDate onward, so
+    // bumping it to today is a full reset without touching old completions.
+    updateTask({ ...task, startDate: todayStr() })
+    setConfirming(false)
+  }
+
   return (
-    <div className="mb-4 flex items-center justify-between rounded-xl bg-surface-2 px-3.5 py-2 text-xs text-muted">
-      <span>
-        On for <span className="font-semibold text-text">{h.daysOn}d</span>
-      </span>
-      <span>
-        <span className="font-semibold text-text">{h.missed}</span> missed
-      </span>
-      <span>
-        <span className="font-semibold text-text">{Math.round(h.pct * 100)}%</span> so far
-      </span>
+    <div className="mb-4 rounded-xl bg-surface-2 px-3.5 py-2">
+      <div className="flex items-center justify-between text-xs text-muted">
+        <span>
+          On for <span className="font-semibold text-text">{h.daysOn}d</span>
+        </span>
+        <span>
+          <span className="font-semibold text-text">{h.missed}</span> missed
+        </span>
+        <span>
+          <span className="font-semibold text-text">{Math.round(h.pct * 100)}%</span> so far
+        </span>
+      </div>
+      <button
+        onClick={handleReset}
+        className={`mt-2 w-full rounded-lg border py-1.5 text-[11px] font-medium transition-colors ${
+          confirming
+            ? 'border-danger bg-danger/10 text-danger'
+            : 'border-border text-faint hover:border-border-strong hover:text-muted'
+        }`}
+      >
+        {confirming ? 'Tap again to confirm — wipes streak & history' : 'Reset stats'}
+      </button>
     </div>
   )
 }
