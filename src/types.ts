@@ -22,6 +22,12 @@ export type Recurrence =
   | { kind: 'everyNDays'; n: number }
   | { kind: 'monthly'; dateOfMonth: number }
 
+export interface Subtask {
+  id: string
+  title: string
+  done: boolean
+}
+
 interface BaseTask {
   id: string
   title: string
@@ -29,6 +35,11 @@ interface BaseTask {
   priority: Priority
   /** Optional free-form labels for grouping/filtering. */
   tags?: string[]
+  /** Optional checklist items; parent completes when all subtasks are done (manual). */
+  subtasks?: Subtask[]
+  /** Set when this task was assigned by another BoDay user. */
+  assignedByEmail?: string
+  assignedFromTaskId?: string
   /** 'HH:mm' local time, or null for no reminder. */
   reminderTime?: string | null
   /**
@@ -101,6 +112,12 @@ export interface Settings {
   showShabbatOnCalendar: boolean
   /** Show Jewish holidays on the calendar (Hebcal). */
   showHolidaysOnCalendar: boolean
+  /** Today view: null = all tags. */
+  todayTagFilter?: string | null
+  /** Today view: hide everything except P1 (+ carried P1). */
+  focusMode?: boolean
+  /** Optional manual ordering of task ids on Today (incomplete items). */
+  todayOrder?: string[]
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -111,6 +128,9 @@ export const DEFAULT_SETTINGS: Settings = {
   weekStartsOn: 0,
   showShabbatOnCalendar: true,
   showHolidaysOnCalendar: true,
+  todayTagFilter: null,
+  focusMode: false,
+  todayOrder: [],
 }
 
 /** View-model for one row in a day list (Today or a Calendar day). */

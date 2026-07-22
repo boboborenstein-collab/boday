@@ -9,6 +9,7 @@ import { TodayView } from './views/TodayView'
 import { TasksView } from './views/TasksView'
 import { CalendarView } from './views/CalendarView'
 import { StatsView } from './views/StatsView'
+import { WeeklyReviewView } from './views/WeeklyReviewView'
 import { SettingsView } from './views/SettingsView'
 import { startSync } from './lib/sync'
 import { isPushConfigured, subscribeToPush } from './lib/push'
@@ -35,6 +36,7 @@ function AnimatedRoutes() {
           <Route path="/tasks" element={<TasksView />} />
           <Route path="/calendar" element={<CalendarView />} />
           <Route path="/stats" element={<StatsView />} />
+          <Route path="/review" element={<WeeklyReviewView />} />
           <Route path="/settings" element={<SettingsView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

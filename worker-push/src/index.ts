@@ -165,6 +165,8 @@ interface UserPrefsData {
    */
   quiet?: { enabled: boolean; locationId: string; locationName?: string }
   cache?: { fetchedAt: string; windows: QuietWindow[] }
+  calendarToken?: string
+  snoozes?: Record<string, string>
 }
 
 /** 'geoname:5110302' -> '&geonameid=5110302'; 'zip:07631' -> '&zip=07631'. */
@@ -227,10 +229,8 @@ async function freshQuietWindows(
     if (!res.ok) throw new Error(`hebcal ${res.status}`)
     const body = (await res.json()) as { items?: { category: string; date: string; title: string }[] }
     const windows = computeQuietWindows(body.items ?? [])
-    await sbUpsert(env, 'user_prefs', {
-      id: row.id,
-      user_id: row.user_id,
-      data: { ...data, cache: { fetchedAt: new Date(now).toISOString(), windows } },
+    await mergeUserPrefs(env, row.user_id, {
+      cache: { fetchedAt: new Date(now).toISOString(), windows },
     })
     return windows
   } catch (e) {
@@ -281,6 +281,38 @@ function json(body: unknown, status = 200): Response {
 function serviceHeaders(env: Env): Record<string, string> {
   const key = sbKey(env)
   return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }
+}
+
+function pruneSnoozes(map: Record<string, string>): Record<string, string> {
+  const now = Date.now()
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(map)) {
+    if (Date.parse(v) > now) out[k] = v
+  }
+  return out
+}
+
+/** Atomic jsonb merge (see docs/supabase-merge-user-prefs.sql). */
+async function mergeUserPrefs(env: Env, userId: string, patch: UserPrefsData): Promise<void> {
+  const bodyPatch = { ...patch }
+  if (bodyPatch.snoozes) {
+    bodyPatch.snoozes = pruneSnoozes(bodyPatch.snoozes)
+  }
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/merge_user_prefs`, {
+    method: 'POST',
+    headers: { ...serviceHeaders(env), Prefer: 'return=minimal' },
+    body: JSON.stringify({ pref_id: userId, patch: bodyPatch }),
+  })
+  if (res.ok) return
+
+  const prefRows = await sbSelect(env, 'user_prefs').catch(() => [])
+  const row = prefRows.find((r) => r.user_id === userId)
+  const existing = (row?.data ?? {}) as UserPrefsData
+  const merged: UserPrefsData = { ...existing, ...bodyPatch }
+  if (bodyPatch.snoozes) {
+    merged.snoozes = pruneSnoozes({ ...(existing.snoozes ?? {}), ...bodyPatch.snoozes })
+  }
+  await sbUpsert(env, 'user_prefs', { id: userId, user_id: userId, data: merged })
 }
 
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
@@ -383,6 +415,273 @@ async function handleInvites(req: Request, env: Env): Promise<Response> {
   return json({ invites })
 }
 
+// ── calendar feed (.ics) ─────────────────────────────────────────────────────
+function addDaysStr(dateStr: string, n: number): string {
+  const d = new Date(utc(dateStr))
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+function icsEscape(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
+}
+
+function icsTimedEnd(dateStr: string, hhmm: string, durationMin = 30): { date: string; hhmm: string } {
+  const [hh, mm] = hhmm.split(':').map(Number)
+  let mins = hh * 60 + mm + durationMin
+  let date = dateStr
+  if (mins >= 24 * 60) {
+    date = addDaysStr(dateStr, 1)
+    mins -= 24 * 60
+  }
+  const eh = Math.floor(mins / 60)
+  const em = mins % 60
+  return {
+    date,
+    hhmm: `${String(eh).padStart(2, '0')}${String(em).padStart(2, '0')}00`,
+  }
+}
+
+function buildIcs(tasks: Task[], completions: Completion[], fromDate: string): string {
+  const doneToday = new Set(completions.map((c) => `${c.taskId}|${c.completionDate}`))
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//BoDay//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'NAME:BoDay',
+  ]
+  const endHorizon = addDaysStr(fromDate, 90)
+  for (const t of tasks) {
+    if (t.type === 'one_time') {
+      if (t.scheduledDate < fromDate || t.scheduledDate > endHorizon) continue
+      lines.push('BEGIN:VEVENT')
+      lines.push(`UID:${t.id}@boday`)
+      lines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`)
+      if (t.reminderTime) {
+        const [hh, mm] = t.reminderTime.split(':')
+        const start = `${t.scheduledDate.replace(/-/g, '')}T${hh}${mm}00`
+        const end = icsTimedEnd(t.scheduledDate, t.reminderTime)
+        lines.push(`DTSTART:${start}`)
+        lines.push(`DTEND:${end.date.replace(/-/g, '')}T${end.hhmm}`)
+        lines.push(`SUMMARY:${icsEscape(t.title)}`)
+      } else {
+        lines.push(`DTSTART;VALUE=DATE:${t.scheduledDate.replace(/-/g, '')}`)
+        lines.push(`DTEND;VALUE=DATE:${addDaysStr(t.scheduledDate, 1).replace(/-/g, '')}`)
+        lines.push(`SUMMARY:${icsEscape(t.title)}`)
+      }
+      if (t.completed) lines.push('STATUS:COMPLETED')
+      lines.push('END:VEVENT')
+    } else {
+      for (let d = fromDate; d <= endHorizon; d = addDaysStr(d, 1)) {
+        if (!occursOn(t, d)) continue
+        lines.push('BEGIN:VEVENT')
+        lines.push(`UID:${t.id}-${d}@boday`)
+        lines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`)
+        if (t.reminderTime) {
+          const [hh, mm] = t.reminderTime.split(':')
+          const start = `${d.replace(/-/g, '')}T${hh}${mm}00`
+          const end = icsTimedEnd(d, t.reminderTime)
+          lines.push(`DTSTART:${start}`)
+          lines.push(`DTEND:${end.date.replace(/-/g, '')}T${end.hhmm}`)
+        } else {
+          lines.push(`DTSTART;VALUE=DATE:${d.replace(/-/g, '')}`)
+          lines.push(`DTEND;VALUE=DATE:${addDaysStr(d, 1).replace(/-/g, '')}`)
+        }
+        lines.push(`SUMMARY:${icsEscape(t.title)}`)
+        if (doneToday.has(`${t.id}|${d}`)) lines.push('STATUS:COMPLETED')
+        lines.push('END:VEVENT')
+      }
+    }
+  }
+  lines.push('END:VCALENDAR')
+  return lines.join('\r\n')
+}
+
+async function handleCalendarFeed(
+  env: Env,
+  token: string,
+  prefRows: { id: string; user_id: string; data: unknown }[],
+  taskRows: { id: string; user_id: string; data: unknown }[],
+  compRows: { id: string; user_id: string; data: unknown }[],
+): Promise<Response> {
+  const owner = prefRows.find(
+    (r) => (r.data as UserPrefsData).calendarToken === token,
+  )
+  if (!owner) return new Response('Not found', { status: 404 })
+  const userId = owner.user_id
+  const tasks = taskRows.filter((r) => r.user_id === userId).map((r) => r.data as Task)
+  const completions = compRows
+    .filter((r) => r.user_id === userId)
+    .map((r) => r.data as Completion)
+  const today = new Date().toISOString().slice(0, 10)
+  const body = buildIcs(tasks, completions, today)
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'Cache-Control': 'private, max-age=300',
+    },
+  })
+}
+
+// ── share task ───────────────────────────────────────────────────────────────
+async function findUserByEmail(env: Env, email: string): Promise<{ id: string } | null> {
+  const res = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, {
+    headers: serviceHeaders(env),
+  })
+  if (!res.ok) return null
+  const data = (await res.json()) as { users?: { id: string; email?: string }[] }
+  const hit = data.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+  return hit ? { id: hit.id } : null
+}
+
+async function handleShare(req: Request, env: Env, taskRows: { id: string; user_id: string; data: unknown }[]): Promise<Response> {
+  const caller = await getCaller(req, env)
+  if (!caller) return json({ error: 'Sign in required.' }, 401)
+  const body = (await req.json().catch(() => ({}))) as { taskId?: string; toEmail?: string }
+  const taskId = body.taskId?.trim()
+  const toEmail = body.toEmail?.trim().toLowerCase()
+  if (!taskId || !toEmail) return json({ error: 'taskId and toEmail required.' }, 400)
+
+  const row = taskRows.find((r) => r.user_id === caller.id && r.id === taskId)
+  if (!row) return json({ error: 'Task not found.' }, 404)
+
+  const assignee = await findUserByEmail(env, toEmail)
+  if (!assignee) return json({ error: 'No BoDay account for that email yet.' }, 404)
+  if (assignee.id === caller.id) return json({ error: "Can't share with yourself." }, 400)
+
+  const src = row.data as Task & { assignedByEmail?: string; assignedFromTaskId?: string }
+  const copyId = crypto.randomUUID()
+  const base = {
+    ...src,
+    id: copyId,
+    assignedByEmail: caller.email,
+    assignedFromTaskId: taskId,
+    createdAt: new Date().toISOString(),
+  }
+  const copy =
+    src.type === 'one_time'
+      ? { ...base, completed: false, completedAt: null }
+      : base
+  await sbUpsert(env, 'tasks', { id: copyId, user_id: assignee.id, data: copy })
+  return json({ ok: true, id: copyId })
+}
+
+// ── push notification actions (done / snooze) ────────────────────────────────
+async function hmacKey(env: Env): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(env.VAPID_PRIVATE_KEY),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign', 'verify'],
+  )
+}
+
+function b64url(bytes: Uint8Array): string {
+  let s = ''
+  for (const b of bytes) s += String.fromCharCode(b)
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+async function signPushAction(
+  env: Env,
+  payload: { u: string; t: string; d: string; exp: number },
+): Promise<string> {
+  const key = await hmacKey(env)
+  const body = new TextEncoder().encode(JSON.stringify(payload))
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, body))
+  return `${b64url(body)}.${b64url(sig)}`
+}
+
+async function verifyPushAction(
+  env: Env,
+  token: string,
+): Promise<{ userId: string; taskId: string; date: string } | null> {
+  const [bodyPart, sigPart] = token.split('.')
+  if (!bodyPart || !sigPart) return null
+  const body = Uint8Array.from(atob(bodyPart.replace(/-/g, '+').replace(/_/g, '/')), (c) =>
+    c.charCodeAt(0),
+  )
+  const sig = Uint8Array.from(atob(sigPart.replace(/-/g, '+').replace(/_/g, '/')), (c) =>
+    c.charCodeAt(0),
+  )
+  const key = await hmacKey(env)
+  const ok = await crypto.subtle.verify('HMAC', key, sig, body)
+  if (!ok) return null
+  const payload = JSON.parse(new TextDecoder().decode(body)) as {
+    u: string
+    t: string
+    d: string
+    exp: number
+  }
+  if (payload.exp < Date.now()) return null
+  return { userId: payload.u, taskId: payload.t, date: payload.d }
+}
+
+async function handlePushAction(req: Request, env: Env): Promise<Response> {
+  const body = (await req.json().catch(() => ({}))) as { token?: string; action?: string }
+  const parsed = body.token ? await verifyPushAction(env, body.token) : null
+  if (!parsed) return json({ error: 'Invalid or expired token.' }, 400)
+
+  const taskRows = await sbSelect(env, 'tasks')
+  const row = taskRows.find((r) => r.user_id === parsed.userId && r.id === parsed.taskId)
+  if (!row) return json({ error: 'Task gone.' }, 404)
+  const task = row.data as Task
+
+  if (body.action === 'done') {
+    if (task.type === 'one_time') {
+      if (task.completed) return json({ ok: true })
+      await sbUpsert(env, 'tasks', {
+        id: row.id,
+        user_id: parsed.userId,
+        data: { ...task, completed: true, completedAt: new Date().toISOString() },
+      })
+    } else {
+      const compRows = await sbSelect(env, 'completions')
+      const exists = compRows.some((r) => {
+        if (r.user_id !== parsed.userId) return false
+        const c = r.data as Completion & { skipped?: boolean }
+        return (
+          c.taskId === parsed.taskId &&
+          c.completionDate === parsed.date &&
+          !c.skipped
+        )
+      })
+      if (exists) return json({ ok: true })
+      const compId = crypto.randomUUID()
+      await sbUpsert(env, 'completions', {
+        id: compId,
+        user_id: parsed.userId,
+        data: {
+          id: compId,
+          taskId: parsed.taskId,
+          completionDate: parsed.date,
+          completedAt: new Date().toISOString(),
+        },
+      })
+    }
+    return json({ ok: true })
+  }
+
+  if (body.action === 'snooze30') {
+    const until = new Date(Date.now() + 30 * 60_000).toISOString()
+    await mergeUserPrefs(env, parsed.userId, {
+      snoozes: { [`${parsed.taskId}|${parsed.date}`]: until },
+    })
+    return json({ ok: true })
+  }
+
+  return json({ error: 'Unknown action.' }, 400)
+}
+
+function isSnoozed(snoozes: Record<string, string> | undefined, taskId: string, date: string): boolean {
+  const until = snoozes?.[`${taskId}|${date}`]
+  if (!until) return false
+  return Date.parse(until) > Date.now()
+}
+
 // ── main ─────────────────────────────────────────────────────────────────────
 export default {
   // Manual test: GET /test sends a test push to every subscription and
@@ -393,6 +692,22 @@ export default {
     if (url.pathname === '/signup' && req.method === 'POST') return handleSignup(req, env)
     if (url.pathname === '/invites') return handleInvites(req, env)
     if (url.pathname === '/geo') return handleGeo(req)
+    if (url.pathname === '/share' && req.method === 'POST') {
+      const taskRows = await sbSelect(env, 'tasks')
+      return handleShare(req, env, taskRows)
+    }
+    if (url.pathname === '/push-action' && req.method === 'POST') return handlePushAction(req, env)
+
+    const calMatch = url.pathname.match(/^\/cal\/([a-zA-Z0-9]+)\.ics$/)
+    if (calMatch && req.method === 'GET') {
+      const [taskRows, compRows, prefRows] = await Promise.all([
+        sbSelect(env, 'tasks'),
+        sbSelect(env, 'completions'),
+        sbSelect(env, 'user_prefs').catch(() => []),
+      ])
+      return handleCalendarFeed(env, calMatch[1], prefRows, taskRows, compRows)
+    }
+
     if (url.pathname !== '/test') return new Response('boday-push ok', { status: 200 })
 
     const subRows = await sbSelect(env, 'push_subscriptions')
@@ -430,10 +745,12 @@ export default {
     ])
     if (!subRows.length) return
 
-    // Quiet windows per user (refreshing stale caches from Hebcal).
+    // Quiet windows + snoozes per user (refreshing stale caches from Hebcal).
     const quietByUser = new Map<string, QuietWindow[]>()
+    const snoozesByUser = new Map<string, Record<string, string>>()
     for (const r of prefRows) {
       quietByUser.set(r.user_id, await freshQuietWindows(env, r))
+      snoozesByUser.set(r.user_id, pruneSnoozes((r.data as UserPrefsData).snoozes ?? {}))
     }
 
     // Group by user so each device only gets its owner's reminders.
@@ -469,6 +786,7 @@ export default {
       }
       const tasks = tasksByUser.get(row.user_id) ?? []
       const doneToday = doneByUser.get(row.user_id) ?? new Set<string>()
+      const snoozes = snoozesByUser.get(row.user_id) ?? {}
 
       // A task is "pending today" if it should be acted on and isn't done yet.
       const pendingToday = (t: Task): boolean => {
@@ -476,14 +794,28 @@ export default {
         return occursOn(t, today) && !doneToday.has(`${t.id}|${today}`)
       }
 
-      const messages: { title: string; body: string }[] = []
+      const messages: { title: string; body: string; taskId?: string; actionToken?: string }[] = []
 
       for (const t of tasks) {
         if (!pendingToday(t)) continue
+        if (isSnoozed(snoozes, t.id, today)) continue
+
+        const exp = Date.now() + 60 * 60 * 1000
+        const actionToken = await signPushAction(env, {
+          u: row.user_id,
+          t: t.id,
+          d: today,
+          exp,
+        })
 
         // 1) On-time reminder at the task's own reminder time.
         if (t.reminderTime === hhmm) {
-          messages.push({ title: 'BoDay', body: `Time for: ${t.title}` })
+          messages.push({
+            title: 'BoDay',
+            body: `Time for: ${t.title}`,
+            taskId: t.id,
+            actionToken,
+          })
           continue
         }
 
@@ -499,8 +831,18 @@ export default {
             if (since % t.renudgeMinutes === 0) {
               messages.push(
                 t.priority === 1
-                  ? { title: '🔴 BoDay — OVERDUE (P1)', body: `STILL NOT DONE: ${t.title} — ${ago} past its time` }
-                  : { title: '🟠 BoDay — still pending', body: `${t.title} was due ${ago} ago` },
+                  ? {
+                      title: '🔴 BoDay — OVERDUE (P1)',
+                      body: `STILL NOT DONE: ${t.title} — ${ago} past its time`,
+                      taskId: t.id,
+                      actionToken,
+                    }
+                  : {
+                      title: '🟠 BoDay — still pending',
+                      body: `${t.title} was due ${ago} ago`,
+                      taskId: t.id,
+                      actionToken,
+                    },
               )
             }
           } else if (t.priority === 1 && since % 60 === 0) {
@@ -508,10 +850,17 @@ export default {
             messages.push({
               title: '🔴 BoDay — OVERDUE (P1)',
               body: `STILL NOT DONE: ${t.title} — ${ago} past its time`,
+              taskId: t.id,
+              actionToken,
             })
           } else if (t.priority === 2 && (since === 120 || since === 360)) {
             // default: P2 nudges at 2h and 6h
-            messages.push({ title: '🟠 BoDay — still pending', body: `${t.title} was due ${ago} ago` })
+            messages.push({
+              title: '🟠 BoDay — still pending',
+              body: `${t.title} was due ${ago} ago`,
+              taskId: t.id,
+              actionToken,
+            })
           }
         }
       }
@@ -534,7 +883,14 @@ export default {
       for (const msg of messages) {
         const payload = await buildPushPayload(
           {
-            data: JSON.stringify({ ...msg, url: '/' }),
+            data: JSON.stringify({
+              title: msg.title,
+              body: msg.body,
+              url: '/',
+              taskId: msg.taskId,
+              dateStr: today,
+              actionToken: msg.actionToken,
+            }),
             options: { ttl: 300, urgency: 'high' },
           },
           subscription,

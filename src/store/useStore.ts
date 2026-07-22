@@ -5,9 +5,13 @@ import type {
   OneTimeTask,
   RecurringTask,
   Settings,
+  Subtask,
   Task,
   TaskCompletion,
 } from '../types'
+import { occursOn } from '../lib/recurrence'
+import { addDays, format } from 'date-fns'
+import { fromDateStr, todayStr } from '../lib/date'
 
 /** A task being created — id and createdAt are assigned by the store. */
 export type TaskDraft =
@@ -53,6 +57,13 @@ interface BoDayState {
   toggleRecurringCompletion: (taskId: string, dateStr: string) => void
   /** Skip a recurring occurrence: silences today's reminders, counts as missed. */
   toggleRecurringSkip: (taskId: string, dateStr: string) => void
+  /** Move a one-time task to another date (default: tomorrow). */
+  deferOneTimeTask: (id: string, toDate?: string) => void
+  /** Skip all recurring occurrences today (optional: keep Torah / P5). */
+  bulkSkipRecurring: (dateStr: string, mode: 'all' | 'except_torah') => void
+  toggleSubtask: (taskId: string, subtaskId: string) => void
+  setTodayOrder: (order: string[]) => void
+  deferCarriedNonUrgent: (today: string) => number
 
   clearAll: () => void
 }
@@ -170,6 +181,72 @@ export const useStore = create<BoDayState>()(
             ],
           }
         }),
+
+      deferOneTimeTask: (id, toDate) =>
+        set((s) => {
+          const target =
+            toDate ?? format(addDays(fromDateStr(todayStr()), 1), 'yyyy-MM-dd')
+          return {
+            tasks: s.tasks.map((t) =>
+              t.id === id && t.type === 'one_time' ? { ...t, scheduledDate: target } : t,
+            ),
+          }
+        }),
+
+      bulkSkipRecurring: (dateStr, mode) =>
+        set((s) => {
+          let completions = s.completions
+          for (const task of s.tasks) {
+            if (task.type !== 'recurring' || !occursOn(task, dateStr)) continue
+            if (mode === 'except_torah' && task.priority === 5) continue
+            const existing = completions.find(
+              (c) => c.taskId === task.id && c.completionDate === dateStr,
+            )
+            if (existing && !existing.skipped) continue
+            if (existing?.skipped) continue
+            completions = [
+              ...completions,
+              {
+                id: uuid(),
+                taskId: task.id,
+                completionDate: dateStr,
+                completedAt: new Date().toISOString(),
+                skipped: true,
+              },
+            ]
+          }
+          return { completions }
+        }),
+
+      toggleSubtask: (taskId, subtaskId) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) => {
+            if (t.id !== taskId || !t.subtasks?.length) return t
+            return {
+              ...t,
+              subtasks: t.subtasks.map((st) =>
+                st.id === subtaskId ? { ...st, done: !st.done } : st,
+              ),
+            }
+          }),
+        })),
+
+      setTodayOrder: (order) =>
+        set((s) => ({ settings: { ...s.settings, todayOrder: order } })),
+
+      deferCarriedNonUrgent: (today) => {
+        const tomorrow = format(addDays(fromDateStr(today), 1), 'yyyy-MM-dd')
+        let count = 0
+        set((s) => ({
+          tasks: s.tasks.map((t) => {
+            if (t.type !== 'one_time' || t.completed || t.scheduledDate >= today) return t
+            if (t.priority <= 2) return t
+            count++
+            return { ...t, scheduledDate: tomorrow }
+          }),
+        }))
+        return count
+      },
 
       clearAll: () => set({ tasks: [], completions: [] }),
     }),

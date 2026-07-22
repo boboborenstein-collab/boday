@@ -69,6 +69,7 @@ export function CommandPalette() {
       { id: 'today', label: 'Go to Today', icon: <ListIcon className="size-4" />, run: go('/') },
       { id: 'calendar', label: 'Go to Calendar', icon: <CalendarIcon className="size-4" />, run: go('/calendar') },
       { id: 'stats', label: 'Go to Insights', icon: <ChartIcon className="size-4" />, run: go('/stats') },
+      { id: 'review', label: 'Weekly review', icon: <ChartIcon className="size-4" />, run: go('/review') },
       { id: 'settings', label: 'Go to Settings', icon: <SettingsIcon className="size-4" />, run: go('/settings') },
       {
         id: 'theme',

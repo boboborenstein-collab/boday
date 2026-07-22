@@ -26,12 +26,15 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
   const setOneTimeCompleted = useStore((s) => s.setOneTimeCompleted)
   const toggleRecurring = useStore((s) => s.toggleRecurringCompletion)
   const toggleSkip = useStore((s) => s.toggleRecurringSkip)
+  const deferOneTimeTask = useStore((s) => s.deferOneTimeTask)
+  const toggleSubtask = useStore((s) => s.toggleSubtask)
   const deleteTask = useStore((s) => s.deleteTask)
   const openEditor = useStore((s) => s.openEditor)
   const sound = useStore((s) => s.settings.sound)
   const reduce = useReducedMotion()
 
   const [burst, setBurst] = useState(false)
+  const [subOpen, setSubOpen] = useState(false)
 
   const pm = priorityMeta(task.priority)
   const ps = PRIORITY_STYLES[task.priority]
@@ -97,17 +100,18 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
             </AnimatePresence>
           </button>
 
-          {/* Body — tap to edit */}
-          <button onClick={() => openEditor(task.id)} className="flex-1 text-left">
-            <div
-              className={`text-[15px] font-medium leading-snug transition-colors ${
-                completed ? 'text-faint line-through' : skipped ? 'text-faint' : 'text-text'
-              }`}
-            >
-              {task.title}
-            </div>
+          {/* Body — tap title to edit */}
+          <div className="flex-1 text-left">
+            <button type="button" onClick={() => openEditor(task.id)} className="w-full text-left">
+              <div
+                className={`text-[15px] font-medium leading-snug transition-colors ${
+                  completed ? 'text-faint line-through' : skipped ? 'text-faint' : 'text-text'
+                }`}
+              >
+                {task.title}
+              </div>
 
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
               {task.type === 'recurring' && (
                 <span className="inline-flex items-center gap-1">
                   <RepeatIcon className="size-3.5" />
@@ -143,8 +147,42 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
               {task.notes && !completed && (
                 <span className="truncate text-faint">{task.notes}</span>
               )}
-            </div>
-          </button>
+              </div>
+            </button>
+
+            {task.subtasks && task.subtasks.length > 0 && (
+              <div className="mt-2 w-full">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSubOpen((v) => !v)
+                  }}
+                  className="text-[11px] font-medium text-accent"
+                >
+                  {subOpen ? 'Hide' : 'Show'} checklist ({task.subtasks.filter((s) => s.done).length}/
+                  {task.subtasks.length})
+                </button>
+                {subOpen && (
+                  <ul className="mt-1.5 flex flex-col gap-1">
+                    {task.subtasks.map((st) => (
+                      <li key={st.id}>
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-muted">
+                          <input
+                            type="checkbox"
+                            checked={st.done}
+                            onChange={() => toggleSubtask(task.id, st.id)}
+                            className="size-3.5 rounded border-border-strong accent-accent"
+                          />
+                          <span className={st.done ? 'line-through text-faint' : ''}>{st.title}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Right rail: carry-over badge + priority chip */}
           <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -163,6 +201,16 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
               >
                 {overdue ? `${carriedOverFromDays}d overdue` : `carried ${carriedOverFromDays}d`}
               </span>
+            )}
+            {task.type === 'one_time' && !completed && (
+              <button
+                type="button"
+                onClick={() => deferOneTimeTask(task.id)}
+                title="Defer to tomorrow"
+                className="inline-flex items-center rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted transition-colors hover:border-border-strong hover:text-text"
+              >
+                Tomorrow
+              </button>
             )}
             {task.type === 'recurring' && !completed && (
               <button

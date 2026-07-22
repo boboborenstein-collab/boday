@@ -7,7 +7,16 @@ import { PRIORITIES } from '../lib/priority'
 import { recurringHistory } from '../lib/streaks'
 import { PRIORITY_STYLES } from './priorityStyles'
 import { RepeatIcon, TrashIcon, XIcon } from './icons'
-import type { Priority, Recurrence, RecurringTask, Task } from '../types'
+import type { Priority, Recurrence, RecurringTask, Subtask, Task } from '../types'
+import { shareTaskWithEmail } from '../lib/share'
+import { isSyncConfigured } from '../lib/sync'
+
+function subId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID()
+  }
+  return `sub-${Date.now()}`
+}
 
 const DOW = [
   { i: 0, label: 'S' },
@@ -82,6 +91,11 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
   const [countInStats, setCountInStats] = useState(!existing?.excludeFromStats)
   const [tags, setTags] = useState<string[]>(existing?.tags ?? [])
   const [tagInput, setTagInput] = useState('')
+  const [subtasks, setSubtasks] = useState<Subtask[]>(existing?.subtasks ?? [])
+  const [subInput, setSubInput] = useState('')
+  const [shareEmail, setShareEmail] = useState('')
+  const [shareBusy, setShareBusy] = useState(false)
+  const [shareMsg, setShareMsg] = useState<string | null>(null)
 
   const [scheduledDate, setScheduledDate] = useState(
     existing?.type === 'one_time' ? existing.scheduledDate : initialDate,
@@ -133,6 +147,7 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
       notes: notes.trim() || undefined,
       priority,
       tags: tags.length ? tags : undefined,
+      subtasks: subtasks.length ? subtasks : undefined,
       reminderTime: reminderTime || null,
       renudgeMinutes: reminderTime ? renudgeMinutes : undefined,
       excludeFromStats: countInStats ? undefined : true,
@@ -253,6 +268,72 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
               </motion.button>
             )
           })}
+        </div>
+      </Field>
+
+      <Field label="Checklist (optional)">
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface-2 p-2">
+          {subtasks.map((st) => (
+            <div key={st.id} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={st.done}
+                onChange={() =>
+                  setSubtasks((prev) =>
+                    prev.map((s) => (s.id === st.id ? { ...s, done: !s.done } : s)),
+                  )
+                }
+                className="size-4 accent-accent"
+              />
+              <input
+                value={st.title}
+                onChange={(e) =>
+                  setSubtasks((prev) =>
+                    prev.map((s) => (s.id === st.id ? { ...s, title: e.target.value } : s)),
+                  )
+                }
+                className="flex-1 bg-transparent text-sm text-text outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setSubtasks((prev) => prev.filter((s) => s.id !== st.id))}
+                className="text-faint hover:text-danger"
+                aria-label="Remove subtask"
+              >
+                <XIcon className="size-4" />
+              </button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <input
+              value={subInput}
+              onChange={(e) => setSubInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  const t = subInput.trim()
+                  if (t) {
+                    setSubtasks((prev) => [...prev, { id: subId(), title: t, done: false }])
+                    setSubInput('')
+                  }
+                }
+              }}
+              placeholder="Add sub-item…"
+              className="flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-faint"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const t = subInput.trim()
+                if (!t) return
+                setSubtasks((prev) => [...prev, { id: subId(), title: t, done: false }])
+                setSubInput('')
+              }}
+              className="rounded-lg border border-border px-2 py-1 text-xs font-medium text-muted"
+            >
+              Add
+            </button>
+          </div>
         </div>
       </Field>
 
@@ -469,6 +550,43 @@ function EditorForm({ existing, defaultDate }: { existing: Task | null; defaultD
           />
         </button>
       </div>
+
+      {existing && isSyncConfigured() && (
+        <Field label="Share with friend">
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={shareEmail}
+              onChange={(e) => setShareEmail(e.target.value)}
+              placeholder="friend@email.com"
+              className={`${inputCls} flex-1`}
+            />
+            <button
+              type="button"
+              disabled={shareBusy || !shareEmail.trim()}
+              onClick={async () => {
+                setShareBusy(true)
+                setShareMsg(null)
+                try {
+                  await shareTaskWithEmail(existing.id, shareEmail)
+                  setShareMsg('Task copied to their account.')
+                  setShareEmail('')
+                } catch (e) {
+                  setShareMsg(e instanceof Error ? e.message : 'Share failed.')
+                }
+                setShareBusy(false)
+              }}
+              className="shrink-0 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-semibold text-text disabled:opacity-50"
+            >
+              {shareBusy ? '…' : 'Send'}
+            </button>
+          </div>
+          {existing.assignedByEmail && (
+            <p className="mt-1 text-xs text-faint">From {existing.assignedByEmail}</p>
+          )}
+          {shareMsg && <p className="mt-1 text-xs text-muted">{shareMsg}</p>}
+        </Field>
+      )}
 
       <div className="mt-6 flex items-center gap-3">
         {existing && (

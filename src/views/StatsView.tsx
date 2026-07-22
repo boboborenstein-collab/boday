@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { format } from 'date-fns'
 import { useStore } from '../store/useStore'
@@ -31,6 +32,9 @@ export function StatsView() {
         <div>
           <div className="text-sm font-medium text-accent">Insights</div>
           <h1 className="text-2xl font-bold tracking-tight">Your momentum</h1>
+          <Link to="/review" className="mt-1 inline-block text-xs font-medium text-accent">
+            Weekly review →
+          </Link>
         </div>
         <div className="flex rounded-lg border border-border bg-surface/60 p-0.5 text-xs font-medium">
           {([7, 30] as const).map((d) => (

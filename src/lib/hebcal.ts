@@ -1,4 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from './supabaseClient'
+import { mergeUserPrefsData } from './userPrefs'
 
 const WORKER_URL = 'https://boday-push.boapps.workers.dev'
 
@@ -204,23 +205,5 @@ export async function saveQuietPrefs(p: QuietPrefs): Promise<void> {
   localStorage.setItem('boday-quiet-prefs-v1', JSON.stringify(p))
 
   if (!isSupabaseConfigured()) return
-  const { data: sessionData } = await getSupabase().auth.getSession()
-  const userId = sessionData.session?.user.id
-  if (!userId) return
-
-  const { data } = await getSupabase()
-    .from('user_prefs')
-    .select('data')
-    .eq('id', userId)
-    .single()
-
-  const existingData = (data?.data as Record<string, unknown>) || {}
-
-  await getSupabase()
-    .from('user_prefs')
-    .upsert({
-      id: userId,
-      user_id: userId,
-      data: { ...existingData, quiet: p },
-    })
+  await mergeUserPrefsData({ quiet: p })
 }
