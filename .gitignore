@@ -37,3 +37,6 @@ pnpm-debug.log*
 
 # dev service worker artifacts
 dev-dist
+
+# Claude Code per-machine settings
+.claude/settings.local.json
