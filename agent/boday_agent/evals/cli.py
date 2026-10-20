@@ -4,7 +4,14 @@ from __future__ import annotations
 import argparse
 import sys
 
-from boday_agent.evals.loader import CASES_DIR, FIXTURES_DIR, load_cases, validate_suite
+from boday_agent.evals.loader import (
+    CASES_DIR,
+    FIXTURES_DIR,
+    load_cases,
+    load_fixture,
+    validate_suite,
+)
+from boday_agent.evals.oracle import check_expectations
 
 
 def _validate() -> int:
@@ -14,6 +21,15 @@ def _validate() -> int:
         print(exc)
         return 1
     errors = validate_suite(cases, FIXTURES_DIR)
+    for case in cases:
+        if not (FIXTURES_DIR / f"{case.fixture}.json").is_file():
+            continue
+        try:
+            fixture = load_fixture(case.fixture)
+        except (OSError, ValueError) as exc:
+            errors.append(f"{case.id}: {exc}")
+            continue
+        errors.extend(check_expectations(case, fixture))
     if errors:
         for error in errors:
             print(error)
