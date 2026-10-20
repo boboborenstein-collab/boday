@@ -216,7 +216,7 @@ def test_sink_redacts(tmp_path):
   4. `failed` and `asked` return `changes=[]`; `proposed` returns `ctx.draft_payload()`; `answered`/`refused` return `[]` even if a draft exists. Trace gets `parse_warnings`, `prompt_version`, `provider.describe()`, `selection_reason`, and is finalized.
 - **Ruling recorded in spec:** `refused` comes only from the model's own `refusal` stop reason; a polite text-only decline of an out-of-scope request is `answered` with no changes. Eval cases in the refuse category accept `answered` or `refused` with zero changes.
 
-- [ ] **Step 1: Write the failing tests** (all use `snap` from conftest, `FakeProvider`, `id_gen=counting_ids()`)
+- [x] **Step 1: Write the failing tests** (all use `snap` from conftest, `FakeProvider`, `id_gen=counting_ids()`)
 
 ```python
 # agent/tests/test_loop.py
@@ -290,9 +290,9 @@ def test_injected_fault_recorded(snap):
 
 (For `test_timeout`, make the timer read count match your implementation's call pattern; the assertion is what matters: elapsed ≥ 60 s before a model call → `failed("timeout")`.)
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement `loop.py`.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Update the spec** — in `docs/superpowers/specs/2026-10-20-boday-agent-design.md` §2 outcome table, change the `refused` row to "the model's own refusal stop reason; a text-only decline is `answered` with no changes".
-- [ ] **Step 6: Commit + push** — `git commit -m "agent: agent loop with limits, outcomes, tracing"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement `loop.py`.** **Step 4: Run** → PASS.
+- [x] **Step 5: Update the spec** — in `docs/superpowers/specs/2026-10-20-boday-agent-design.md` §2 outcome table, change the `refused` row to "the model's own refusal stop reason; a text-only decline is `answered` with no changes".
+- [x] **Step 6: Commit + push** — `git commit -m "agent: agent loop with limits, outcomes, tracing"`.
 
 ---
 
