@@ -116,6 +116,34 @@ def test_timeout(snap):
     assert r.outcome == "failed" and r.trace.error == "timeout"
 
 
+def test_run_ids_do_not_share_the_counting_generator(snap):
+    first = run([fake_text("ok")], snapshot=snap)
+    second = run([fake_text("ok again")], snapshot=snap)
+    assert first.trace.run_id != second.trace.run_id
+    assert first.trace.run_id != "new-1"
+
+
+def test_unexpected_exception_fails_closed(snap):
+    r = run([RuntimeError("boom sk-ant-secret1")], snapshot=snap)
+    assert r.outcome == "failed" and r.changes == []
+    assert "sk-ant-secret1" not in (r.trace.error or "")
+    assert r.trace.outcome == "failed"
+
+
+def test_bad_json_is_shown_back_to_the_model(snap):
+    bad = fake_tools(("search_tasks", {}))
+    bad.tool_calls[0].args = None
+    bad.tool_calls[0].raw_args = "{query: dentist"
+    provider = FakeProvider([bad, fake_text("Sorry.")])
+    run_agent(
+        AgentRequest(message="move dentist", snapshot=snap),
+        provider,
+        id_gen=counting_ids(),
+    )
+    tool_turn = next(m for m in provider.calls[-1][1] if type(m).__name__ == "ToolResults")
+    assert "{query: dentist" in tool_turn.results[0].content
+
+
 def test_injected_fault_recorded(snap):
     r = run(
         [

@@ -68,6 +68,7 @@ class StubClient:
 
     def with_options(self, **kwargs):
         self.timeout = kwargs.get("timeout")
+        self.options = kwargs
         return self
 
 
@@ -131,6 +132,45 @@ def test_tool_use_parsing_usage_and_replay():
 def _status_error(cls, status, message):
     request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
     return cls(message=message, response=httpx.Response(status, request=request), body=None)
+
+
+def test_sdk_retries_are_disabled_and_deadline_limits_our_retries(monkeypatch):
+    now = {"t": 50.0}
+    monkeypatch.setattr(
+        "boday_agent.providers.anthropic_provider.time.monotonic", lambda: now["t"]
+    )
+    monkeypatch.setattr(
+        "boday_agent.providers.anthropic_provider.time.sleep",
+        lambda seconds: now.__setitem__("t", now["t"] + seconds),
+    )
+    c = StubClient(reply=text_reply("hi"))
+    AnthropicProvider("claude-haiku-5-5", client=c).complete(
+        "S", [UserText(text="x")], TOOLS, timeout_s=30
+    )
+    assert c.options.get("max_retries") == 0
+    assert c.timeout == 30
+
+    calls = {"n": 0}
+
+    class RateStub(StubClient):
+        def with_options(self, **kwargs):
+            self.timeout = kwargs.get("timeout")
+            self.options = kwargs
+            return self
+
+    rate = RateStub(error=_status_error(anthropic.RateLimitError, 429, "slow"))
+    original = rate.messages.create
+
+    def counting_create(**kwargs):
+        calls["n"] += 1
+        return original(**kwargs)
+
+    rate.messages.create = counting_create
+    with pytest.raises(ProviderError):
+        AnthropicProvider("claude-haiku-5-5", client=rate).complete(
+            "S", [UserText(text="x")], TOOLS, timeout_s=0.4
+        )
+    assert calls["n"] == 1
 
 
 def test_error_mapping_hides_details():

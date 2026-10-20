@@ -14,17 +14,26 @@ _SECRET_KEY = re.compile(
     r"cf-access-client-id|cf-access-client-secret",
     re.IGNORECASE,
 )
-_SK_ANT = re.compile(r"sk-ant-[A-Za-z0-9_-]+")
+_SECRET_VALUE = re.compile(
+    r"sk-ant-[A-Za-z0-9_-]+|sk-proj-[A-Za-z0-9_-]+|sk-or-[A-Za-z0-9_-]+|"
+    r"gsk_[A-Za-z0-9_-]+|Bearer\s+\S+",
+    re.IGNORECASE,
+)
 
 
 def redact(obj: Any) -> Any:
-    """Deep copy with secret keys and sk-ant tokens removed."""
+    """Deep copy with secret keys and token strings removed.
+
+    Key names match by substring so compound names such as access_token are
+    covered. Integer and float values are left alone, so token counts whose
+    keys contain "token" stay intact.
+    """
     if isinstance(obj, str):
-        return _SK_ANT.sub("[REDACTED]", obj)
+        return _SECRET_VALUE.sub("[REDACTED]", obj)
     if isinstance(obj, dict):
         out = {}
         for key, value in obj.items():
-            if isinstance(key, str) and _SECRET_KEY.fullmatch(key):
+            if isinstance(key, str) and _SECRET_KEY.search(key) and isinstance(value, str):
                 out[key] = "[REDACTED]"
             else:
                 out[key] = redact(value)

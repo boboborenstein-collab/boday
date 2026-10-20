@@ -19,9 +19,11 @@ provider reads credentials from the environment or an Anthropic profile
 
 `--provider openai` posts to an OpenAI-compatible `--base-url` with `--model`.
 `--provider auto` checks `{base-url}/models` for 2 seconds and, if that fails,
-uses `claude-haiku-5-5`. `--now` replaces the snapshot clock and keeps its
-timezone. `--header "Name: value"` is sent with the OpenAI-compatible request
-(for example Cloudflare Access).
+uses `claude-haiku-5-5` with the Anthropic SDK's own credentials.
+`--api-key-env` applies to `--provider anthropic` and `--provider openai`;
+auto does not send that key to the local URL. `--now` replaces the snapshot
+clock and keeps its timezone. `--header "Name: value"` is sent with the
+OpenAI-compatible request (for example Cloudflare Access).
 
 ## Tool contract
 

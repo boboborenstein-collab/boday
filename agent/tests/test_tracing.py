@@ -34,6 +34,22 @@ def test_redact_keys_values_and_nested():
     assert out["note"] == "key [REDACTED] failed" and out["ok"] == 1
 
 
+def test_redact_compound_keys_and_keeps_token_counts():
+    out = redact(
+        {
+            "access_token": "abc",
+            "ANTHROPIC_API_KEY": "sk-ant-zzz",
+            "input_tokens": 100,
+            "note": "Authorization: Bearer sk-proj-abc123",
+        }
+    )
+    assert out["access_token"] == "[REDACTED]"
+    assert out["ANTHROPIC_API_KEY"] == "[REDACTED]"
+    assert out["input_tokens"] == 100
+    assert "sk-proj-abc123" not in out["note"]
+    assert "Bearer" not in out["note"]
+
+
 def test_finalize_totals_and_file_sink(tmp_path):
     t = Trace(
         run_id="r1",

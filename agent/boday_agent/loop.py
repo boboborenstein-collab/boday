@@ -72,7 +72,9 @@ def run_agent(
     )
     budget = limits.local_timeout_s if provider.is_local else limits.timeout_s
     schemas = tool_schemas()
-    trace = _new_trace(request, provider, gen(), selection_reason, now_iso)
+    # Run ids stay unique even when id_gen is the shared counting generator
+    # tests and evals use for task ids. Reusing it writes every run to new-1.json.
+    trace = _new_trace(request, provider, str(uuid4()), selection_reason, now_iso)
     t0 = timer()
 
     def finish(
@@ -110,6 +112,9 @@ def run_agent(
             )
         except ProviderError as exc:
             message = redact(str(exc))
+            return finish("failed", message, [], error=message)
+        except Exception as exc:
+            message = redact(type(exc).__name__)
             return finish("failed", message, [], error=message)
 
         cost, known = cost_usd(response.model, response.usage)
@@ -199,7 +204,10 @@ def _run_tools(ctx, trace, messages, response, step: int, limits: LoopLimits) ->
     cap = limits.max_tool_calls_per_step
     for index, call in enumerate(response.tool_calls):
         if call.args is None:
-            failure = ToolResult.failure("INVALID_ARGS", "tool arguments were not valid JSON")
+            failure = ToolResult.failure(
+                "INVALID_ARGS",
+                f"tool arguments were not valid JSON: {call.raw_args}",
+            )
             _record_skipped(trace, step, call, failure, results)
             continue
         if index >= cap:

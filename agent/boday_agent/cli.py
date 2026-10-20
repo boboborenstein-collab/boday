@@ -68,15 +68,25 @@ def make_provider(args):
         raise ValueError("--base-url is required for provider " + args.provider)
     if not args.model:
         raise ValueError("--model is required for provider " + args.provider)
+    if args.provider == "openai":
+        return (
+            OpenAICompatProvider(
+                args.base_url,
+                args.model,
+                api_key=api_key,
+                extra_headers=headers or None,
+            ),
+            "explicit",
+        )
+    # Auto's fallback resolves its own Anthropic credentials. The key from
+    # --api-key-env stays on the explicit OpenAI/Anthropic providers and is
+    # not sent to the local endpoint.
     local = OpenAICompatProvider(
         args.base_url,
         args.model,
-        api_key=api_key,
         extra_headers=headers or None,
     )
-    if args.provider == "openai":
-        return local, "explicit"
-    fallback = AnthropicProvider("claude-haiku-5-5", api_key=api_key, effort=args.effort)
+    fallback = AnthropicProvider("claude-haiku-5-5", effort=args.effort)
     return select_provider(local, fallback)
 
 

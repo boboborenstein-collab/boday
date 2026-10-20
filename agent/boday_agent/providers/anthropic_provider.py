@@ -80,27 +80,41 @@ class AnthropicProvider:
         }
         if self.effort:
             kwargs["output_config"] = {"effort": self.effort}
-        client = self.client.with_options(timeout=timeout_s)
         started = time.perf_counter()
-        try:
-            if self.refusal_fallback and self.model in _FALLBACK_MODELS:
-                response = client.beta.messages.create(
-                    **kwargs,
-                    betas=["server-side-fallback-2026-07-01"],
-                    fallbacks="default",
-                )
-            else:
-                response = client.messages.create(**kwargs)
-        except (
-            anthropic.RateLimitError,
-            anthropic.APIConnectionError,
-            anthropic.APITimeoutError,
-        ) as exc:
-            raise _mapped(exc, retryable=True) from None
-        except anthropic.APIStatusError as exc:
-            raise _mapped(exc, retryable=exc.status_code >= 500) from None
-        latency_ms = (time.perf_counter() - started) * 1000
-        return _parse(response, latency_ms)
+        response = self._create_with_deadline(kwargs, timeout_s)
+        return _parse(response, (time.perf_counter() - started) * 1000)
+
+    def _create_with_deadline(self, kwargs: dict[str, Any], timeout_s: float):
+        delays = (0.5, 1.0)
+        deadline = time.monotonic() + timeout_s
+        for attempt in range(3):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise ProviderError("timeout", retryable=True)
+            timeout = timeout_s if attempt == 0 else remaining
+            client = self.client.with_options(timeout=timeout, max_retries=0)
+            try:
+                return self._create(client, kwargs)
+            except (
+                anthropic.RateLimitError,
+                anthropic.APIConnectionError,
+                anthropic.APITimeoutError,
+            ) as exc:
+                if attempt == 2 or deadline - time.monotonic() < delays[attempt]:
+                    raise _mapped(exc, retryable=True) from None
+                time.sleep(delays[attempt])
+            except anthropic.APIStatusError as exc:
+                raise _mapped(exc, retryable=exc.status_code >= 500) from None
+        raise ProviderError("timeout", retryable=True)
+
+    def _create(self, client, kwargs: dict[str, Any]):
+        if self.refusal_fallback and self.model in _FALLBACK_MODELS:
+            return client.beta.messages.create(
+                **kwargs,
+                betas=["server-side-fallback-2026-07-01"],
+                fallbacks="default",
+            )
+        return client.messages.create(**kwargs)
 
 
 def _mapped(exc: Exception, *, retryable: bool) -> ProviderError:

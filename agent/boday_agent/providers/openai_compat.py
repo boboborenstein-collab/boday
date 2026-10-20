@@ -87,17 +87,28 @@ class OpenAICompatProvider:
         }
         host = urlsplit(self.base_url).netloc
         started = time.perf_counter()
-        data = self._post(url, body, host, timeout_s)
-        return _parse(data, self.model, (time.perf_counter() - started) * 1000)
+        try:
+            data = self._post(url, body, host, timeout_s)
+            return _parse(data, self.model, (time.perf_counter() - started) * 1000)
+        except ProviderError:
+            raise
+        except (KeyError, IndexError, TypeError):
+            raise ProviderError(f"malformed response from {host}", retryable=False) from None
 
     def _post(self, url: str, body: dict, host: str, timeout_s: float) -> dict:
         delays = (0.5, 1.0)
+        deadline = time.monotonic() + timeout_s
         with httpx.Client(transport=self.transport, timeout=timeout_s) as client:
             for attempt in range(3):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise ProviderError(f"timeout {host}", retryable=True)
                 try:
-                    response = client.post(url, json=body, headers=self.headers())
-                except (httpx.TimeoutException, httpx.ConnectError) as exc:
-                    if attempt == 2:
+                    response = client.post(
+                        url, json=body, headers=self.headers(), timeout=remaining
+                    )
+                except httpx.TransportError as exc:
+                    if not _can_retry(attempt, deadline, delays):
                         raise ProviderError(
                             f"{type(exc).__name__} {host}", retryable=True
                         ) from None
@@ -105,13 +116,18 @@ class OpenAICompatProvider:
                     continue
                 status = response.status_code
                 if status == 429 or status >= 500:
-                    if attempt == 2:
+                    if not _can_retry(attempt, deadline, delays):
                         raise ProviderError(f"HTTP {status} {host}", retryable=True) from None
                     self.sleep(delays[attempt])
                     continue
-                if status >= 400:
+                if not 200 <= status < 300:
                     raise ProviderError(f"HTTP {status} {host}", retryable=False) from None
-                return response.json()
+                try:
+                    return response.json()
+                except json.JSONDecodeError:
+                    raise ProviderError(
+                        f"malformed response from {host}", retryable=False
+                    ) from None
         raise ProviderError(f"HTTP error {host}", retryable=True)
 
 
@@ -127,7 +143,10 @@ def _messages(system: str, messages: list[Message]) -> list[dict]:
                     {
                         "id": call.id,
                         "type": "function",
-                        "function": {"name": call.name, "arguments": call.raw_args},
+                        "function": {
+                            "name": call.name,
+                            "arguments": call.raw_args if call.args is not None else "{}",
+                        },
                     }
                     for call in message.response.tool_calls
                 ]
@@ -140,6 +159,20 @@ def _messages(system: str, messages: list[Message]) -> list[dict]:
         else:
             raise TypeError(f"unsupported message {type(message).__name__}")
     return out
+
+
+def _can_retry(attempt: int, deadline: float, delays: tuple[float, float]) -> bool:
+    if attempt >= 2:
+        return False
+    return deadline - time.monotonic() >= delays[attempt]
+
+
+def _coerce_args(raw) -> tuple[dict | None, str]:
+    if isinstance(raw, dict):
+        return raw, json.dumps(raw)
+    if isinstance(raw, str):
+        return _parse_args(raw), raw
+    return None, ""
 
 
 def _parse_args(raw: str) -> dict | None:
@@ -163,13 +196,13 @@ def _parse(data: dict, configured_model: str, latency_ms: float) -> ModelRespons
     message = choice["message"]
     tool_calls = []
     for call in message.get("tool_calls") or []:
-        raw = call["function"]["arguments"]
+        args, raw_args = _coerce_args(call["function"].get("arguments"))
         tool_calls.append(
             ToolCall(
                 id=call["id"],
                 name=call["function"]["name"],
-                args=_parse_args(raw),
-                raw_args=raw,
+                args=args,
+                raw_args=raw_args,
             )
         )
     usage = data.get("usage") or {}

@@ -137,6 +137,106 @@ def test_retries_then_fails_retryable():
     assert "503" in str(err.value) and "x" in str(err.value)
 
 
+def test_invalid_args_are_replayed_as_json():
+    reply = chat_tool_reply([("c1", "search_tasks", "{query: dentist")])
+    seen = []
+
+    def handler(req):
+        seen.append(json.loads(req.content))
+        if len(seen) == 1:
+            return httpx.Response(200, json=reply)
+        return httpx.Response(200, json=CHAT_TEXT_REPLY)
+
+    p = OpenAICompatProvider("http://x/v1", "m", transport=httpx.MockTransport(handler))
+    first = p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
+    p.complete(
+        "S",
+        [
+            UserText(text="x"),
+            AssistantTurn(response=first),
+            ToolResults(
+                results=[ToolResultMsg(call_id="c1", content="invalid", is_error=True)]
+            ),
+        ],
+        TOOLS,
+        timeout_s=5,
+    )
+    assistant = next(m for m in seen[1]["messages"] if m["role"] == "assistant")
+    arguments = assistant["tool_calls"][0]["function"]["arguments"]
+    assert json.loads(arguments) == {}
+
+
+def test_non_json_arguments_do_not_crash():
+    reply = chat_tool_reply([("c1", "search_tasks", "{query: dentist")])
+    reply["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"] = None
+    p = OpenAICompatProvider(
+        "http://x/v1",
+        "m",
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json=reply)),
+    )
+    result = p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
+    assert result.tool_calls[0].args is None
+
+
+def test_retries_honor_deadline(monkeypatch):
+    now = {"t": 100.0}
+    monkeypatch.setattr(
+        "boday_agent.providers.openai_compat.time.monotonic", lambda: now["t"]
+    )
+    calls = []
+
+    def handler(req):
+        calls.append(req.extensions["timeout"]["read"])
+        return httpx.Response(503)
+
+    def sleep(seconds):
+        now["t"] += seconds
+
+    p = OpenAICompatProvider(
+        "http://x/v1", "m", transport=httpx.MockTransport(handler), sleep=sleep
+    )
+    with pytest.raises(ProviderError) as err:
+        p.complete("S", [UserText(text="x")], TOOLS, timeout_s=0.4)
+    assert len(calls) == 1
+    assert calls[0] == pytest.approx(0.4)
+    assert err.value.retryable is True
+
+
+def test_transport_and_malformed_responses_are_provider_errors():
+    def transport_error(req):
+        raise httpx.RemoteProtocolError("peer closed", request=req)
+
+    p = OpenAICompatProvider(
+        "http://x/v1", "m", transport=httpx.MockTransport(transport_error), sleep=lambda s: None
+    )
+    with pytest.raises(ProviderError) as err:
+        p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
+    assert err.value.retryable is True and "peer closed" not in str(err.value)
+
+    def redirect(req):
+        return httpx.Response(302)
+
+    p = OpenAICompatProvider("http://x/v1", "m", transport=httpx.MockTransport(redirect))
+    with pytest.raises(ProviderError) as err:
+        p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
+    assert err.value.retryable is False and "302" in str(err.value)
+
+    def html(req):
+        return httpx.Response(200, content=b"<html>login</html>")
+
+    p = OpenAICompatProvider("http://x/v1", "m", transport=httpx.MockTransport(html))
+    with pytest.raises(ProviderError) as err:
+        p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
+    assert "login" not in str(err.value)
+
+    def empty(req):
+        return httpx.Response(200, json={"choices": []})
+
+    p = OpenAICompatProvider("http://x/v1", "m", transport=httpx.MockTransport(empty))
+    with pytest.raises(ProviderError):
+        p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
+
+
 def test_400_not_retried():
     calls = []
 
