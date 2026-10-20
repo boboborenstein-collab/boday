@@ -100,7 +100,7 @@ def test_fake_provider_raises_scripted_errors():
   - `render_context(snapshot: Snapshot, clock: Clock) -> str` — block starting `<context>` and ending `</context>`: `Now: Tue 2026-10-20 09:00 (America/New_York)`, a 14-day table starting today, one line per day `Wed 2026-10-21`, and, if `snapshot.parse_warnings`, a line `Note: N task(s) could not be read and are not shown.`
   - `build_messages(request_text: str, history: list[HistoryTurn], snapshot, clock, max_history: int = 10) -> list[Message]` — the last `max_history` history turns become alternating `UserText` / assistant text, where an assistant turn with a proposal is rendered as its text + `\n[proposal <status>]: <compact JSON of changes>`; then one final `UserText` = `render_context(...) + "\n\n" + request_text`. History assistant turns are plain text (`AssistantTurn` with a synthetic `ModelResponse(text=..., stop_reason="end_turn")`), never replayed provider-native content.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_prompt.py
@@ -130,8 +130,8 @@ def test_parse_warning_note(snap):
     assert "1 task(s) could not be read" in render_context(snap, Clock.from_snapshot(snap))
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: system prompt + context builder"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: system prompt + context builder"`.
 
 ---
 
