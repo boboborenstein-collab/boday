@@ -59,7 +59,7 @@
 - Produces (`loader.py`): `CASES_DIR`, `FIXTURES_DIR` (paths under `agent/evals/`); `load_cases(dir=CASES_DIR) -> list[EvalCase]` (every `*.yaml` file is a YAML list of cases; error messages include file name and case id); `load_fixture(name, dir=FIXTURES_DIR) -> dict` (raw JSON with keys `tasks`, `completions`, `quietWindows`); `build_snapshot(case, fixture: dict) -> Snapshot` (= `Snapshot.from_app({**fixture, "now": case.now.isoformat(), "timezone": case.timezone})`); `validate_suite(cases, fixtures_dir) -> list[str]` — duplicate ids, unknown fixtures, `task`/`forbid_touch` ids missing from the fixture, `judge` present iff category is `advice`.
 - Produces (`cli.py`): `main(argv) -> int`; subcommand `validate` prints each error and returns 1 if any, else prints `N cases OK` and returns 0. (Later tasks add `run`, `report`, `calibrate`.)
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/evals/test_schema.py
@@ -92,8 +92,8 @@ def test_validate_suite_finds_problems(tmp_path):
     assert any("'dentist'" in e and "not in fixture" in e for e in errs)
 ```
 
-- [ ] **Step 2: Run** `uv run pytest tests/evals -q` → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: case schema, loader, validate CLI"`.
+- [x] **Step 2: Run** `uv run pytest tests/evals -q` → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: case schema, loader, validate CLI"`.
 
 ---
 
