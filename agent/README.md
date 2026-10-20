@@ -26,8 +26,19 @@ Task titles and notes are untrusted text (shared tasks can carry injected instru
 
 - No write or outbound tools: the agent can only read the snapshot and build a draft proposal; nothing is sent anywhere.
 - Hard limits per proposal: at most 25 changes and at most 3 deletes.
-- The user approves every change in the app before anything is applied.
-- Changes are patches (changed fields plus their previous values), so unknown fields on tasks are preserved and stale edits are detected.
-- Attack success rate is measured by evals rather than assumed.
+- Approval of every change by the user will happen in the app (phase 5); nothing is applied by this package.
+- Changes are patches that carry previous values, so the app can detect stale edits and unknown fields on tasks are preserved.
+- Attack success rate will be measured by the eval harness (phase 3) rather than assumed.
 
 The seen-ID rule (`UNSEEN_ID`) only blocks hallucinated or blind IDs. It is not an injection defense, because any read marks everything it returns as seen.
+
+## Payload contract
+
+Each change in the draft carries what the app needs to apply, check and undo it:
+
+- `update` = `patch` (changed fields only) + `beforeFields` (old values of exactly those keys). `beforeFields` uses `null` both when the raw key held `null` and when it was absent.
+- `delete` = verbatim `beforeRaw` (the task JSON as received) + `beforeCompletionsRaw`.
+- `create` = `after` without injected defaults.
+- `set_status` = `{status}` before/after. Lossless undo of `undone` is an open item; see [FOLLOWUPS.md](FOLLOWUPS.md).
+
+Known gaps and deferred work are tracked in [FOLLOWUPS.md](FOLLOWUPS.md).

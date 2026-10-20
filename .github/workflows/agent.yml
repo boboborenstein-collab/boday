@@ -6,12 +6,20 @@ on:
       - 'agent/**'
       - 'scripts/gen-recurrence-parity.ts'
       - 'src/lib/recurrence.ts'
+      - 'src/lib/date.ts'
+      - 'src/store/seed.ts'
+      - 'src/types.ts'
+      - 'package-lock.json'
       - '.github/workflows/agent.yml'
   pull_request:
     paths:
       - 'agent/**'
       - 'scripts/gen-recurrence-parity.ts'
       - 'src/lib/recurrence.ts'
+      - 'src/lib/date.ts'
+      - 'src/store/seed.ts'
+      - 'src/types.ts'
+      - 'package-lock.json'
       - '.github/workflows/agent.yml'
 
 jobs:
