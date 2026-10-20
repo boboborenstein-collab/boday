@@ -91,7 +91,8 @@ class RunContext:
             raise ToolError(
                 ErrorCode.CONFLICTING_CHANGE,
                 f"There is already a proposed change for task '{task_id}'.",
-                "Combine edits for one task into a single change.",
+                "This task already has a change in this proposal and cannot be changed again in the "
+                "same proposal. Propose what you can and tell the user what's left.",
             )
         if len(self.draft) >= self.limits.max_changes:
             raise ToolError(

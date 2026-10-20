@@ -199,6 +199,15 @@ def _candidate(d: date, time: str | None, today: date) -> DateCandidate:
 
 
 def resolve(expression: str, clock: Clock) -> DateResolution:
+    try:
+        return _resolve(expression, clock)
+    except UnparseableDate:
+        raise
+    except (OverflowError, ValueError):  # date arithmetic out of range, e.g. "in 99999999 days"
+        raise _bad(expression) from None
+
+
+def _resolve(expression: str, clock: Clock) -> DateResolution:
     text = re.sub(r"[,]", " ", expression.lower())
     text = re.sub(r"\s+", " ", text).strip()
     today = clock.today

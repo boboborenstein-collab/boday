@@ -182,3 +182,12 @@ def test_skip_beyond_horizon_rejected(seen_ctx):
 def test_created_at_is_utc_millis_z(seen_ctx):
     run(seen_ctx, "propose_create_task", title="X", type="one_time", scheduled_date="2026-10-21")
     assert seen_ctx.draft_payload()[0]["after"]["createdAt"] == "2026-10-20T13:00:00.000Z"
+
+
+def test_conflicting_change_hint_is_actionable(seen_ctx):
+    run(seen_ctx, "propose_update_task", task_id="cafe", changes={"priority": 1})
+    err = run(seen_ctx, "propose_delete_task", task_id="cafe", reason="x").error
+    assert err.hint == (
+        "This task already has a change in this proposal and cannot be changed again in the "
+        "same proposal. Propose what you can and tell the user what's left."
+    )

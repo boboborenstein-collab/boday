@@ -95,3 +95,10 @@ def test_month_clamps_and_next_monday_on_monday():
 def test_unparseable_message_lists_forms():
     with pytest.raises(UnparseableDate, match="Supported forms"):
         resolve("blorp", TUE)
+
+
+@pytest.mark.parametrize("expr", ["in 99999999 days", "in 99999999 weeks", "in 99999999 months",
+                                  "in 99999999 hours", "in 99999999999 minutes"])
+def test_huge_offsets_are_unparseable_not_crashes(expr):
+    with pytest.raises(UnparseableDate):
+        resolve(expr, TUE)

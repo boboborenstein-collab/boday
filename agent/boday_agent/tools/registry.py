@@ -62,6 +62,7 @@ def _run(ctx: RunContext, name: str, args: dict) -> tuple[ToolResult, str | None
         parsed = spec.args_model.model_validate(args)
     except ValidationError as exc:
         return ToolResult.failure(ErrorCode.INVALID_ARGS, _first_error(exc)), injected
+    seen_before = set(ctx.seen_ids)
     try:
         data = spec.handler(ctx, parsed)
     except ToolError as exc:
@@ -70,7 +71,21 @@ def _run(ctx: RunContext, name: str, args: dict) -> tuple[ToolResult, str | None
         return ToolResult.failure(
             ErrorCode.TOOL_FAILURE, f"{name} failed unexpectedly ({type(exc).__name__})."
         ), injected
-    return ToolResult.success(post_fault_data(fault, name, data)), injected
+    rewritten = post_fault_data(fault, name, data)
+    if fault is not None and fault.kind in ("empty", "truncated"):
+        # The model only saw the rewritten data: hidden ids must not count as seen.
+        ctx.seen_ids = seen_before | _ids_in(name, rewritten)
+    return ToolResult.success(rewritten), injected
+
+
+def _ids_in(name: str, data: dict) -> set[str]:
+    if name == "search_tasks":
+        rows = data.get("results", [])
+    elif name == "get_agenda":
+        rows = [i for d in data.get("days", []) for i in d.get("items", [])]
+    else:
+        rows = []
+    return {r["id"] for r in rows if isinstance(r, dict) and "id" in r}
 
 
 def execute(ctx: RunContext, name: str, args: dict) -> ToolCallRecord:

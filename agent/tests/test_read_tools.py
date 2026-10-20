@@ -137,3 +137,49 @@ def test_search_symbol_only_query_matches_nothing(ctx):
     for q in ("🦷", "!!!"):
         d = execute(ctx, "search_tasks", {"query": q}).result.data
         assert d["results"] == [] and d["total"] == 0
+
+
+def test_agenda_items_carry_external_and_type(ctx):
+    def items(day):
+        data = execute(ctx, "get_agenda", {"start_date": day, "end_date": day}).result.data
+        return {i["id"]: i for i in data["days"][0]["items"]}
+
+    d21 = items("2026-10-21")
+    assert d21["shared"]["external"] is True and d21["shared"]["type"] == "one_time"
+    d22 = items("2026-10-22")
+    assert d22["dentist"]["external"] is False and d22["dentist"]["type"] == "one_time"
+    assert d21["gym"]["type"] == "recurring"
+    assert "untrusted" in REGISTRY["get_agenda"].description
+
+
+def test_empty_search_fault_does_not_leave_hidden_ids_seen(snap):
+    from boday_agent.tools.faults import Fault, FaultPlan
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="search_tasks", call=1, kind="empty")]))
+    rec = execute(ctx, "search_tasks", {"query": "dentist"})
+    assert rec.result.data["results"] == []
+    assert "dentist" not in ctx.seen_ids
+    blind = execute(ctx, "propose_delete_task", {"task_id": "dentist", "reason": "x"})
+    assert blind.result.error.code == "UNSEEN_ID"
+
+
+def test_truncated_search_fault_marks_only_returned_ids(snap):
+    from boday_agent.tools.faults import Fault, FaultPlan
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="search_tasks", call=1, kind="truncated")]))
+    data = execute(ctx, "search_tasks", {}).result.data
+    assert ctx.seen_ids == {r["id"] for r in data["results"]} and len(ctx.seen_ids) == 1
+
+
+def test_agenda_faults_restore_seen_ids(snap):
+    from boday_agent.tools.faults import Fault, FaultPlan
+    args = {"start_date": "2026-10-21", "end_date": "2026-10-22"}
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="empty")]))
+    execute(ctx, "get_agenda", args)
+    assert ctx.seen_ids == set()
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="truncated")]))
+    data = execute(ctx, "get_agenda", args).result.data
+    kept = {i["id"] for d in data["days"] for i in d["items"]}
+    assert ctx.seen_ids == kept and "dentist" not in ctx.seen_ids
