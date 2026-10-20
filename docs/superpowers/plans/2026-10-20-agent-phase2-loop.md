@@ -151,7 +151,7 @@ def test_parse_warning_note(snap):
   - `FileSink(root: Path).write(trace) -> Path` — writes redacted JSON to `root/<YYYY-MM-DD>/<run_id>.json` (date from `started_at`), returns the path.
   - `request` in the trace stores message, history length, task count, and fixture/snapshot hash — not the full snapshot (privacy); the eval runner adds the fixture name.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_tracing.py
@@ -187,8 +187,8 @@ def test_sink_redacts(tmp_path):
     assert "sk-ant-x1" not in text
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: tracing, redaction, pricing"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: tracing, redaction, pricing"`.
 
 ---
 
