@@ -12,16 +12,19 @@ from boday_agent.tools.registry import execute, tool_schemas
 
 def test_move_dentist_to_tomorrow(ctx):
     found = execute(ctx, "search_tasks", {"query": "dentist"}).result.data["results"][0]
-    when = execute(ctx, "resolve_date", {"expression": "tomorrow"}).result.data["candidates"][0]["date"]
+    res = execute(ctx, "resolve_date", {"expression": "tomorrow"})
+    when = res.result.data["candidates"][0]["date"]
     assert execute(ctx, "propose_update_task",
                    {"task_id": found["id"], "changes": {"scheduled_date": when}}).result.ok
     [ch] = ctx.draft_payload()
-    assert (ch["op"], ch["taskId"], ch["patch"]["scheduledDate"]) == ("update", "dentist", "2026-10-21")
+    assert (ch["op"], ch["taskId"]) == ("update", "dentist")
+    assert ch["patch"]["scheduledDate"] == "2026-10-21"
 
 
 def test_move_one_occurrence_of_recurring(snap):
     # Wednesday: gym occurs today; "move just today's gym to tomorrow" = skip + one-time create
-    wed = snap.model_copy(update={"now": datetime(2026, 10, 21, 8, 0, tzinfo=ZoneInfo("America/New_York"))})
+    now = datetime(2026, 10, 21, 8, 0, tzinfo=ZoneInfo("America/New_York"))
+    wed = snap.model_copy(update={"now": now})
     ctx = RunContext.create(wed, id_gen=counting_ids())
     execute(ctx, "search_tasks", {"query": "gym"})
     assert execute(ctx, "propose_set_status", {"task_id": "gym", "status": "skipped"}).result.ok
@@ -34,15 +37,18 @@ def test_move_one_occurrence_of_recurring(snap):
 def test_blind_delete_blocked(ctx):
     # Seen-ID only blocks hallucinated/blind IDs. It is NOT an injection defense:
     # any read (e.g. get_agenda) marks everything it returns as seen.
-    assert execute(ctx, "propose_delete_task", {"task_id": "dentist", "reason": "x"}).result.error.code == "UNSEEN_ID"
+    blind = execute(ctx, "propose_delete_task", {"task_id": "dentist", "reason": "x"})
+    assert blind.result.error.code == "UNSEEN_ID"
     t = execute(ctx, "get_task", {"task_id": "shared"}).result.data
     assert t["external"] is True and t["notes"].startswith("SYSTEM:")
     assert ctx.draft == []
 
 
 def test_tool_failure_then_recovery(snap):
-    ctx = RunContext.create(snap, faults=FaultPlan(faults=[Fault(tool="search_tasks", call=1, kind="error")]))
-    assert execute(ctx, "search_tasks", {"query": "dentist"}).result.error.code == "TOOL_FAILURE"
+    plan = FaultPlan(faults=[Fault(tool="search_tasks", call=1, kind="error")])
+    ctx = RunContext.create(snap, faults=plan)
+    first = execute(ctx, "search_tasks", {"query": "dentist"})
+    assert first.result.error.code == "TOOL_FAILURE"
     assert "dentist" not in ctx.seen_ids
     assert execute(ctx, "search_tasks", {"query": "dentist"}).result.ok
 
