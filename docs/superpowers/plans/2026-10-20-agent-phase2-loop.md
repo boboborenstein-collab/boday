@@ -436,7 +436,7 @@ def test_auto_falls_back_on_non_200(): ...      # 502 → fallback
   - Prints JSON `{"outcome", "text", "changes", "question", "options", "trace_path", "cost_usd", "latency_ms", "provider"}` to stdout; exit code 0 for any outcome, 2 for bad CLI input/unreadable snapshot.
 - `examples/demo_snapshot.json` — the shared phase 1 fixture (same tasks, completions, quiet window, `now`, `timezone`) as app-shaped camelCase JSON.
 
-- [ ] **Step 1: Write the failing tests** — monkeypatch the provider factory in `cli` to return a `FakeProvider` script.
+- [x] **Step 1: Write the failing tests** — monkeypatch the provider factory in `cli` to return a `FakeProvider` script.
 
 ```python
 def test_cli_prints_result_and_writes_trace(tmp_path, monkeypatch, capsys):
@@ -452,7 +452,7 @@ def test_cli_bad_snapshot_exit_2(tmp_path):
     assert cli.main(["x", "--snapshot", str(tmp_path / "missing.json")]) == 2
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
 - [ ] **Step 5: Manual end-to-end run (needs credentials — run on the owner's Mac, or any session with `ANTHROPIC_API_KEY` / `ant auth login`; costs well under $0.01):**
 
 ```bash
