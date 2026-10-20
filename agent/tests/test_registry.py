@@ -82,6 +82,7 @@ def test_timeout_fault(snap):
 def test_empty_and_truncated_faults_on_search():
     search = ToolSpec("search_tasks", "s", _NoArgs,
                       lambda c, a: {"results": [1, 2], "total": 2, "truncated": False}, "read")
+    saved = REGISTRY.get("search_tasks")
     register(search)
     try:
         for kind, expected in [
@@ -96,7 +97,10 @@ def test_empty_and_truncated_faults_on_search():
             rec = execute(ctx, "search_tasks", {})
             assert rec.result.data == expected and rec.injected_fault == kind
     finally:
-        REGISTRY.pop("search_tasks", None)
+        if saved is not None:
+            REGISTRY["search_tasks"] = saved
+        else:
+            REGISTRY.pop("search_tasks", None)
 
 
 def test_require_seen_and_task(ctx):
