@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import copy
 import re
-from datetime import date, timedelta
+from datetime import UTC, date, timedelta
 from typing import Annotated, Any, Literal
 
 from pydantic import (
@@ -155,6 +155,22 @@ def _time_warnings(
     return out
 
 
+def _recurring_quiet(ctx: RunContext, task: RecurringTask) -> list[ChangeWarning]:
+    """QUIET_WINDOW if any occurrence's reminder time falls inside a quiet window."""
+    if not task.reminder_time:
+        return []
+    for w in ctx.snapshot.quiet_windows:
+        day = w.start.astimezone(ctx.clock.tz).date()
+        last = w.end.astimezone(ctx.clock.tz).date()
+        while day <= last:
+            ds = day.isoformat()
+            if occurs_on(task, ds) and _in_quiet(ctx, ds, task.reminder_time):
+                msg = f"An occurrence on {ds} at {task.reminder_time} falls inside a quiet window."
+                return [_warn("QUIET_WINDOW", msg)]
+            day += timedelta(days=1)
+    return []
+
+
 def _external(task: Task) -> list[ChangeWarning]:
     if task.assigned_by_email:
         return [_warn("EXTERNAL_TASK", f"This task was assigned by {task.assigned_by_email}.")]
@@ -235,7 +251,10 @@ def _create(ctx: RunContext, a: CreateArgs) -> dict:
         after["notes"] = a.notes
     if a.subtasks:
         after["subtasks"] = [{"id": ctx.id_gen(), "title": s, "done": False} for s in a.subtasks]
-    after["createdAt"] = ctx.clock.now.isoformat()
+    after["createdAt"] = (
+        ctx.clock.now.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.")
+        + f"{ctx.clock.now.microsecond // 1000:03d}Z"
+    )
 
     warnings: list[ChangeWarning] = []
     norm = normalize(a.title)
@@ -252,6 +271,8 @@ def _create(ctx: RunContext, a: CreateArgs) -> dict:
             break
     if a.type == "one_time" and a.scheduled_date:
         warnings += _time_warnings(ctx, a.scheduled_date, a.reminder_time, None)
+    elif a.type == "recurring":
+        warnings += _recurring_quiet(ctx, RecurringTask.model_validate(after))
 
     change = CreateChange(task_id=task_id, after=after, warnings=warnings)
     return _commit(ctx, change, f"Create {a.type.replace('_', '-')} task '{a.title}'")
@@ -362,6 +383,10 @@ def _update(ctx: RunContext, a: UpdateArgs) -> dict:
         ds = patch.get("scheduledDate", task.scheduled_date)
         tm = patch["reminderTime"] if "reminderTime" in patch else task.reminder_time
         warnings += _time_warnings(ctx, ds, tm, task.id)
+    elif isinstance(task, RecurringTask) and set(patch) & {
+        "reminderTime", "recurrence", "endDate"
+    }:
+        warnings += _recurring_quiet(ctx, RecurringTask.model_validate({**raw, **patch}))
 
     change = UpdateChange(task_id=task.id, patch=patch, before_fields=before, warnings=warnings)
     return _commit(ctx, change, f"Update '{task.title}': " + ", ".join(patch))
@@ -408,6 +433,8 @@ def _set_status(ctx: RunContext, a: SetStatusArgs) -> dict:
                 ErrorCode.INVALID_DATE, f"'{task.title}' does not occur on {ds}.",
                 "Use get_task recent_history or get_agenda to find real occurrence dates.",
             )
+        if ds > ctx.clock.today_str:
+            _check_range(ctx, ds, "date")
         if a.status == "done" and ds > ctx.clock.today_str:
             raise ToolError(ErrorCode.INVALID_DATE, "Cannot mark a future occurrence done.")
         current = "open"

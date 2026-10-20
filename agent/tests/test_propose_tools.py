@@ -157,3 +157,28 @@ def test_conflicting_change(seen_ctx):
 def test_ask_user(ctx):
     assert run(ctx, "ask_user", question="Which call?", options=["Call mom", "Call Mom about Thanksgiving"]).ok
     assert ctx.question.question == "Which call?"
+
+
+def codes(r):
+    return [w["code"] for w in r.data["warnings"]]
+
+
+def test_recurring_quiet_window_warnings(seen_ctx):
+    r = run(seen_ctx, "propose_create_task", title="Fri thing", type="recurring",
+            recurrence={"kind": "weekly", "days_of_week": [5]}, reminder_time="19:00")
+    assert codes(r) == ["QUIET_WINDOW"]
+    assert "QUIET_WINDOW" in codes(run(seen_ctx, "propose_update_task", task_id="gym", changes={"reminder_time": "19:00"}))
+
+
+def test_gym_early_reminder_no_quiet(seen_ctx):
+    r = run(seen_ctx, "propose_update_task", task_id="gym", changes={"reminder_time": "06:00"})
+    assert r.ok and "QUIET_WINDOW" not in codes(r)
+
+
+def test_skip_beyond_horizon_rejected(seen_ctx):
+    assert run(seen_ctx, "propose_set_status", task_id="standup", status="skipped", date="2027-10-21").error.code == "INVALID_DATE"
+
+
+def test_created_at_is_utc_millis_z(seen_ctx):
+    run(seen_ctx, "propose_create_task", title="X", type="one_time", scheduled_date="2026-10-21")
+    assert seen_ctx.draft_payload()[0]["after"]["createdAt"] == "2026-10-20T13:00:00.000Z"
