@@ -53,7 +53,7 @@
   - `class Provider(Protocol)`: attributes `name: str`, `model: str`, `is_local: bool`; method `complete(system: str, messages: list[Message], tools: list[dict], timeout_s: float) -> ModelResponse`; method `describe() -> dict` (provider, model, base_url host, local build info if known; never secrets).
 - Produces (`providers/fake.py`): `FakeProvider(script: list[ModelResponse | Exception], name="fake", model="fake-1", is_local=False)`; each `complete` pops the next item (raising it if an exception), records `(system, messages, tools)` in `.calls`; raises `AssertionError("FakeProvider script exhausted")` when empty. Helpers `fake_text(text)` and `fake_tools(*calls: tuple[str, dict])` build `ModelResponse`s (ids `call-1`, `call-2`, …; usage 100 in / 20 out).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_providers_base.py
@@ -78,10 +78,10 @@ def test_fake_provider_raises_scripted_errors():
         p.complete("sys", [], [], timeout_s=5)
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_providers_base.py -q` → FAIL.
-- [ ] **Step 3: Implement** per Interfaces; `uv add anthropic httpx`.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: provider interface + fake provider"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_providers_base.py -q` → FAIL.
+- [x] **Step 3: Implement** per Interfaces; `uv add anthropic httpx`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: provider interface + fake provider"`.
 
 ---
 
