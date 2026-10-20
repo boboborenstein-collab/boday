@@ -93,6 +93,7 @@ def test_load_cases_names_file_and_id(tmp_path):
         load_cases(tmp_path)
 
 
-def test_validate_cli_empty_suite(capsys):
+def test_validate_cli_reports_case_count(capsys):
     assert main(["validate"]) == 0
-    assert capsys.readouterr().out.strip() == "0 cases OK"
+    loaded = len(load_cases())
+    assert capsys.readouterr().out.strip() == f"{loaded} cases OK"

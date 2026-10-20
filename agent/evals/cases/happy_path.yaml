@@ -1,0 +1,251 @@
+- id: move-dentist-tomorrow
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move my dentist to tommorow
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-21'
+- id: move-dentist-friday
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move the dentist appt to friday
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-23'
+- id: move-dentist-oct-28
+  category: happy_path
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: move dentist to oct 28
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-28'
+- id: add-mail-permit
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: add mail the permit friday at 3pm
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title: Mail the permit
+          type: one_time
+          scheduledDate: '2026-10-23'
+          reminderTime: '15:00'
+- id: add-call-bank
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: add call the bank tomorrow p1
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title: Call the bank
+          type: one_time
+          scheduledDate: '2026-10-21'
+          priority: 1
+- id: rename-dentist
+  category: happy_path
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: rename the dentist appointment to dental cleaning
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          title: Dental cleaning
+- id: priority-vet
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: bump the vet appoitment to p1
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: vet
+        fields:
+          priority: 1
+- id: reminder-presentation
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: set a 4pm remider on finish presentation
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: presentation
+        fields:
+          reminderTime: '16:00'
+- id: clear-dentist-reminder
+  category: happy_path
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: clear the reminder on the dentist appointment
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          reminderTime: null
+- id: done-pharmacy
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: mark pick up prescription done
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: pharmacy
+        fields:
+          status: done
+- id: done-standup-today
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: mark standup done tday
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: standup
+        fields:
+          status: done
+          date: '2026-10-20'
+- id: undo-report
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: uncheck send report, i didnt actually send it
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: report
+        fields:
+          status: open
+- id: tag-dentist
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: add a home tage to the dentist appointment
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          tags:
+          - health
+          - home
+  notes: Keep the existing health tag.
+- id: notes-vet
+  category: happy_path
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: 'add a note on the vet appointment: bring vaccination records'
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: vet
+        fields:
+          notes: Bring vaccination records
+- id: delete-laundry
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: delete the laundrey task
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: delete
+        task: laundry
+- id: weekly-team-lunch
+  category: happy_path
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: add team lunch every tuesday and thursday
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title: Team lunch
+          type: recurring
+          recurrence:
+            kind: weekly
+            daysOfWeek:
+            - 2
+            - 4

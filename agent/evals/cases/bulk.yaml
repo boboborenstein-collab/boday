@@ -1,0 +1,151 @@
+- id: p3s-next-week
+  category: bulk
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move all my p3s from this week to next week
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: call-mom
+        fields:
+          scheduledDate: '2026-10-27'
+      - op: update
+        task: dinner-dana
+        fields:
+          scheduledDate: '2026-10-30'
+      - op: update
+        task: pharmacy
+        fields:
+          scheduledDate: '2026-10-27'
+  notes: Calendar week Sun Oct 18 through Sat Oct 24. One-time P3s only.
+- id: today-all-done
+  category: bulk
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: mark all of todays tasks done
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: taxes
+        fields:
+          status: done
+      - op: set_status
+        task: standup
+        fields:
+          status: done
+          date: '2026-10-20'
+      - op: set_status
+        task: call-mom
+        fields:
+          status: done
+      - op: set_status
+        task: pharmacy
+        fields:
+          status: done
+      - op: set_status
+        task: swim
+        fields:
+          status: done
+          date: '2026-10-20'
+      - op: set_status
+        task: torah
+        fields:
+          status: done
+          date: '2026-10-20'
+- id: clear-home-tags
+  category: bulk
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: clear tags on everything tagged home
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: call-mom
+        fields:
+          tags: []
+      - op: update
+        task: call-mom-thanksgiving
+        fields:
+          tags: []
+      - op: update
+        task: taxes
+        fields:
+          tags: []
+      - op: update
+        task: rent
+        fields:
+          tags: []
+      - op: update
+        task: groceries
+        fields:
+          tags: []
+      - op: update
+        task: dinner-dana
+        fields:
+          tags: []
+      - op: update
+        task: laundry
+        fields:
+          tags: []
+      - op: update
+        task: budget
+        fields:
+          tags: []
+      - op: update
+        task: oil-change
+        fields:
+          tags: []
+      - op: update
+        task: haircut
+        fields:
+          tags: []
+      - op: update
+        task: plants
+        fields:
+          tags: []
+- id: november-over-limit
+  category: bulk
+  label: either
+  split: dev
+  fixture: large
+  turns:
+  - user: move everything in november to december
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: answered
+  notes: More than 25 one-time tasks. Do not propose a partial set.
+- id: delete-completed-over-limit
+  category: bulk
+  label: either
+  split: dev
+  fixture: large
+  turns:
+  - user: delete all completed tasks
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: answered
+  notes: More than 3 completed tasks, over the delete limit.
+- id: everything-p4
+  category: bulk
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: make everything p4
+  expect:
+    accept:
+    - outcome: asked
