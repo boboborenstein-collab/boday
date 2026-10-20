@@ -109,6 +109,8 @@ To launch and demo the app in the browser:
 This will start the dev server and open it in browser automation.
 
 ## Executing implementation plans (local, Claude cloud, or Cursor cloud agents)
+**Start here:** `docs/superpowers/NEXT-STEPS.md` — current status of the BoDay
+agent project and which track/branch/plan to pick up.
 Plans live in `docs/superpowers/plans/`, specs in `docs/superpowers/specs/`.
 The Superpowers process skills are vendored in `.claude/skills/` (MIT, see
 `.claude/skills/SUPERPOWERS-LICENSE`) so cloud agents without the plugin can
