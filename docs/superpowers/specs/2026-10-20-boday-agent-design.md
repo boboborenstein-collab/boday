@@ -174,7 +174,7 @@ settings. The server is stateless.
 1. Choose provider once per run (Auto: health-check owner's Mac, 2s
    timeout, else Claude). No mid-run switching.
 2. Build prompt: rules, 14-day date table, request.
-3. Loop, ≤8 model calls; ≤5 tool calls per step, executed in order.
+3. Loop, ≤8 model calls; ≤10 tool calls per step, executed in order.
 4. Return exactly one outcome.
 
 | Outcome | Meaning |
@@ -187,7 +187,13 @@ settings. The server is stateless.
 
 **Fail closed:** on `failed`, the draft is discarded.
 
-**Limits:** 8 model calls; 60s total (90s for local providers).
+**Limits:** 8 model calls; 10 tool calls per step; 60s total (90s for
+local providers). These are starting values, not tuned: a typical request
+needs 2–4 model calls, so 8 is ~2x headroom; 10 tool calls per step lets a
+25-change bulk proposal fit in 3 steps. Each model call resends the whole
+conversation, so cost grows faster than linearly with steps. All limits are
+config constants; the eval report tracks step-cap hits as a failure type
+and the values are tuned from that data.
 Provider errors (429/5xx) retry twice with backoff. Malformed tool calls
 or unknown tools return `INVALID_ARGS` to the model and consume a step.
 
@@ -256,6 +262,10 @@ Sinks: JSON files in `agent/traces/` (dev/evals); Postgres table
 `agent_traces` (prod), written through a dedicated role with INSERT/SELECT
 on that table only. RLS lets users read only their own traces. A trace
 viewer (run list + per-run timeline) ships with the UI phase.
+
+Traces are recorded for **every** run (app and evals). Production traces
+are retained 30 days (scheduled delete) to stay within Supabase free-tier
+storage; milestone eval traces are kept in the repo.
 
 Production metrics derived from feedback: approval rate, partial-approval
 rate, undo rate.
