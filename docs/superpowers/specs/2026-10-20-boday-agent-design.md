@@ -395,11 +395,14 @@ owner-only Mac status indicator.
   exceeds personal use. Requires a billing account on file.
   Artifact Registry cleanup policy to stay under 0.5 GB.
 - **Secrets** (Cloud Run secrets): Anthropic key (owner), encryption key,
-  Supabase JWT secret / JWKS URL, traces DB role credentials, Mac tunnel
+  Supabase JWT secret / JWKS URL, traces DB role credentials, Cloudflare Access service
   token.
-- **Owner's Mac:** Ollama (starts at login) behind a tunnel with a token
-  check. Cloudflare named tunnel if the account has a domain; otherwise
-  Tailscale Funnel (free, stable `*.ts.net` URL). Decided at that step.
+- **Owner's Mac:** Ollama (starts at login) behind a Cloudflare named
+  tunnel (`cloudflared`) at a subdomain of the owner's Cloudflare domain
+  `expense-app.uk` (e.g. `llm.expense-app.uk`). Protected by Cloudflare
+  Access with a service token (Zero Trust free plan): the agent sends
+  `CF-Access-Client-Id` / `CF-Access-Client-Secret`; all other traffic is
+  blocked at Cloudflare's edge before reaching the Mac.
 - **Supabase:** new table `agent_traces (id text pk, user_id text, data jsonb, created_at)`,
   RLS own-rows read; dedicated `agent_tracer` role with INSERT/SELECT only.
 
@@ -433,7 +436,6 @@ can hand off. Never two sessions on one branch.
 
 ## Open questions
 
-- Domain for the Cloudflare tunnel vs Tailscale Funnel (decide in phase 5).
 - Exact local model (best ~30B tool-calling model at phase 3 start).
 - Python-on-Cloudflare-Workers was not chosen; revisit only if Cloud Run
   proves problematic.
