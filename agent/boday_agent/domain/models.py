@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import copy
+import re
+from datetime import date, datetime
 from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo
 
@@ -19,6 +21,31 @@ from pydantic.alias_generators import to_camel
 
 class CamelModel(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, extra="ignore")
+
+
+_YMD = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _check_ymd(v: str | None) -> str | None:
+    if v is None:
+        return v
+    if not _YMD.match(v):
+        raise ValueError(f"must look like yyyy-MM-dd, got {v!r}")
+    try:
+        date.fromisoformat(v)
+    except ValueError:
+        raise ValueError(f"{v!r} is not a real date") from None
+    return v
+
+
+def _check_iso_datetime(v: str | None) -> str | None:
+    if v is None:
+        return v
+    try:
+        datetime.fromisoformat(v)
+    except ValueError:
+        raise ValueError(f"{v!r} is not an ISO datetime") from None
+    return v
 
 
 class Daily(CamelModel):
@@ -70,12 +97,27 @@ class OneTimeTask(BaseTask):
     completed: bool
     completed_at: str | None = None
 
+    @field_validator("scheduled_date")
+    @classmethod
+    def _v_date(cls, v: str) -> str:
+        return _check_ymd(v)  # type: ignore[return-value]
+
+    @field_validator("completed_at")
+    @classmethod
+    def _v_completed_at(cls, v: str | None) -> str | None:
+        return _check_iso_datetime(v)
+
 
 class RecurringTask(BaseTask):
     type: Literal["recurring"] = "recurring"
     recurrence: Recurrence
     start_date: str
     end_date: str | None = None
+
+    @field_validator("start_date", "end_date")
+    @classmethod
+    def _v_dates(cls, v: str | None) -> str | None:
+        return _check_ymd(v)
 
 
 Task = Annotated[OneTimeTask | RecurringTask, Field(discriminator="type")]
@@ -87,6 +129,11 @@ class TaskCompletion(CamelModel):
     completion_date: str
     completed_at: str
     skipped: bool = False
+
+    @field_validator("completion_date")
+    @classmethod
+    def _v_date(cls, v: str) -> str:
+        return _check_ymd(v)  # type: ignore[return-value]
 
 
 class QuietWindow(CamelModel):
@@ -147,13 +194,20 @@ class Snapshot(CamelModel):
 
         for i, item in enumerate(each("tasks")):
             try:
-                tasks.append(_TASK.validate_python(item))
-                raw_tasks[tasks[-1].id] = copy.deepcopy(item)
+                task = _TASK.validate_python(item)
+                if task.id in raw_tasks:
+                    warnings.append(f"duplicate task id '{task.id}'")
+                    continue
+                tasks.append(task)
+                raw_tasks[task.id] = copy.deepcopy(item)
             except ValidationError as exc:
                 warnings.append(f"skipped task '{_label(item, i)}': {_first_error(exc)}")
         for i, item in enumerate(each("completions")):
             try:
                 c = TaskCompletion.model_validate(item)
+                if c.id in raw_completions:
+                    warnings.append(f"duplicate completion id '{c.id}'")
+                    continue
                 completions.append(c)
                 raw_completions[c.id] = copy.deepcopy(item)
             except ValidationError as exc:

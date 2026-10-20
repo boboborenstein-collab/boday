@@ -68,3 +68,70 @@ def test_raw_is_deep_copy_and_completions_and_windows_skip_bad_items():
     assert len(snap.completions) == 1 and len(snap.quiet_windows) == 1
     assert len(snap.parse_warnings) == 3
     assert any("'bad'" in w for w in snap.parse_warnings)
+
+
+def _task(**over):
+    base = {"id": "x", "type": "one_time", "title": "T", "priority": 2,
+            "scheduledDate": "2026-10-22", "completed": False, "createdAt": "2026-09-01T12:00:00Z"}
+    return {**base, **over}
+
+
+def _rec(**over):
+    base = {"id": "r", "type": "recurring", "title": "R", "priority": 2,
+            "recurrence": {"kind": "daily"}, "startDate": "2026-09-01",
+            "createdAt": "2026-09-01T12:00:00Z"}
+    return {**base, **over}
+
+
+def _snap_with(tasks=(), completions=()):
+    return Snapshot.from_app({**APP_JSON, "tasks": list(tasks), "completions": list(completions)})
+
+
+@pytest.mark.parametrize("item", [
+    _task(scheduledDate="10/22/2026"),
+    _task(scheduledDate="2026-02-30"),
+    _rec(startDate=""),
+    _rec(endDate="soon"),
+    _task(completed=True, completedAt="yesterday"),
+])
+def test_bad_date_fields_skip_the_task_with_a_warning(item):
+    snap = _snap_with([item])
+    assert snap.tasks == [] and snap.raw_tasks == {}
+    assert len(snap.parse_warnings) == 1 and f"'{item['id']}'" in snap.parse_warnings[0]
+
+
+def test_bad_completion_date_is_skipped():
+    snap = _snap_with([], [{"id": "c1", "taskId": "x", "completionDate": "10/19/2026",
+                            "completedAt": "2026-10-19T12:00:00Z"}])
+    assert snap.completions == [] and len(snap.parse_warnings) == 1
+
+
+def test_valid_dates_parse_without_warnings():
+    snap = _snap_with([_task(completed=True, completedAt="2026-10-19T14:00:00Z"),
+                       _rec(endDate="2026-12-31")])
+    assert len(snap.tasks) == 2 and snap.parse_warnings == []
+
+
+def test_duplicate_task_and_completion_ids_keep_first():
+    t1, t2 = _task(title="first"), _task(title="second")
+    c = {"id": "c1", "taskId": "x", "completionDate": "2026-10-19",
+         "completedAt": "2026-10-19T12:00:00Z"}
+    snap = _snap_with([t1, t2], [c, {**c, "completionDate": "2026-10-18"}])
+    assert [t.title for t in snap.tasks] == ["first"]
+    assert snap.raw_tasks["x"]["title"] == "first"
+    assert [x.completion_date for x in snap.completions] == ["2026-10-19"]
+    assert "duplicate task id 'x'" in snap.parse_warnings
+    assert "duplicate completion id 'c1'" in snap.parse_warnings
+
+
+def test_shared_fixture_and_parity_fixture_parse_cleanly():
+    import json
+    from pathlib import Path
+
+    from tests.conftest import fixture_app_dict
+    assert Snapshot.from_app(fixture_app_dict()).parse_warnings == []
+    fx = json.loads((Path(__file__).parent / "fixtures/recurrence_parity.json").read_text())
+    snap = Snapshot.from_app({"tasks": fx["tasks"], "completions": fx["completions"],
+                              "now": "2026-10-20T09:00:00-04:00", "timezone": fx["timezone"]})
+    assert snap.parse_warnings == []
+    assert len(snap.tasks) == len(fx["tasks"]) and len(snap.completions) == len(fx["completions"])
