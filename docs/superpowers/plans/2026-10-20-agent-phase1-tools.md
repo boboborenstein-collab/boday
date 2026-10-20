@@ -20,11 +20,14 @@
 - Error codes, exactly: `NOT_FOUND`, `UNSEEN_ID`, `INVALID_ARGS`, `WRONG_TASK_TYPE`, `INVALID_DATE`, `LIMIT_EXCEEDED`, `CONFLICTING_CHANGE`, `TOOL_FAILURE`.
 - Limits: ≤25 changes and ≤3 deletes per proposal; `get_agenda` ≤14 days; search ≤20 results (with `truncated`/`total` when more); title 1–200 chars; notes ≤2000; priority 1–5; dates no earlier than today for creates/reschedules and ≤365 days ahead.
 - Tool handlers never raise to the caller: every outcome is a `ToolResult`.
+- **Changes carry patches, not rebuilt tasks.** Python fills defaults when it parses a task, so a re-serialized task never equals the app's original. `UpdateChange` carries `patch` (changed fields only, camelCase) + `beforeFields` (old values of exactly those keys, read from the raw snapshot JSON). `DeleteChange` carries `beforeRaw` (the task JSON exactly as received) + `beforeCompletionsRaw`. Stale check, apply and undo operate on those fields/raw objects only.
+- Every `priority` field in tool schemas is described exactly: `"1 = urgent, 2 = high, 3 = medium, 4 = low; 5 = Torah category, not a lower priority."`
+- New IDs come from `RunContext.id_gen`: `uuid4` in production, counting IDs (`new-1`, `new-2`, …) in tests and evals.
 
 ## Review Focus
 
 - **Unicode titles in search** — "cafe" must find "Café meeting w/ Dana" and "dentist" must find "Dentist appt 🦷" (accents and emoji normalized away). Test in Task 6.
-- **Real app snapshots with extra or missing optional fields** (no `tags`, `reminderTime: null`, priority 5 Torah, unknown future fields) must parse, not crash. Test in Task 2.
+- **Real app snapshots with extra, missing, or malformed fields** (no `tags`, `reminderTime: null`, priority 5 Torah, unknown future fields, one corrupt task) must parse; a malformed task is skipped with a `parse_warnings` entry instead of failing the whole request. Test in Task 2.
 - **Late-evening requests where the UTC date is already tomorrow** — at 2026-10-20T23:30-04:00 "today" is still 2026-10-20. Test in Task 2.
 - **Model sends a natural-language date where a `yyyy-MM-dd` is required** ("Oct 21") — must return `INVALID_ARGS` with a hint pointing to `resolve_date`, not coerce or crash. Test in Task 7.
 - **Clearing vs. leaving a field** — `propose_update_task` with `reminder_time: null` clears the reminder; omitting it leaves it unchanged. Test in Task 7.
@@ -50,7 +53,7 @@
 Completions: `gym` done on 2026-10-19 (id `c-gym-1019`); `standup` skipped on 2026-10-19 (id `c-standup-1019`, `skipped: true`).
 Quiet window: start `2026-10-23T17:52:00-04:00`, end `2026-10-24T18:51:00-04:00`, title `Candle lighting`.
 
-Also a fixture `ctx` = `RunContext.create(snap)` (Task 5).
+The fixture builds these as **app-shaped camelCase dicts** and calls `Snapshot.from_app(...)`, so `snap.raw_tasks` holds the exact input dicts. Also a fixture `ctx` = `RunContext.create(snap, id_gen=counting_ids())` (Task 5).
 
 ---
 
@@ -63,7 +66,7 @@ Also a fixture `ctx` = `RunContext.create(snap)` (Task 5).
 **Interfaces:**
 - Produces: `boday_agent.__version__ == "0.1.0"`; `uv run pytest` / `uv run ruff check .` work in `agent/`.
 
-- [ ] **Step 1: Create branch** — `git checkout -b agent/phase1-tools` (repo root).
+- [ ] **Step 1: Create branch** — confirm `git status` is clean on `main` (resolve untracked files such as `AGENTS.md` first), then `git checkout -b agent/phase1-tools` (repo root).
 - [ ] **Step 2: Write `agent/pyproject.toml`** — project `boday-agent` 0.1.0, `requires-python = ">=3.12"`, deps `pydantic>=2.9`, `python-dateutil>=2.9`; dependency-group `dev` = `pytest>=8`, `ruff>=0.6`; hatchling build with `packages = ["boday_agent"]`; `[tool.pytest.ini_options] testpaths = ["tests"]`; ruff `line-length = 100`, `target-version = "py312"`, lint `select = ["E","F","I","UP","B"]`.
 - [ ] **Step 3: Write the failing test**
 
@@ -102,7 +105,8 @@ git push -u origin agent/phase1-tools
   - `Task = Annotated[OneTimeTask | RecurringTask, Field(discriminator="type")]`
   - `TaskCompletion(id, task_id, completion_date: str, completed_at: str, skipped: bool = False)`
   - `QuietWindow(start: datetime, end: datetime, title: str)` (aware datetimes)
-  - `Snapshot(tasks: list[Task], completions: list[TaskCompletion] = [], quiet_windows: list[QuietWindow] = [], now: AwareDatetime, timezone: str)`; validator rejects unknown IANA zone.
+  - `Snapshot(tasks: list[Task], completions: list[TaskCompletion] = [], quiet_windows: list[QuietWindow] = [], now: AwareDatetime, timezone: str, raw_tasks: dict[str, dict] = {}, raw_completions: dict[str, dict] = {}, parse_warnings: list[str] = [])`; `raw_*` and `parse_warnings` are `Field(exclude=True)`; validator rejects unknown IANA zone.
+  - `Snapshot.from_app(data: dict) -> Snapshot` — the only constructor used for app input. Validates `now`/`timezone` strictly (raise on failure), then parses tasks, completions and quiet windows **one item at a time**; a malformed item is skipped and recorded as `"skipped task '<id or index>': <first error>"` in `parse_warnings`. Stores each accepted task/completion's original dict (deep copy) in `raw_tasks[id]` / `raw_completions[id]`.
 - Produces (`domain/clock.py`): `Clock(now: datetime, tz: ZoneInfo)` frozen dataclass with `.today -> date`, `.today_str -> str`, `.local_now -> datetime`, classmethod `Clock.from_snapshot(snap: Snapshot) -> Clock`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -132,7 +136,7 @@ APP_JSON = {
 }
 
 def test_parses_app_snapshot_with_extra_and_missing_fields():
-    snap = Snapshot.model_validate(APP_JSON)
+    snap = Snapshot.from_app(APP_JSON)
     a, b = snap.tasks
     assert isinstance(a, OneTimeTask) and a.tags == [] and a.reminder_time is None
     assert isinstance(b, RecurringTask) and isinstance(b.recurrence, Weekly)
@@ -140,18 +144,30 @@ def test_parses_app_snapshot_with_extra_and_missing_fields():
     assert snap.completions[0].skipped is True
 
 def test_dumps_camel_case_for_the_app():
-    snap = Snapshot.model_validate(APP_JSON)
+    snap = Snapshot.from_app(APP_JSON)
     out = snap.tasks[0].model_dump(by_alias=True)
     assert out["scheduledDate"] == "2026-10-22" and "scheduled_date" not in out
 
 def test_rejects_naive_now_and_bad_timezone():
     with pytest.raises(ValidationError):
-        Snapshot.model_validate({**APP_JSON, "now": "2026-10-20T09:00:00"})
+        Snapshot.from_app({**APP_JSON, "now": "2026-10-20T09:00:00"})
     with pytest.raises(ValidationError):
-        Snapshot.model_validate({**APP_JSON, "timezone": "Mars/Base"})
+        Snapshot.from_app({**APP_JSON, "timezone": "Mars/Base"})
+
+def test_malformed_task_is_skipped_not_fatal():
+    bad = {"id": "z", "type": "one_time", "title": "Bad", "priority": 9,
+           "scheduledDate": "2026-10-22", "completed": False, "createdAt": "2026-09-01T12:00:00Z"}
+    snap = Snapshot.from_app({**APP_JSON, "tasks": [*APP_JSON["tasks"], bad]})
+    assert [t.id for t in snap.tasks] == ["a", "b"]
+    assert len(snap.parse_warnings) == 1 and "'z'" in snap.parse_warnings[0]
+
+def test_raw_task_json_is_kept_verbatim():
+    snap = Snapshot.from_app(APP_JSON)
+    assert snap.raw_tasks["a"] == APP_JSON["tasks"][0]   # includes someFutureField, no added defaults
+    assert "raw_tasks" not in snap.model_dump()
 
 def test_clock_today_is_local_not_utc():
-    snap = Snapshot.model_validate({**APP_JSON, "now": "2026-10-20T23:30:00-04:00"})
+    snap = Snapshot.from_app({**APP_JSON, "now": "2026-10-20T23:30:00-04:00"})
     clock = Clock.from_snapshot(snap)
     assert clock.today_str == "2026-10-20"
 ```
@@ -247,9 +263,9 @@ def test_today_lists_match_typescript():
 
 **Grammar** (case-insensitive, trimmed; optional leading "on"/"at"; a date part and/or a time part):
 - Date part: `today`, `tonight` (today, time 20:00), `tomorrow`, `day after tomorrow`; `<weekday>`, `this <weekday>`, `next <weekday>`; `next week` (next Monday); `this weekend` (coming Saturday, today if Saturday/Sunday); `end of (the) month`; `in N day(s)|week(s)|month(s)` (N digits or one–twelve, or "a"); absolute `YYYY-MM-DD`, `M/D` (US order), `<month> <day>[st|nd|rd|th]`, `<day> <month>`. Months via `dateutil.relativedelta` (clamps Jan 31 + 1 month → Feb 28).
-- Time part: `H[:MM] am|pm`, `HH:MM` (24h), `noon` (12:00), `morning` (09:00), `afternoon` (14:00), `evening` (18:00), `tonight` (20:00). Time only → today.
+- Time part: `H[:MM] am|pm`, `HH:MM` (24h when the hour has a leading zero or is ≥13), bare `H` / `H:MM` with H 1–12 and no am/pm (**ambiguous**: H and H+12; `12` → 12:00 and 00:00), `noon` (12:00), `morning` (09:00), `afternoon` (14:00), `evening` (18:00), `tonight` (20:00). Time only → today.
 - Relative time: `in N hour(s)|minute(s)` → computed on aware datetimes in UTC, then converted to `clock.tz` (DST-correct).
-- **Ambiguity rules:** bare/`this <weekday>` equal to today → `[today, today+7]`, ambiguous. `next <weekday>` → if the coming occurrence falls before next Monday → `[coming, coming+7]`, ambiguous; otherwise just `[coming]`. Absolute dates without a year use the current year and set `is_past` when before today (no rolling).
+- **Ambiguity rules:** bare/`this <weekday>` equal to today → `[today, today+7]`, ambiguous. `next <weekday>` → if the coming occurrence falls before next Monday → `[coming, coming+7]`, ambiguous; otherwise just `[coming]`. Absolute dates without a year: if not before today, the current year; if before today, **ambiguous** `[next year, this year]` with `is_past` on the second. Ambiguous date and ambiguous time combine (all pairs, date-major order).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -307,9 +323,17 @@ def test_next_weekday_within_this_week_is_ambiguous():
 def test_next_weekday_already_next_week_is_not():
     assert one("next monday", SAT) == ("2026-10-26", None)
 
-def test_past_absolute_date_is_flagged():
-    c = resolve("oct 1", TUE).candidates[0]
-    assert c.date == "2026-10-01" and c.is_past
+def test_past_date_without_year_prefers_next_year():
+    r = resolve("oct 1", TUE)
+    assert r.ambiguous and [(c.date, c.is_past) for c in r.candidates] == [
+        ("2027-10-01", False), ("2026-10-01", True)]
+
+def test_bare_hour_is_ambiguous():
+    r = resolve("friday at 9", TUE)
+    assert r.ambiguous and [(c.date, c.time) for c in r.candidates] == [
+        ("2026-10-23", "09:00"), ("2026-10-23", "21:00")]
+    assert resolve("at 9:30", TUE).ambiguous
+    assert one("at 09:30") == ("2026-10-20", "09:30")
 
 def test_relative_hours_across_dst_end():
     late = Clock(datetime(2026, 10, 31, 23, 30, tzinfo=NY), NY)
@@ -342,7 +366,8 @@ def test_unparseable(expr):
   - `ChangeWarning(code: Literal["POSSIBLE_DUPLICATE","TIME_CLASH","QUIET_WINDOW","EXTERNAL_TASK"], message: str)`
 - Produces (`tools/context.py`):
   - `@dataclass(frozen=True) Limits(max_changes=25, max_deletes=3, max_agenda_days=14, max_search_results=20, max_days_ahead=365, overload_threshold=8, recent_history_days=14)`
-  - `@dataclass RunContext(snapshot, clock, limits, seen_ids: set[str], draft: list[ProposedChange], question: AskUserArgs | None, faults: FaultPlan, call_counts: Counter[str])`; `RunContext.create(snapshot, limits=Limits(), faults=FaultPlan()) -> RunContext`
+  - `@dataclass RunContext(snapshot, clock, limits, seen_ids: set[str], draft: list[ProposedChange], question: AskUserArgs | None, faults: FaultPlan, call_counts: Counter[str], id_gen: Callable[[], str])`; `RunContext.create(snapshot, limits=Limits(), faults=FaultPlan(), id_gen=lambda: str(uuid4())) -> RunContext`
+  - `counting_ids(prefix: str = "new") -> Callable[[], str]` — returns `new-1`, `new-2`, … (fresh counter per call).
   - `ctx.task(task_id) -> Task` (raises `ToolError(NOT_FOUND)`), `ctx.require_seen(task_id) -> Task` (NOT_FOUND, then `UNSEEN_ID` with hint "Call search_tasks or get_task first."), `ctx.mark_seen(ids)`, `ctx.add_change(change)` (enforces `CONFLICTING_CHANGE` if task_id already in draft, `LIMIT_EXCEEDED` past 25 changes / 3 deletes), `ctx.draft_payload() -> list[dict]` (camelCase).
   - `ProposedChange` is defined in Task 7 (`tools/changes.py`); import it under `TYPE_CHECKING` here.
 - Produces (`tools/faults.py`):
@@ -387,6 +412,10 @@ def test_schemas_have_name_description_schema():
     s = {t["name"]: t for t in tool_schemas()}["echo"]
     assert s["input_schema"]["properties"]["text"]["type"] == "string" and s["description"]
 
+def test_counting_ids():
+    gen = counting_ids()
+    assert [gen(), gen()] == ["new-1", "new-2"]
+
 def test_success_json_omits_nulls():
     assert ToolResult.success({"a": 1}).to_model_json() == '{"ok":true,"data":{"a":1}}'
 ```
@@ -411,7 +440,7 @@ def test_success_json_omits_nulls():
   - `task_summary(task, clock) -> dict` — `id, title, type, priority, tags, reminder_time, external` (true iff `assigned_by_email`), plus one_time: `scheduled_date, completed, carried_over_days`; recurring: `schedule` (`"daily"`, `"weekly on Mon, Wed, Fri"`, `"every 3 days"`, `"monthly on day 15"`), `start_date, end_date`.
   - `task_detail(task, completions, clock, limits) -> dict` — summary + `notes, subtasks [{title, done}], assigned_by`, and for recurring `recent_history`: occurrences in the last `recent_history_days` up to today, each `{date, status}` with status `done|skipped|missed|open` (today without a row = `open`).
 - Produces (`tools/read.py`), each registered with a description written for the model:
-  - `search_tasks(query: str | None, tag: str | None, priority: int | None, type: Literal["one_time","recurring"] | None, include_completed: bool = False)` → `{"results": [summary...], "total": int, "truncated": bool}`. Match on normalized title and tags: substring of normalized title scores 1.0; else mean over query tokens of best `difflib.SequenceMatcher` ratio against title tokens, keep ≥0.75. Sort by score desc, then priority. `include_completed=False` excludes completed one-time tasks and recurring tasks whose `end_date` < today. Marks returned ids seen.
+  - `search_tasks(query: str | None, tag: str | None, priority: int | None (described with the exact priority sentence from Global Constraints), type: Literal["one_time","recurring"] | None, include_completed: bool = False)` → `{"results": [summary...], "total": int, "truncated": bool}`. Match on normalized title and tags: substring of normalized title scores 1.0; else mean over query tokens of best `difflib.SequenceMatcher` ratio against title tokens, keep ≥0.75. Sort by score desc, then priority. `include_completed=False` excludes completed one-time tasks and recurring tasks whose `end_date` < today. Marks returned ids seen.
   - `get_task(task_id: str)` → detail; `NOT_FOUND` if missing; marks seen.
   - `get_agenda(start_date: str, end_date: str)` → `{"days": [{"date", "weekday", "items": [{id, title, priority, reminder_time, status: open|done|skipped, carried_over_days, in_quiet_window}], "clashes": [{"time", "task_ids"}], "overloaded": bool}]}`. Dates must match `^\d{4}-\d{2}-\d{2}$` (`INVALID_DATE`), end ≥ start, ≤14 days inclusive (`LIMIT_EXCEEDED`, hint "Split into 14-day ranges."). Today's entry uses `build_today_list` (carry-over); other days `build_day_list`. Clash = ≥2 open items with the same `reminder_time` (task_ids sorted). Overloaded = open items > `overload_threshold`. `in_quiet_window` = item has a reminder time and that local datetime falls inside any quiet window. Marks all returned ids seen.
   - `resolve_date(expression: str)` → `DateResolution.model_dump()`; `UnparseableDate` → `INVALID_ARGS` with the parser's supported-forms message as hint.
@@ -508,20 +537,21 @@ def test_resolve_date_tool(ctx):
 - Consumes: Tasks 2–6 (`ctx.require_seen`, `ctx.add_change`, `occurs_on`, `normalize`, quiet windows).
 - Produces (`tools/changes.py`), camelCase-serialized, discriminated on `op`, each with `warnings: list[ChangeWarning] = []`:
   - `CreateChange(op="create", task_id, after: Task)`
-  - `UpdateChange(op="update", task_id, before: Task, after: Task)`
+  - `UpdateChange(op="update", task_id, patch: dict[str, Any], before_fields: dict[str, Any])` — `patch` keys are camelCase task fields with their new values (only fields that actually change); `before_fields` has exactly the same keys with values from `ctx.snapshot.raw_tasks[task_id]` (`None` when the key is absent there).
   - `StatusChange(op="set_status", task_id, date: str | None, before: StatusSnapshot, after: StatusSnapshot)` where `StatusSnapshot(status: Literal["open","done","skipped"])`; `date` is set for recurring tasks, None for one-time.
-  - `DeleteChange(op="delete", task_id, reason: str, before: Task, before_completions: list[TaskCompletion])`
+  - `DeleteChange(op="delete", task_id, reason: str, before_raw: dict, before_completions_raw: list[dict])` — verbatim copies from `raw_tasks` / `raw_completions`.
   - `ProposedChange = Annotated[CreateChange | UpdateChange | StatusChange | DeleteChange, Field(discriminator="op")]`
 - Produces (`tools/propose.py`) — shared arg types: `DateStr` = str matching `^\d{4}-\d{2}-\d{2}$` (failure message includes "use resolve_date to convert natural-language dates"), `TimeStr` = `^([01]\d|2[0-3]):[0-5]\d$`, `Title` 1–200 chars, notes ≤2000, ≤10 tags each ≤30 chars, ≤20 subtasks each ≤200 chars; `RecurrenceArg` mirrors `Recurrence` in snake_case (weekly `days_of_week` non-empty unique 0–6, `n` 1–365, `date_of_month` 1–31).
-  - `propose_create_task(title, type, scheduled_date=None, recurrence=None, start_date=None, end_date=None, priority=3, reminder_time=None, tags=[], notes=None, subtasks=[])` — one_time requires `scheduled_date` and forbids `recurrence`; recurring requires `recurrence` (`start_date` defaults to today) and forbids `scheduled_date` (violations → `INVALID_ARGS`). Date not before today and ≤365 days ahead → else `INVALID_DATE`. New id `str(uuid4())`, `createdAt` = clock now ISO, subtasks get uuid ids, `done: False`.
+  - (`priority` args on create/update carry the exact priority description from Global Constraints.)
+  - `propose_create_task(title, type, scheduled_date=None, recurrence=None, start_date=None, end_date=None, priority=3, reminder_time=None, tags=[], notes=None, subtasks=[])` — one_time requires `scheduled_date` and forbids `recurrence`; recurring requires `recurrence` (`start_date` defaults to today) and forbids `scheduled_date` (violations → `INVALID_ARGS`). Date not before today and ≤365 days ahead → else `INVALID_DATE`. New ids (task and subtasks) from `ctx.id_gen()`, `createdAt` = clock now ISO, subtasks `done: False`.
   - `propose_update_task(task_id, changes: UpdateChanges)` — `UpdateChanges` fields all optional: `title, priority, reminder_time (nullable), notes (nullable), tags, scheduled_date, recurrence, end_date (nullable)`; uses `model_fields_set` so explicit `null` clears and omission leaves unchanged. Empty or no-op (all values equal current) → `INVALID_ARGS`. `scheduled_date` on recurring or `recurrence`/`end_date` on one-time → `WRONG_TASK_TYPE`. New `scheduled_date` before today or >365 days ahead → `INVALID_DATE`.
   - `propose_set_status(task_id, status: Literal["done","undone","skipped"], date: DateStr | None = None)` — one-time: `skipped` → `WRONG_TASK_TYPE`; `date` ignored; no-op (done→done, undone on open) → `INVALID_ARGS`. Recurring: `date` defaults to today; must satisfy `occurs_on` else `INVALID_DATE`; `done` with date > today → `INVALID_DATE`; `skipped` may be future; `undone` sets status to `open`; no-op → `INVALID_ARGS`.
-  - `propose_delete_task(task_id, reason: str (1–200))` — `before_completions` = all completions for that task.
+  - `propose_delete_task(task_id, reason: str (1–200))` — `before_completions_raw` = raw JSON of all completions for that task.
   - `ask_user(question: str (1–300), options: list[str] (≤6, each ≤80) = [])` — sets `ctx.question`; returns `{"asked": True}`.
   - All propose tools call `ctx.require_seen` first and return `{"draft_size": int, "summary": str, "warnings": [...]}`.
-  - **Warnings:** `POSSIBLE_DUPLICATE` (create: an open one-time task with equal `normalize(title)` on the same date, or an active recurring task with equal normalized title); `TIME_CLASH` (resulting task has a reminder time equal to another open item's on the affected date — create/update of one-time tasks); `QUIET_WINDOW` (resulting date+reminder time falls in a quiet window); `EXTERNAL_TASK` (update/status/delete of a task with `assigned_by_email`).
+  - **Warnings:** `POSSIBLE_DUPLICATE` (create: an open one-time task with equal `normalize(title)` on the same date, or an active recurring task with equal normalized title); `TIME_CLASH` (resulting task has a reminder time equal to another open item's on the affected date — create/update of one-time tasks); `QUIET_WINDOW` (resulting date+reminder time falls in a quiet window); `EXTERNAL_TASK` (update/status/delete of a task with `assigned_by_email`). `TIME_CLASH`/`QUIET_WINDOW` are also checked when an update changes `reminder_time` or `scheduled_date`.
 
-- [ ] **Step 1: Write the failing tests** (each test first calls `execute(ctx, "search_tasks", {})` via a `seen_ctx` fixture so all non-completed ids are seen; `report` is seen via `get_task`)
+- [ ] **Step 1: Write the failing tests** (each test first calls `execute(ctx, "search_tasks", {})` via a `seen_ctx` fixture so all non-completed ids are seen; `report` is seen via `get_task`). Add fixture `snap_with_future_field` to `conftest.py`: the shared fixture dicts plus `{"id": "future", "type": "one_time", "title": "Future thing", "priority": 3, "scheduledDate": "2026-10-25", "completed": False, "createdAt": "2026-09-01T12:00:00Z", "someFutureField": {"x": 1}}`, built with `Snapshot.from_app`.
 
 ```python
 # agent/tests/test_propose_tools.py
@@ -535,8 +565,8 @@ def test_reschedule_dentist_with_clash_warning(seen_ctx):
     r = run(seen_ctx, "propose_update_task", task_id="dentist", changes={"scheduled_date": "2026-10-21"})
     assert r.ok and r.data["draft_size"] == 1
     ch = seen_ctx.draft_payload()[0]
-    assert ch["op"] == "update" and ch["before"]["scheduledDate"] == "2026-10-22"
-    assert ch["after"]["scheduledDate"] == "2026-10-21"
+    assert ch["op"] == "update" and ch["patch"] == {"scheduledDate": "2026-10-21"}
+    assert ch["beforeFields"] == {"scheduledDate": "2026-10-22"}
     assert [w["code"] for w in ch["warnings"]] == ["TIME_CLASH"]  # standup 09:00 daily
 
 def test_natural_language_date_rejected_with_hint(seen_ctx):
@@ -550,9 +580,10 @@ def test_wrong_type_and_past_date(seen_ctx):
 
 def test_reminder_null_clears_omitted_keeps(seen_ctx):
     run(seen_ctx, "propose_update_task", task_id="dentist", changes={"reminder_time": None})
-    assert seen_ctx.draft_payload()[0]["after"]["reminderTime"] is None
+    assert seen_ctx.draft_payload()[0]["patch"] == {"reminderTime": None}
+    assert seen_ctx.draft_payload()[0]["beforeFields"] == {"reminderTime": "09:00"}
     run(seen_ctx, "propose_update_task", task_id="cafe", changes={"priority": 1})
-    assert seen_ctx.draft_payload()[1]["after"]["reminderTime"] == "13:00"
+    assert seen_ctx.draft_payload()[1]["patch"] == {"priority": 1}
 
 def test_noop_update_rejected(seen_ctx):
     assert run(seen_ctx, "propose_update_task", task_id="dentist", changes={}).error.code == "INVALID_ARGS"
@@ -581,7 +612,63 @@ def test_delete_carries_completions_and_external_warning(seen_ctx):
     r = run(seen_ctx, "propose_delete_task", task_id="shared", reason="user asked")
     assert [w["code"] for w in r.data["warnings"]] == ["EXTERNAL_TASK"]
     run(seen_ctx, "propose_delete_task", task_id="gym", reason="user asked")
-    assert [c["id"] for c in seen_ctx.draft_payload()[1]["beforeCompletions"]] == ["c-gym-1019"]
+    d = seen_ctx.draft_payload()[1]
+    assert d["beforeRaw"] == seen_ctx.snapshot.raw_tasks["gym"]
+    assert [c["id"] for c in d["beforeCompletionsRaw"]] == ["c-gym-1019"]
+
+def test_unknown_app_fields_survive_in_payload(snap_with_future_field):
+    # fixture: `snap` plus raw task "future" (one_time, 2026-10-25) carrying "someFutureField": {"x": 1}
+    ctx = RunContext.create(snap_with_future_field, id_gen=counting_ids())
+    execute(ctx, "get_task", {"task_id": "future"})
+    run(ctx, "propose_update_task", task_id="future", changes={"priority": 1})
+    assert "someFutureField" not in ctx.draft_payload()[0]["patch"]
+    ctx2 = RunContext.create(snap_with_future_field, id_gen=counting_ids())
+    execute(ctx2, "get_task", {"task_id": "future"})
+    run(ctx2, "propose_delete_task", task_id="future", reason="x")
+    assert ctx2.draft_payload()[0]["beforeRaw"]["someFutureField"] == {"x": 1}
+
+def test_create_recurring_every_other_tuesday(seen_ctx):
+    r = run(seen_ctx, "propose_create_task", title="Team sync", type="recurring",
+            recurrence={"kind": "everyNDays", "n": 14}, start_date="2026-10-27")
+    after = seen_ctx.draft_payload()[0]["after"]
+    assert r.ok and after["recurrence"] == {"kind": "everyNDays", "n": 14}
+    assert after["startDate"] == "2026-10-27" and after["id"] == "new-1"
+
+def test_create_recurring_defaults_and_shape_errors(seen_ctx):
+    run(seen_ctx, "propose_create_task", title="Read", type="recurring", recurrence={"kind": "daily"})
+    assert seen_ctx.draft_payload()[0]["after"]["startDate"] == "2026-10-20"
+    assert run(seen_ctx, "propose_create_task", title="X", type="recurring", recurrence={"kind": "daily"},
+               scheduled_date="2026-10-21").error.code == "INVALID_ARGS"
+    assert run(seen_ctx, "propose_create_task", title="X", type="one_time", scheduled_date="2026-10-21",
+               recurrence={"kind": "daily"}).error.code == "INVALID_ARGS"
+
+def test_update_recurrence_and_end_date(seen_ctx):
+    run(seen_ctx, "propose_update_task", task_id="gym",
+        changes={"recurrence": {"kind": "weekly", "days_of_week": [2, 4]}})
+    ch = seen_ctx.draft_payload()[0]
+    assert ch["patch"] == {"recurrence": {"kind": "weekly", "daysOfWeek": [2, 4]}}
+    assert ch["beforeFields"] == {"recurrence": {"kind": "weekly", "daysOfWeek": [1, 3, 5]}}
+    run(seen_ctx, "propose_update_task", task_id="standup", changes={"end_date": "2026-12-31"})
+    assert seen_ctx.draft_payload()[1]["beforeFields"] == {"endDate": None}
+    assert run(seen_ctx, "propose_update_task", task_id="dentist",
+               changes={"end_date": "2026-12-31"}).error.code == "WRONG_TASK_TYPE"
+    assert run(seen_ctx, "propose_update_task", task_id="cafe",
+               changes={"scheduled_date": "2026-10-01"}).error.code == "INVALID_DATE"
+
+def test_undone_on_recurring(seen_ctx):
+    assert run(seen_ctx, "propose_set_status", task_id="gym", status="undone", date="2026-10-19").ok
+    ch = seen_ctx.draft_payload()[0]
+    assert (ch["before"]["status"], ch["after"]["status"]) == ("done", "open")
+
+def test_update_warnings_on_reminder_change(seen_ctx):
+    r = run(seen_ctx, "propose_update_task", task_id="cafe", changes={"reminder_time": "09:00"})
+    assert [w["code"] for w in r.data["warnings"]] == ["TIME_CLASH"]   # standup 09:00 on Fri 10-23
+    r = run(seen_ctx, "propose_update_task", task_id="shared", changes={"priority": 1})
+    assert [w["code"] for w in r.data["warnings"]] == ["EXTERNAL_TASK"]
+
+def test_priority_description_explains_torah():
+    s = {t["name"]: t for t in tool_schemas()}["propose_create_task"]
+    assert "5 = Torah category, not a lower priority" in s["input_schema"]["properties"]["priority"]["description"]
 
 def test_delete_limit(seen_ctx):
     for tid in ["shared", "gym", "cafe"]:
@@ -615,7 +702,7 @@ Proves the tools compose the way the spec says a model will use them, using only
 
 **Files:**
 - Test: `agent/tests/test_scenarios.py`
-- Modify: `agent/README.md` (add a "Tool contract" section: the 9 tool names, one line each, and the error codes)
+- Modify: `agent/README.md` (add a "Tool contract" section: the 9 tool names, one line each, and the error codes; and a "Safety" section naming the real protections against injection — no write or outbound tools, ≤3 deletes and ≤25 changes per proposal, user approval of every change, patch-based changes, and the attack success rate measured by evals — and stating that the seen-ID rule only blocks hallucinated IDs)
 
 **Interfaces:**
 - Consumes: everything above. No new production code expected; if a scenario fails, fix the owning module.
@@ -635,7 +722,7 @@ def test_move_dentist_to_tomorrow(ctx):
 def test_move_one_occurrence_of_recurring(snap):
     # Wednesday: gym occurs today; "move just today's gym to tomorrow" = skip + one-time create
     wed = snap.model_copy(update={"now": datetime(2026, 10, 21, 8, 0, tzinfo=ZoneInfo("America/New_York"))})
-    ctx = RunContext.create(wed)
+    ctx = RunContext.create(wed, id_gen=counting_ids())
     execute(ctx, "search_tasks", {"query": "gym"})
     assert execute(ctx, "propose_set_status", {"task_id": "gym", "status": "skipped"}).result.ok
     assert execute(ctx, "propose_create_task", {"title": "Gym", "type": "one_time",
@@ -643,8 +730,9 @@ def test_move_one_occurrence_of_recurring(snap):
     ops = [(c["op"], c.get("date")) for c in ctx.draft_payload()]
     assert ops == [("set_status", "2026-10-21"), ("create", None)]
 
-def test_injection_text_is_data_and_blind_delete_blocked(ctx):
-    # A model that obeys injected text without reading tasks cannot delete them
+def test_blind_delete_blocked(ctx):
+    # Seen-ID only blocks hallucinated/blind IDs. It is NOT an injection defense:
+    # any read (e.g. get_agenda) marks everything it returns as seen.
     assert execute(ctx, "propose_delete_task", {"task_id": "dentist", "reason": "x"}).result.error.code == "UNSEEN_ID"
     t = execute(ctx, "get_task", {"task_id": "shared"}).result.data
     assert t["external"] is True and t["notes"].startswith("SYSTEM:")

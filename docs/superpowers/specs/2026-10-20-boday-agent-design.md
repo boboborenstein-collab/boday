@@ -102,7 +102,7 @@ Nine tools. Anything not listed is impossible for the model.
 | `search_tasks(query?, tag?, priority?, type?, include_completed=false)` | Fuzzy title match. Compact summaries with IDs. Max 20; if more match, result includes `truncated: true, total: N`. |
 | `get_task(task_id)` | Full task: notes, subtasks, recurrence, recent completions/skips. |
 | `get_agenda(start_date, end_date)` | Per-day items for ≤14 days: due, carried over, done/skipped, reminder times. Code flags same-time clashes, overloaded days, and items inside Shabbat/Yom Tov windows. |
-| `resolve_date(expression)` | Deterministic parse of relative dates/times against `now` + timezone. Ambiguous input returns all candidates with `ambiguous: true`. |
+| `resolve_date(expression)` | Deterministic parse of relative dates/times against `now` + timezone. Ambiguous input returns all candidates with `ambiguous: true` (e.g. "tuesday" said on a Tuesday; "next friday" when Friday is still this week; a bare hour like "at 9" → 09:00 or 21:00; a past date with no year → next year first, then this year). |
 
 ### Propose tools (append to the draft; never apply)
 
@@ -150,11 +150,30 @@ Codes: `NOT_FOUND`, `UNSEEN_ID`, `INVALID_ARGS`, `WRONG_TASK_TYPE`,
 ### Proposed change shape (returned to the app)
 
 ```
-{ op: create|update|set_status|delete, task_id, before, after, warnings[] }
+create:     { op, taskId, after: <new task>, warnings[] }
+update:     { op, taskId, patch: {changed fields}, beforeFields: {old values of those fields}, warnings[] }
+set_status: { op, taskId, date?, before: {status}, after: {status}, warnings[] }
+delete:     { op, taskId, reason, beforeRaw: <task JSON exactly as received>, beforeCompletionsRaw[], warnings[] }
 ```
 
-`before` is the full prior task (for delete: task + its completions), used
-for the stale check and for Undo.
+Changes carry **patches, not rebuilt tasks**: Python fills defaults when it
+parses, so a re-serialized task never equals the app's original. The stale
+check, apply and undo operate only on the patched fields (or, for delete,
+restore the raw JSON verbatim), so fields Python doesn't model survive.
+
+### Snapshot parsing
+
+The snapshot is parsed one item at a time: a malformed task or completion
+is skipped and recorded in `parse_warnings` (and the trace) instead of
+failing the request. Each accepted item's original JSON is kept for
+patches and deletes. New IDs come from an injectable generator (UUIDs in
+production, counting IDs in tests/evals so traces compare cleanly).
+
+### Priority semantics
+
+Every `priority` field the model sees is described as: "1 = urgent,
+2 = high, 3 = medium, 4 = low; 5 = Torah category, not a lower priority."
+An eval case covers it.
 
 ### Untrusted data
 
@@ -239,9 +258,11 @@ provider it is using.
   IP, timeouts, response-size limits.
 - **Auth:** every endpoint verifies the Supabase JWT.
 - **Redaction:** keys and auth headers never appear in traces or logs.
-- **Injection defense in depth:** no write tools; no outbound tools; seen-ID
-  rule; change limits; deletes highlighted; data delimiting + `external`
-  flag; measured attack success rate in evals.
+- **Injection defense in depth:** no write tools; no outbound tools; change
+  limits (≤3 deletes); deletes highlighted; user approval of every change;
+  data delimiting + `external` flag; measured attack success rate in evals.
+  The seen-ID rule only blocks hallucinated or blind IDs — it is not an
+  injection defense, since any read marks what it returns as seen.
 - Model output is untrusted regardless of provider, so a malicious custom
   endpoint gains nothing beyond what the user must approve.
 
@@ -382,16 +403,22 @@ model ID, prompt hash, and (local) model build + settings:
 
 ### Apply and undo (`src/lib/agentApply.ts`)
 
-- **Atomic:** check every selected change against current state (current
-  task must equal `before`). If any is stale, apply nothing and explain.
+- **Atomic:** check every selected change against current state (update:
+  the patched fields currently equal `beforeFields`; status: current status
+  equals `before`; delete: task still exists). If any is stale, apply
+  nothing and explain.
   Otherwise apply all through store actions so normal sync runs.
 - New idempotent store actions `setRecurringStatus(taskId, date,
   'done' | 'skipped' | 'none')` (the existing toggles are not safe to
   replay).
-- **Undo:** inverse change list with the same stale check (current must
-  equal `after`). Deletes restore the task and its completions. Available
+- **Undo:** inverse change list with the same stale check (update: patched
+  fields still equal `patch`, then write `beforeFields` back). Deletes
+  restore `beforeRaw` and `beforeCompletionsRaw` verbatim. Available
   from the apply toast and the chat card.
 - Approve / reject / undo events go to `POST /feedback`.
+- Test: a task carrying a field the agent doesn't model (e.g.
+  `someFutureField`) still has it after approve → undo, for both update
+  and delete.
 
 ### Settings → AI
 
