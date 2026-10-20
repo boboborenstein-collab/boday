@@ -43,3 +43,6 @@ dev-dist
 
 # Superpowers execution ledger (per-machine)
 .superpowers/
+
+# local git worktrees
+.worktrees/
