@@ -73,3 +73,22 @@ def snap() -> Snapshot:
 @pytest.fixture
 def ctx(snap) -> RunContext:
     return RunContext.create(snap, id_gen=counting_ids())
+
+
+@pytest.fixture
+def seen_ctx(ctx) -> RunContext:
+    from boday_agent.tools.registry import execute
+
+    execute(ctx, "search_tasks", {})
+    return ctx
+
+
+@pytest.fixture
+def snap_with_future_field() -> Snapshot:
+    data = fixture_app_dict()
+    data["tasks"].append({
+        "id": "future", "type": "one_time", "title": "Future thing", "priority": 3,
+        "scheduledDate": "2026-10-25", "completed": False, "createdAt": CREATED,
+        "someFutureField": {"x": 1},
+    })
+    return Snapshot.from_app(data)
