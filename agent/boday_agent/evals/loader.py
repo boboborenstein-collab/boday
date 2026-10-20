@@ -7,8 +7,11 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
+import boday_agent.tools  # noqa: F401  (registers tools so fault names can be checked)
 from boday_agent.domain.models import Snapshot
 from boday_agent.evals.schema import EvalCase
+from boday_agent.tools.faults import FaultPlan
+from boday_agent.tools.registry import REGISTRY
 
 _AGENT_ROOT = Path(__file__).resolve().parents[2]
 CASES_DIR = _AGENT_ROOT / "evals" / "cases"
@@ -91,4 +94,19 @@ def validate_suite(cases: list[EvalCase], fixtures_dir: Path) -> list[str]:
         has_judge = case.expect.judge is not None
         if advice != has_judge:
             errors.append(f"{case.id}: judge must be present iff category is advice")
+        errors.extend(_fault_errors(case))
+    return errors
+
+
+def _fault_errors(case: EvalCase) -> list[str]:
+    errors: list[str] = []
+    for fault in case.faults:
+        if fault.call < 1:
+            errors.append(f"{case.id}: fault call must be >= 1, got {fault.call}")
+        if fault.tool not in REGISTRY:
+            errors.append(f"{case.id}: unknown fault tool {fault.tool!r}")
+    try:
+        FaultPlan(faults=case.faults)
+    except ValueError as exc:
+        errors.append(f"{case.id}: {exc}")
     return errors

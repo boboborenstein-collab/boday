@@ -49,7 +49,7 @@
           date: '2026-10-21'
       - op: create
         fields:
-          title: Gym
+          title_contains: gym
           type: one_time
           scheduledDate: '2026-10-22'
           reminderTime: 07:00

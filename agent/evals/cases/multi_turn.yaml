@@ -91,11 +91,14 @@
   "fixture": "typical_week"
   "turns":
   - "user": "move my dentist next friday"
-  - "assistant": "Two options: (1) Wednesday Oct 21 (2) Friday Oct 23. I drafted Wednesday."
+  - "assistant": "I drafted two changes and you rejected them. (1) move the dentist to Friday Oct 23 (2) move the vet to Friday Oct 23."
     "proposal":
     - "op": "update"
       "task": "dentist"
-      "scheduledDate": "2026-10-21"
+      "scheduledDate": "2026-10-23"
+    - "op": "update"
+      "task": "vet"
+      "scheduledDate": "2026-10-23"
     "status": "rejected"
   - "user": "ok just do the first one"
   "expect":
@@ -105,7 +108,7 @@
       - "op": "update"
         "task": "dentist"
         "fields":
-          "scheduledDate": "2026-10-21"
+          "scheduledDate": "2026-10-23"
 - "id": "mt-first-on-agenda"
   "category": "multi_turn"
   "label": "should_act"
@@ -144,7 +147,7 @@
           "date": "2026-10-21"
       - "op": "create"
         "fields":
-          "title": "Gym"
+          "title_contains": "gym"
           "type": "one_time"
           "scheduledDate": "2026-10-22"
           "reminderTime": "07:00"

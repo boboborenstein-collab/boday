@@ -21,7 +21,21 @@
         task: pharmacy
         fields:
           scheduledDate: '2026-10-27'
-  notes: Calendar week Sun Oct 18 through Sat Oct 24. One-time P3s only.
+    - outcome: proposed
+      changes:
+      - op: update
+        task: call-mom
+        fields:
+          scheduledDate: '2026-10-26'
+      - op: update
+        task: dinner-dana
+        fields:
+          scheduledDate: '2026-10-26'
+      - op: update
+        task: pharmacy
+        fields:
+          scheduledDate: '2026-10-26'
+  notes: Either shift each date by 7 days, or land them on Monday Oct 26 (resolve_date "next week").
 - id: today-all-done
   category: bulk
   label: should_act

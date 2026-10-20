@@ -93,6 +93,29 @@ def test_load_cases_names_file_and_id(tmp_path):
         load_cases(tmp_path)
 
 
+def test_validate_suite_rejects_bad_faults(tmp_path):
+    _empty_fixture(tmp_path)
+    asked = {"accept": [{"outcome": "asked"}]}
+    cases = [
+        EvalCase.model_validate({
+            **CASE, "id": "bad-tool", "fixture": "f", "expect": asked,
+            "faults": [{"tool": "search_task", "call": 1, "kind": "error"}],
+        }),
+        EvalCase.model_validate({
+            **CASE, "id": "bad-call", "fixture": "f", "expect": asked,
+            "faults": [{"tool": "search_tasks", "call": 0, "kind": "error"}],
+        }),
+        EvalCase.model_validate({
+            **CASE, "id": "bad-kind", "fixture": "f", "expect": asked,
+            "faults": [{"tool": "propose_update_task", "call": 1, "kind": "empty"}],
+        }),
+    ]
+    errs = validate_suite(cases, tmp_path)
+    assert any("bad-tool" in e and "search_task" in e for e in errs)
+    assert any("bad-call" in e and "call" in e for e in errs)
+    assert any("bad-kind" in e for e in errs)
+
+
 def test_validate_cli_reports_case_count(capsys):
     assert main(["validate"]) == 0
     loaded = len(load_cases())

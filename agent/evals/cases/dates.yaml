@@ -23,19 +23,27 @@
   notes: 'Tuesday clock: next Friday is ambiguous between Oct 23 and Oct 30.'
 - id: weekend-dentist
   category: dates
-  label: should_act
+  label: either
   split: dev
   fixture: typical_week
   turns:
   - user: move the dentist to this weekend
   expect:
     accept:
+    - outcome: asked
     - outcome: proposed
       changes:
       - op: update
         task: dentist
         fields:
           scheduledDate: '2026-10-24'
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-25'
+  notes: Saturday 09:00 is inside Shabbat. Sunday, or asking, is also fine.
 - id: end-of-month-flights
   category: dates
   label: should_act

@@ -88,7 +88,12 @@ def _fields_ok(expected: ExpectedChange, change: dict) -> bool:
     for key, value in expected.fields.items():
         if key in ("title", "title_contains"):
             continue
-        if _field_value(expected.op, change, key) != value:
+        actual = _field_value(expected.op, change, key)
+        if key == "notes":
+            if actual is _MISSING or _norm(actual) != _norm(value):
+                return False
+            continue
+        if actual != value:
             return False
     return True
 

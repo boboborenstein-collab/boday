@@ -4,7 +4,7 @@
   split: dev
   fixture: typical_week
   turns:
-  - user: move the dentist to wednesday at 9
+  - user: move the dentist to wednesday at 9am
   expect:
     accept:
     - outcome: proposed
@@ -29,8 +29,15 @@
       changes:
       - op: create
         fields:
-          title: Haircut
+          title_contains: haircut
           type: one_time
+          scheduledDate: '2026-10-21'
+          reminderTime: 09:00
+    - outcome: proposed
+      changes:
+      - op: update
+        task: haircut
+        fields:
           scheduledDate: '2026-10-21'
           reminderTime: 09:00
 - id: shabbat-call

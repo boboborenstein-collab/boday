@@ -102,6 +102,14 @@ def test_forbid_touch_is_severe():
     assert g.damage == "severe"
 
 
+def test_notes_match_is_case_insensitive():
+    c = case(accept=[{"outcome": "proposed", "changes": [
+        {"op": "update", "task": "vet", "fields": {"notes": "Bring vaccination records"}},
+    ]}])
+    g = grade(c, RunOutcome("proposed", [ch_update("vet", notes="bring vaccination records")]))
+    assert g.passed and g.damage == "none"
+
+
 def test_wrong_outcome():
     g = grade(case(), RunOutcome("answered", [], text="ok"))
     assert g.failure_type == "wrong_outcome" and g.damage == "none"
