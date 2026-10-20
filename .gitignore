@@ -46,3 +46,8 @@ dev-dist
 
 # local git worktrees
 .worktrees/
+agent/.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+agent/traces/

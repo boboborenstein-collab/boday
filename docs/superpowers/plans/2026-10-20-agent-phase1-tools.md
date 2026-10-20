@@ -66,9 +66,9 @@ The fixture builds these as **app-shaped camelCase dicts** and calls `Snapshot.f
 **Interfaces:**
 - Produces: `boday_agent.__version__ == "0.1.0"`; `uv run pytest` / `uv run ruff check .` work in `agent/`.
 
-- [ ] **Step 1: Create branch** — confirm `git status` is clean on `main` (resolve untracked files such as `AGENTS.md` first), then `git checkout -b agent/phase1-tools` (repo root).
-- [ ] **Step 2: Write `agent/pyproject.toml`** — project `boday-agent` 0.1.0, `requires-python = ">=3.12"`, deps `pydantic>=2.9`, `python-dateutil>=2.9`; dependency-group `dev` = `pytest>=8`, `ruff>=0.6`; hatchling build with `packages = ["boday_agent"]`; `[tool.pytest.ini_options] testpaths = ["tests"]`; ruff `line-length = 100`, `target-version = "py312"`, lint `select = ["E","F","I","UP","B"]`.
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 1: Create branch** — confirm `git status` is clean on `main` (resolve untracked files such as `AGENTS.md` first), then `git checkout -b agent/phase1-tools` (repo root).
+- [x] **Step 2: Write `agent/pyproject.toml`** — project `boday-agent` 0.1.0, `requires-python = ">=3.12"`, deps `pydantic>=2.9`, `python-dateutil>=2.9`; dependency-group `dev` = `pytest>=8`, `ruff>=0.6`; hatchling build with `packages = ["boday_agent"]`; `[tool.pytest.ini_options] testpaths = ["tests"]`; ruff `line-length = 100`, `target-version = "py312"`, lint `select = ["E","F","I","UP","B"]`.
+- [x] **Step 3: Write the failing test**
 
 ```python
 # agent/tests/test_smoke.py
@@ -78,10 +78,10 @@ def test_version():
     assert boday_agent.__version__ == "0.1.0"
 ```
 
-- [ ] **Step 4: Run it** — `uv sync && uv run pytest -q` → FAIL (`__version__` missing).
-- [ ] **Step 5: Add `__version__ = "0.1.0"`** to `boday_agent/__init__.py`; run `uv run pytest -q && uv run ruff check .` → PASS, clean.
-- [ ] **Step 6: Write `.github/workflows/agent.yml`** — triggers on push/PR with `paths: ['agent/**', 'scripts/gen-recurrence-parity.ts', 'src/lib/recurrence.ts', '.github/workflows/agent.yml']`. Job `test` (ubuntu-latest, working-directory `agent`): `actions/checkout@v4`, `astral-sh/setup-uv@v6`, `uv sync --locked`, `uv run ruff check .`, `uv run pytest -q`. (A second job is added in Task 3.)
-- [ ] **Step 7: Commit + push**
+- [x] **Step 4: Run it** — `uv sync && uv run pytest -q` → FAIL (`__version__` missing).
+- [x] **Step 5: Add `__version__ = "0.1.0"`** to `boday_agent/__init__.py`; run `uv run pytest -q && uv run ruff check .` → PASS, clean.
+- [x] **Step 6: Write `.github/workflows/agent.yml`** — triggers on push/PR with `paths: ['agent/**', 'scripts/gen-recurrence-parity.ts', 'src/lib/recurrence.ts', '.github/workflows/agent.yml']`. Job `test` (ubuntu-latest, working-directory `agent`): `actions/checkout@v4`, `astral-sh/setup-uv@v6`, `uv sync --locked`, `uv run ruff check .`, `uv run pytest -q`. (A second job is added in Task 3.)
+- [x] **Step 7: Commit + push**
 
 ```bash
 git add agent .github/workflows/agent.yml .gitignore
@@ -109,7 +109,7 @@ git push -u origin agent/phase1-tools
   - `Snapshot.from_app(data: dict) -> Snapshot` — the only constructor used for app input. Validates `now`/`timezone` strictly (raise on failure), then parses tasks, completions and quiet windows **one item at a time**; a malformed item is skipped and recorded as `"skipped task '<id or index>': <first error>"` in `parse_warnings`. Stores each accepted task/completion's original dict (deep copy) in `raw_tasks[id]` / `raw_completions[id]`.
 - Produces (`domain/clock.py`): `Clock(now: datetime, tz: ZoneInfo)` frozen dataclass with `.today -> date`, `.today_str -> str`, `.local_now -> datetime`, classmethod `Clock.from_snapshot(snap: Snapshot) -> Clock`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_models.py
@@ -172,10 +172,10 @@ def test_clock_today_is_local_not_utc():
     assert clock.today_str == "2026-10-20"
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_models.py -q` → FAIL (import error).
-- [ ] **Step 3: Implement** `domain/models.py` and `domain/clock.py` per Interfaces.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -am "agent: domain models + clock"` (add new files first) and `git push`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_models.py -q` → FAIL (import error).
+- [x] **Step 3: Implement** `domain/models.py` and `domain/clock.py` per Interfaces.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -am "agent: domain models + clock"` (add new files first) and `git push`.
 
 ---
 
@@ -198,15 +198,15 @@ def test_clock_today_is_local_not_utc():
   - `sort_day_items(items) -> list[DayItem]`
   - Weekday conversion: TS `getDay` 0=Sunday → Python `(d.weekday() + 1) % 7`.
 
-- [ ] **Step 1: Write `scripts/gen-recurrence-parity.ts`** — imports `makeSeed`, `occursOn`, `buildDayList`, `buildTodayList` from `src/`. `TODAY = '2026-06-17'`. Tasks = `makeSeed(TODAY).tasks` plus three synthetic recurring tasks: `syn-monthly-31` (monthly day 31, start 2026-06-01), `syn-every-0` (everyNDays n=0, start 2026-06-01), `syn-ended` (daily, start 2026-06-10, endDate 2026-06-20). For every date from TODAY−10 to TODAY+45: record `occurs[taskId]` = list of dates where `occursOn` is true (recurring only) and `day_lists[date]` = ordered task ids from `buildDayList`. For `today` in [TODAY, TODAY+1, TODAY+3]: `today_lists[today]` = ordered `[id, carriedOverFromDays, completed, skipped]` tuples. Print JSON `{today, timezone: "America/New_York", tasks, completions, occurs, day_lists, today_lists}` to stdout.
-- [ ] **Step 2: Generate the fixture** (repo root):
+- [x] **Step 1: Write `scripts/gen-recurrence-parity.ts`** — imports `makeSeed`, `occursOn`, `buildDayList`, `buildTodayList` from `src/`. `TODAY = '2026-06-17'`. Tasks = `makeSeed(TODAY).tasks` plus three synthetic recurring tasks: `syn-monthly-31` (monthly day 31, start 2026-06-01), `syn-every-0` (everyNDays n=0, start 2026-06-01), `syn-ended` (daily, start 2026-06-10, endDate 2026-06-20). For every date from TODAY−10 to TODAY+45: record `occurs[taskId]` = list of dates where `occursOn` is true (recurring only) and `day_lists[date]` = ordered task ids from `buildDayList`. For `today` in [TODAY, TODAY+1, TODAY+3]: `today_lists[today]` = ordered `[id, carriedOverFromDays, completed, skipped]` tuples. Print JSON `{today, timezone: "America/New_York", tasks, completions, occurs, day_lists, today_lists}` to stdout.
+- [x] **Step 2: Generate the fixture** (repo root):
 
 ```bash
 TZ=America/New_York npx tsx scripts/gen-recurrence-parity.ts > agent/tests/fixtures/recurrence_parity.json
 ```
 Expected: valid JSON, `day_lists` has 56 keys.
 
-- [ ] **Step 3: Write the failing tests**
+- [x] **Step 3: Write the failing tests**
 
 ```python
 # agent/tests/test_recurrence.py
@@ -239,11 +239,11 @@ def test_today_lists_match_typescript():
         assert got == rows, today
 ```
 
-- [ ] **Step 4: Run** — `uv run pytest tests/test_recurrence.py -q` → FAIL (import error).
-- [ ] **Step 5: Implement `domain/recurrence.py`** per Interfaces; use `datetime.date.fromisoformat` for date math.
-- [ ] **Step 6: Run** — `uv run pytest -q` → PASS.
-- [ ] **Step 7: Add CI job `parity-fresh`** — ubuntu-latest, repo root: checkout, `actions/setup-node@v4` (node 22), `npm ci`, `TZ=America/New_York npx tsx scripts/gen-recurrence-parity.ts > /tmp/parity.json`, `diff /tmp/parity.json agent/tests/fixtures/recurrence_parity.json`. Fails if someone changes the TS engine without regenerating.
-- [ ] **Step 8: Commit + push** — `git add scripts/gen-recurrence-parity.ts agent .github && git commit -m "agent: recurrence port with TS parity fixture" && git push`.
+- [x] **Step 4: Run** — `uv run pytest tests/test_recurrence.py -q` → FAIL (import error).
+- [x] **Step 5: Implement `domain/recurrence.py`** per Interfaces; use `datetime.date.fromisoformat` for date math.
+- [x] **Step 6: Run** — `uv run pytest -q` → PASS.
+- [x] **Step 7: Add CI job `parity-fresh`** — ubuntu-latest, repo root: checkout, `actions/setup-node@v4` (node 22), `npm ci`, `TZ=America/New_York npx tsx scripts/gen-recurrence-parity.ts > /tmp/parity.json`, `diff /tmp/parity.json agent/tests/fixtures/recurrence_parity.json`. Fails if someone changes the TS engine without regenerating.
+- [x] **Step 8: Commit + push** — `git add scripts/gen-recurrence-parity.ts agent .github && git commit -m "agent: recurrence port with TS parity fixture" && git push`.
 
 ---
 
@@ -267,7 +267,7 @@ def test_today_lists_match_typescript():
 - Relative time: `in N hour(s)|minute(s)` → computed on aware datetimes in UTC, then converted to `clock.tz` (DST-correct).
 - **Ambiguity rules:** bare/`this <weekday>` equal to today → `[today, today+7]`, ambiguous. `next <weekday>` → if the coming occurrence falls before next Monday → `[coming, coming+7]`, ambiguous; otherwise just `[coming]`. Absolute dates without a year: if not before today, the current year; if before today, **ambiguous** `[next year, this year]` with `is_past` on the second. Ambiguous date and ambiguous time combine (all pairs, date-major order).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_dates.py
@@ -345,10 +345,10 @@ def test_unparseable(expr):
         resolve(expr, TUE)
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_dates.py -q` → FAIL.
-- [ ] **Step 3: Implement `domain/dates.py`** — regex-based: split off a trailing time part first, then match the date part against the grammar table in order.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: deterministic date resolver"` (after `git add`), `git push`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_dates.py -q` → FAIL.
+- [x] **Step 3: Implement `domain/dates.py`** — regex-based: split off a trailing time part first, then match the date part against the grammar table in order.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: deterministic date resolver"` (after `git add`), `git push`.
 
 ---
 
@@ -381,8 +381,8 @@ def test_unparseable(expr):
   - `tool_schemas() -> list[dict]` → `[{"name", "description", "input_schema"}]` from `args_model.model_json_schema()`.
 - Tool arg models use `ConfigDict(extra="forbid")`.
 
-- [ ] **Step 1: Write `tests/conftest.py`** with fixtures `snap` and `ctx` exactly per the shared fixture table.
-- [ ] **Step 2: Write the failing tests** — register two throwaway tools inside the test module via a fixture that adds and removes them from `REGISTRY`: `echo(text: str)` returning `{"text": text}` and `boom()` raising `RuntimeError("secret internals")`.
+- [x] **Step 1: Write `tests/conftest.py`** with fixtures `snap` and `ctx` exactly per the shared fixture table.
+- [x] **Step 2: Write the failing tests** — register two throwaway tools inside the test module via a fixture that adds and removes them from `REGISTRY`: `echo(text: str)` returning `{"text": text}` and `boom()` raising `RuntimeError("secret internals")`.
 
 ```python
 # agent/tests/test_registry.py  (assertions)
@@ -420,10 +420,10 @@ def test_success_json_omits_nulls():
     assert ToolResult.success({"a": 1}).to_model_json() == '{"ok":true,"data":{"a":1}}'
 ```
 
-- [ ] **Step 3: Run** — FAIL (imports).
-- [ ] **Step 4: Implement** the four modules per Interfaces (draft-related methods can be exercised fully in Task 7).
-- [ ] **Step 5: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 6: Commit + push** — `git commit -m "agent: tool registry, run context, fault injection"`, `git push`.
+- [x] **Step 3: Run** — FAIL (imports).
+- [x] **Step 4: Implement** the four modules per Interfaces (draft-related methods can be exercised fully in Task 7).
+- [x] **Step 5: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 6: Commit + push** — `git commit -m "agent: tool registry, run context, fault injection"`, `git push`.
 
 ---
 
@@ -445,7 +445,7 @@ def test_success_json_omits_nulls():
   - `get_agenda(start_date: str, end_date: str)` → `{"days": [{"date", "weekday", "items": [{id, title, priority, reminder_time, status: open|done|skipped, carried_over_days, in_quiet_window}], "clashes": [{"time", "task_ids"}], "overloaded": bool}]}`. Dates must match `^\d{4}-\d{2}-\d{2}$` (`INVALID_DATE`), end ≥ start, ≤14 days inclusive (`LIMIT_EXCEEDED`, hint "Split into 14-day ranges."). Today's entry uses `build_today_list` (carry-over); other days `build_day_list`. Clash = ≥2 open items with the same `reminder_time` (task_ids sorted). Overloaded = open items > `overload_threshold`. `in_quiet_window` = item has a reminder time and that local datetime falls inside any quiet window. Marks all returned ids seen.
   - `resolve_date(expression: str)` → `DateResolution.model_dump()`; `UnparseableDate` → `INVALID_ARGS` with the parser's supported-forms message as hint.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_read_tools.py
@@ -520,10 +520,10 @@ def test_resolve_date_tool(ctx):
     assert execute(ctx, "resolve_date", {"expression": "blorp"}).result.error.code == "INVALID_ARGS"
 ```
 
-- [ ] **Step 2: Run** — FAIL.
-- [ ] **Step 3: Implement** `views.py` and `read.py` per Interfaces; import `read` from `tools/__init__.py` so registration happens on package import.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: read tools (search, get_task, agenda, resolve_date)"`, `git push`.
+- [x] **Step 2: Run** — FAIL.
+- [x] **Step 3: Implement** `views.py` and `read.py` per Interfaces; import `read` from `tools/__init__.py` so registration happens on package import.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: read tools (search, get_task, agenda, resolve_date)"`, `git push`.
 
 ---
 
@@ -551,7 +551,7 @@ def test_resolve_date_tool(ctx):
   - All propose tools call `ctx.require_seen` first and return `{"draft_size": int, "summary": str, "warnings": [...]}`.
   - **Warnings:** `POSSIBLE_DUPLICATE` (create: an open one-time task with equal `normalize(title)` on the same date, or an active recurring task with equal normalized title); `TIME_CLASH` (resulting task has a reminder time equal to another open item's on the affected date — create/update of one-time tasks); `QUIET_WINDOW` (resulting date+reminder time falls in a quiet window); `EXTERNAL_TASK` (update/status/delete of a task with `assigned_by_email`). `TIME_CLASH`/`QUIET_WINDOW` are also checked when an update changes `reminder_time` or `scheduled_date`.
 
-- [ ] **Step 1: Write the failing tests** (each test first calls `execute(ctx, "search_tasks", {})` via a `seen_ctx` fixture so all non-completed ids are seen; `report` is seen via `get_task`). Add fixture `snap_with_future_field` to `conftest.py`: the shared fixture dicts plus `{"id": "future", "type": "one_time", "title": "Future thing", "priority": 3, "scheduledDate": "2026-10-25", "completed": False, "createdAt": "2026-09-01T12:00:00Z", "someFutureField": {"x": 1}}`, built with `Snapshot.from_app`.
+- [x] **Step 1: Write the failing tests** (each test first calls `execute(ctx, "search_tasks", {})` via a `seen_ctx` fixture so all non-completed ids are seen; `report` is seen via `get_task`). Add fixture `snap_with_future_field` to `conftest.py`: the shared fixture dicts plus `{"id": "future", "type": "one_time", "title": "Future thing", "priority": 3, "scheduledDate": "2026-10-25", "completed": False, "createdAt": "2026-09-01T12:00:00Z", "someFutureField": {"x": 1}}`, built with `Snapshot.from_app`.
 
 ```python
 # agent/tests/test_propose_tools.py
@@ -690,10 +690,10 @@ def test_ask_user(ctx):
     assert ctx.question.question == "Which call?"
 ```
 
-- [ ] **Step 2: Run** — FAIL.
-- [ ] **Step 3: Implement** `changes.py` and `propose.py` per Interfaces; register from `tools/__init__.py`.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: propose + ask_user tools with validation"`, `git push`.
+- [x] **Step 2: Run** — FAIL.
+- [x] **Step 3: Implement** `changes.py` and `propose.py` per Interfaces; register from `tools/__init__.py`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: propose + ask_user tools with validation"`, `git push`.
 
 ---
 
@@ -708,7 +708,7 @@ Proves the tools compose the way the spec says a model will use them, using only
 **Interfaces:**
 - Consumes: everything above. No new production code expected; if a scenario fails, fix the owning module.
 
-- [ ] **Step 1: Write the tests**
+- [x] **Step 1: Write the tests**
 
 ```python
 # agent/tests/test_scenarios.py
@@ -759,10 +759,10 @@ def test_draft_payload_round_trips_as_app_json(ctx):
 
 (The registry test module's throwaway tools must be removed after its tests, so `test_schema_surface_is_exactly_nine_tools` sees only the real nine.)
 
-- [ ] **Step 2: Run** — `uv run pytest -q` → expected PASS; any failure points at a contract bug in Tasks 5–7: fix it there, re-run.
-- [ ] **Step 3: Update `agent/README.md`** with the Tool contract section.
-- [ ] **Step 4: Full verification** — `uv run pytest -q && uv run ruff check .` → all pass; push and confirm both CI jobs (`test`, `parity-fresh`) are green on GitHub (`gh run list --branch agent/phase1-tools --limit 1`).
-- [ ] **Step 5: Commit, push, open PR**
+- [x] **Step 2: Run** — `uv run pytest -q` → expected PASS; any failure points at a contract bug in Tasks 5–7: fix it there, re-run.
+- [x] **Step 3: Update `agent/README.md`** with the Tool contract section.
+- [x] **Step 4: Full verification** — `uv run pytest -q && uv run ruff check .` → all pass; push and confirm both CI jobs (`test`, `parity-fresh`) are green on GitHub (`gh run list --branch agent/phase1-tools --limit 1`).
+- [x] **Step 5: Commit, push, open PR**
 
 ```bash
 git add agent && git commit -m "agent: end-to-end tool scenarios + README contract"

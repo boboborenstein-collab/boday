@@ -1,0 +1,927 @@
+{
+  "today": "2026-06-17",
+  "timezone": "America/New_York",
+  "tasks": [
+    {
+      "id": "ot-drycleaning",
+      "type": "one_time",
+      "title": "Pick up dry cleaning",
+      "notes": "Ticket #4821 — closes at 6pm",
+      "priority": 2,
+      "scheduledDate": "2026-06-14",
+      "completed": false,
+      "completedAt": null,
+      "reminderTime": null,
+      "createdAt": "2026-06-14T08:00:00.000Z"
+    },
+    {
+      "id": "ot-landlord",
+      "type": "one_time",
+      "title": "Reply to landlord about lease",
+      "priority": 1,
+      "scheduledDate": "2026-06-17",
+      "completed": false,
+      "completedAt": null,
+      "reminderTime": "09:00",
+      "createdAt": "2026-06-17T08:00:00.000Z"
+    },
+    {
+      "id": "ot-gift",
+      "type": "one_time",
+      "title": "Buy birthday gift for Sam",
+      "notes": "Party is Saturday",
+      "priority": 3,
+      "scheduledDate": "2026-06-19",
+      "completed": false,
+      "completedAt": null,
+      "reminderTime": null,
+      "createdAt": "2026-06-17T08:00:00.000Z"
+    },
+    {
+      "id": "ot-expense",
+      "type": "one_time",
+      "title": "Submit expense report",
+      "priority": 1,
+      "scheduledDate": "2026-06-16",
+      "completed": true,
+      "completedAt": "2026-06-16T15:00:00.000Z",
+      "reminderTime": null,
+      "createdAt": "2026-06-15T08:00:00.000Z"
+    },
+    {
+      "id": "ot-gym",
+      "type": "one_time",
+      "title": "Renew gym membership",
+      "priority": 4,
+      "scheduledDate": "2026-06-11",
+      "completed": false,
+      "completedAt": null,
+      "reminderTime": null,
+      "createdAt": "2026-06-11T08:00:00.000Z"
+    },
+    {
+      "id": "rt-workout",
+      "type": "recurring",
+      "title": "Morning workout",
+      "notes": "20 min",
+      "priority": 2,
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-05-18",
+      "endDate": null,
+      "reminderTime": "06:30",
+      "createdAt": "2026-05-18T08:00:00.000Z"
+    },
+    {
+      "id": "rt-torah",
+      "type": "recurring",
+      "title": "Daily Torah learning",
+      "priority": 1,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "startDate": "2026-04-18",
+      "endDate": null,
+      "reminderTime": "07:00",
+      "createdAt": "2026-04-18T08:00:00.000Z"
+    },
+    {
+      "id": "rt-plants",
+      "type": "recurring",
+      "title": "Water the plants",
+      "priority": 3,
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 3
+      },
+      "startDate": "2026-06-11",
+      "endDate": null,
+      "reminderTime": null,
+      "createdAt": "2026-06-11T08:00:00.000Z"
+    },
+    {
+      "id": "rt-standup",
+      "type": "recurring",
+      "title": "Team standup",
+      "notes": "15 min — #eng",
+      "priority": 2,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          1,
+          3,
+          5
+        ]
+      },
+      "startDate": "2026-05-08",
+      "endDate": null,
+      "reminderTime": "09:15",
+      "createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "syn-monthly-31",
+      "type": "recurring",
+      "title": "syn-monthly-31",
+      "priority": 3,
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 31
+      },
+      "startDate": "2026-06-01",
+      "endDate": null,
+      "reminderTime": null,
+      "createdAt": "2026-06-01T08:00:00.000Z"
+    },
+    {
+      "id": "syn-every-0",
+      "type": "recurring",
+      "title": "syn-every-0",
+      "priority": 3,
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 0
+      },
+      "startDate": "2026-06-01",
+      "endDate": null,
+      "reminderTime": null,
+      "createdAt": "2026-06-01T08:00:00.000Z"
+    },
+    {
+      "id": "syn-ended",
+      "type": "recurring",
+      "title": "syn-ended",
+      "priority": 3,
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-06-10",
+      "endDate": "2026-06-20",
+      "reminderTime": null,
+      "createdAt": "2026-06-10T08:00:00.000Z"
+    }
+  ],
+  "completions": [
+    {
+      "id": "c-rt-workout-2026-06-16",
+      "taskId": "rt-workout",
+      "completionDate": "2026-06-16",
+      "completedAt": "2026-06-16T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-workout-2026-06-15",
+      "taskId": "rt-workout",
+      "completionDate": "2026-06-15",
+      "completedAt": "2026-06-15T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-workout-2026-06-14",
+      "taskId": "rt-workout",
+      "completionDate": "2026-06-14",
+      "completedAt": "2026-06-14T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-workout-2026-06-13",
+      "taskId": "rt-workout",
+      "completionDate": "2026-06-13",
+      "completedAt": "2026-06-13T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-plants-2026-06-17",
+      "taskId": "rt-plants",
+      "completionDate": "2026-06-17",
+      "completedAt": "2026-06-17T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-plants-2026-06-14",
+      "taskId": "rt-plants",
+      "completionDate": "2026-06-14",
+      "completedAt": "2026-06-14T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-plants-2026-06-11",
+      "taskId": "rt-plants",
+      "completionDate": "2026-06-11",
+      "completedAt": "2026-06-11T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-16",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-16",
+      "completedAt": "2026-06-16T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-15",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-15",
+      "completedAt": "2026-06-15T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-06-15",
+      "taskId": "rt-standup",
+      "completionDate": "2026-06-15",
+      "completedAt": "2026-06-15T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-12",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-12",
+      "completedAt": "2026-06-12T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-06-12",
+      "taskId": "rt-standup",
+      "completionDate": "2026-06-12",
+      "completedAt": "2026-06-12T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-11",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-11",
+      "completedAt": "2026-06-11T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-10",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-10",
+      "completedAt": "2026-06-10T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-06-10",
+      "taskId": "rt-standup",
+      "completionDate": "2026-06-10",
+      "completedAt": "2026-06-10T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-09",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-09",
+      "completedAt": "2026-06-09T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-08",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-08",
+      "completedAt": "2026-06-08T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-06-08",
+      "taskId": "rt-standup",
+      "completionDate": "2026-06-08",
+      "completedAt": "2026-06-08T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-05",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-05",
+      "completedAt": "2026-06-05T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-06-05",
+      "taskId": "rt-standup",
+      "completionDate": "2026-06-05",
+      "completedAt": "2026-06-05T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-04",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-04",
+      "completedAt": "2026-06-04T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-03",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-03",
+      "completedAt": "2026-06-03T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-06-03",
+      "taskId": "rt-standup",
+      "completionDate": "2026-06-03",
+      "completedAt": "2026-06-03T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-02",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-02",
+      "completedAt": "2026-06-02T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-06-01",
+      "taskId": "rt-torah",
+      "completionDate": "2026-06-01",
+      "completedAt": "2026-06-01T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-06-01",
+      "taskId": "rt-standup",
+      "completionDate": "2026-06-01",
+      "completedAt": "2026-06-01T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-05-29",
+      "taskId": "rt-torah",
+      "completionDate": "2026-05-29",
+      "completedAt": "2026-05-29T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-05-29",
+      "taskId": "rt-standup",
+      "completionDate": "2026-05-29",
+      "completedAt": "2026-05-29T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-05-28",
+      "taskId": "rt-torah",
+      "completionDate": "2026-05-28",
+      "completedAt": "2026-05-28T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-torah-2026-05-27",
+      "taskId": "rt-torah",
+      "completionDate": "2026-05-27",
+      "completedAt": "2026-05-27T07:00:00.000Z"
+    },
+    {
+      "id": "c-rt-standup-2026-05-27",
+      "taskId": "rt-standup",
+      "completionDate": "2026-05-27",
+      "completedAt": "2026-05-27T07:00:00.000Z"
+    }
+  ],
+  "occurs": {
+    "rt-workout": [
+      "2026-06-07",
+      "2026-06-08",
+      "2026-06-09",
+      "2026-06-10",
+      "2026-06-11",
+      "2026-06-12",
+      "2026-06-13",
+      "2026-06-14",
+      "2026-06-15",
+      "2026-06-16",
+      "2026-06-17",
+      "2026-06-18",
+      "2026-06-19",
+      "2026-06-20",
+      "2026-06-21",
+      "2026-06-22",
+      "2026-06-23",
+      "2026-06-24",
+      "2026-06-25",
+      "2026-06-26",
+      "2026-06-27",
+      "2026-06-28",
+      "2026-06-29",
+      "2026-06-30",
+      "2026-07-01",
+      "2026-07-02",
+      "2026-07-03",
+      "2026-07-04",
+      "2026-07-05",
+      "2026-07-06",
+      "2026-07-07",
+      "2026-07-08",
+      "2026-07-09",
+      "2026-07-10",
+      "2026-07-11",
+      "2026-07-12",
+      "2026-07-13",
+      "2026-07-14",
+      "2026-07-15",
+      "2026-07-16",
+      "2026-07-17",
+      "2026-07-18",
+      "2026-07-19",
+      "2026-07-20",
+      "2026-07-21",
+      "2026-07-22",
+      "2026-07-23",
+      "2026-07-24",
+      "2026-07-25",
+      "2026-07-26",
+      "2026-07-27",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-01"
+    ],
+    "rt-torah": [
+      "2026-06-08",
+      "2026-06-09",
+      "2026-06-10",
+      "2026-06-11",
+      "2026-06-12",
+      "2026-06-15",
+      "2026-06-16",
+      "2026-06-17",
+      "2026-06-18",
+      "2026-06-19",
+      "2026-06-22",
+      "2026-06-23",
+      "2026-06-24",
+      "2026-06-25",
+      "2026-06-26",
+      "2026-06-29",
+      "2026-06-30",
+      "2026-07-01",
+      "2026-07-02",
+      "2026-07-03",
+      "2026-07-06",
+      "2026-07-07",
+      "2026-07-08",
+      "2026-07-09",
+      "2026-07-10",
+      "2026-07-13",
+      "2026-07-14",
+      "2026-07-15",
+      "2026-07-16",
+      "2026-07-17",
+      "2026-07-20",
+      "2026-07-21",
+      "2026-07-22",
+      "2026-07-23",
+      "2026-07-24",
+      "2026-07-27",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31"
+    ],
+    "rt-plants": [
+      "2026-06-11",
+      "2026-06-14",
+      "2026-06-17",
+      "2026-06-20",
+      "2026-06-23",
+      "2026-06-26",
+      "2026-06-29",
+      "2026-07-02",
+      "2026-07-05",
+      "2026-07-08",
+      "2026-07-11",
+      "2026-07-14",
+      "2026-07-17",
+      "2026-07-20",
+      "2026-07-23",
+      "2026-07-26",
+      "2026-07-29",
+      "2026-08-01"
+    ],
+    "rt-standup": [
+      "2026-06-08",
+      "2026-06-10",
+      "2026-06-12",
+      "2026-06-15",
+      "2026-06-17",
+      "2026-06-19",
+      "2026-06-22",
+      "2026-06-24",
+      "2026-06-26",
+      "2026-06-29",
+      "2026-07-01",
+      "2026-07-03",
+      "2026-07-06",
+      "2026-07-08",
+      "2026-07-10",
+      "2026-07-13",
+      "2026-07-15",
+      "2026-07-17",
+      "2026-07-20",
+      "2026-07-22",
+      "2026-07-24",
+      "2026-07-27",
+      "2026-07-29",
+      "2026-07-31"
+    ],
+    "syn-monthly-31": [
+      "2026-07-31"
+    ],
+    "syn-every-0": [],
+    "syn-ended": [
+      "2026-06-10",
+      "2026-06-11",
+      "2026-06-12",
+      "2026-06-13",
+      "2026-06-14",
+      "2026-06-15",
+      "2026-06-16",
+      "2026-06-17",
+      "2026-06-18",
+      "2026-06-19",
+      "2026-06-20"
+    ]
+  },
+  "day_lists": {
+    "2026-06-07": [
+      "rt-workout"
+    ],
+    "2026-06-08": [
+      "rt-workout",
+      "rt-torah",
+      "rt-standup"
+    ],
+    "2026-06-09": [
+      "rt-workout",
+      "rt-torah"
+    ],
+    "2026-06-10": [
+      "rt-workout",
+      "syn-ended",
+      "rt-torah",
+      "rt-standup"
+    ],
+    "2026-06-11": [
+      "rt-workout",
+      "syn-ended",
+      "ot-gym",
+      "rt-torah",
+      "rt-plants"
+    ],
+    "2026-06-12": [
+      "rt-workout",
+      "syn-ended",
+      "rt-torah",
+      "rt-standup"
+    ],
+    "2026-06-13": [
+      "syn-ended",
+      "rt-workout"
+    ],
+    "2026-06-14": [
+      "ot-drycleaning",
+      "syn-ended",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-06-15": [
+      "syn-ended",
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-06-16": [
+      "syn-ended",
+      "rt-torah",
+      "ot-expense",
+      "rt-workout"
+    ],
+    "2026-06-17": [
+      "rt-torah",
+      "ot-landlord",
+      "rt-standup",
+      "rt-workout",
+      "syn-ended",
+      "rt-plants"
+    ],
+    "2026-06-18": [
+      "rt-torah",
+      "rt-workout",
+      "syn-ended"
+    ],
+    "2026-06-19": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "syn-ended",
+      "ot-gift"
+    ],
+    "2026-06-20": [
+      "rt-workout",
+      "syn-ended",
+      "rt-plants"
+    ],
+    "2026-06-21": [
+      "rt-workout"
+    ],
+    "2026-06-22": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-06-23": [
+      "rt-torah",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-06-24": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-06-25": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-06-26": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-06-27": [
+      "rt-workout"
+    ],
+    "2026-06-28": [
+      "rt-workout"
+    ],
+    "2026-06-29": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-06-30": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-07-01": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-02": [
+      "rt-torah",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-03": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-04": [
+      "rt-workout"
+    ],
+    "2026-07-05": [
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-06": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-07": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-07-08": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-09": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-07-10": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-11": [
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-12": [
+      "rt-workout"
+    ],
+    "2026-07-13": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-14": [
+      "rt-torah",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-15": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-16": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-07-17": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-18": [
+      "rt-workout"
+    ],
+    "2026-07-19": [
+      "rt-workout"
+    ],
+    "2026-07-20": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-21": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-07-22": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-23": [
+      "rt-torah",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-24": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-25": [
+      "rt-workout"
+    ],
+    "2026-07-26": [
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-27": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout"
+    ],
+    "2026-07-28": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-07-29": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "rt-plants"
+    ],
+    "2026-07-30": [
+      "rt-torah",
+      "rt-workout"
+    ],
+    "2026-07-31": [
+      "rt-torah",
+      "rt-standup",
+      "rt-workout",
+      "syn-monthly-31"
+    ],
+    "2026-08-01": [
+      "rt-workout",
+      "rt-plants"
+    ]
+  },
+  "today_lists": {
+    "2026-06-17": [
+      [
+        "rt-torah",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-landlord",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-drycleaning",
+        3,
+        false,
+        false
+      ],
+      [
+        "rt-standup",
+        0,
+        false,
+        false
+      ],
+      [
+        "rt-workout",
+        0,
+        false,
+        false
+      ],
+      [
+        "syn-ended",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-gym",
+        6,
+        false,
+        false
+      ],
+      [
+        "rt-plants",
+        0,
+        true,
+        false
+      ]
+    ],
+    "2026-06-18": [
+      [
+        "ot-landlord",
+        1,
+        false,
+        false
+      ],
+      [
+        "rt-torah",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-drycleaning",
+        4,
+        false,
+        false
+      ],
+      [
+        "rt-workout",
+        0,
+        false,
+        false
+      ],
+      [
+        "syn-ended",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-gym",
+        7,
+        false,
+        false
+      ]
+    ],
+    "2026-06-20": [
+      [
+        "ot-landlord",
+        3,
+        false,
+        false
+      ],
+      [
+        "ot-drycleaning",
+        6,
+        false,
+        false
+      ],
+      [
+        "rt-workout",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-gift",
+        1,
+        false,
+        false
+      ],
+      [
+        "syn-ended",
+        0,
+        false,
+        false
+      ],
+      [
+        "rt-plants",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-gym",
+        9,
+        false,
+        false
+      ]
+    ]
+  }
+}
