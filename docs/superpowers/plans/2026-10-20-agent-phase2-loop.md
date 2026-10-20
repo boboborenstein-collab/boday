@@ -312,7 +312,7 @@ def test_injected_fault_recorded(snap):
   - Errors (after the SDK's own retries): `anthropic.RateLimitError`, `APIConnectionError`, `APITimeoutError`, `APIStatusError` with status ≥500 → `ProviderError(retryable=True)`; other `APIStatusError` (400/401/403/404) → `ProviderError(retryable=False)`. Message = `f"{type(e).__name__}: {status}"` — never the raw body or headers.
   - `describe()` → `{"provider": "anthropic", "model": model, "effort": effort, "refusal_fallback": bool}`.
 
-- [ ] **Step 1: Write the failing tests** — a `StubClient` with `messages.create` and `beta.messages.create` that record kwargs and return objects built with `types.SimpleNamespace` (`content` = list of namespaces with `type`, `text` / `id`, `name`, `input`; `stop_reason`; `model`; `usage` with the four token fields), and `with_options(**kw)` returning itself and recording `timeout`.
+- [x] **Step 1: Write the failing tests** — a `StubClient` with `messages.create` and `beta.messages.create` that record kwargs and return objects built with `types.SimpleNamespace` (`content` = list of namespaces with `type`, `text` / `id`, `name`, `input`; `stop_reason`; `model`; `usage` with the four token fields), and `with_options(**kw)` returning itself and recording `timeout`.
 
 ```python
 def test_request_shape_and_cache_control():
@@ -351,8 +351,8 @@ def test_error_mapping_hides_details():
 
 (Build SDK exceptions with `anthropic.AuthenticationError(message="bad key sk-ant-x", response=httpx.Response(401, request=httpx.Request("POST", "https://api.anthropic.com/v1/messages")), body=None)`; same pattern for `RateLimitError` with 429.)
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: Anthropic provider"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: Anthropic provider"`.
 
 ---
 
