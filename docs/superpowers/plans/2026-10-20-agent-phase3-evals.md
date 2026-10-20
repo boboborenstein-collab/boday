@@ -263,10 +263,10 @@ Required scenarios (each line is ≥1 case; add variations to reach the counts):
 **Interfaces:**
 - Produces `agent/tests/evals/test_suite.py` — loads all cases and asserts: `validate_suite` and every `check_expectations` return no errors; per-category minimum counts **for the categories present so far**; every category present has ≥1 holdout and ≤40% holdout.
 
-- [ ] **Step 1: Write `test_suite.py`** (category minimums from Global Constraints; skip categories with 0 cases until Task A6).
-- [ ] **Step 2: Write the six YAML files** following the rules above.
-- [ ] **Step 3: Run** `uv run boday-eval validate && uv run pytest tests/evals -q` → all OK; fix any case the oracle rejects.
-- [ ] **Step 4: Commit + push** — `git commit -m "evals: cases part 1 (57+)"`.
+- [x] **Step 1: Write `test_suite.py`** (category minimums from Global Constraints; skip categories with 0 cases until Task A6).
+- [x] **Step 2: Write the six YAML files** following the rules above.
+- [x] **Step 3: Run** `uv run boday-eval validate && uv run pytest tests/evals -q` → all OK; fix any case the oracle rejects.
+- [x] **Step 4: Commit + push** — `git commit -m "evals: cases part 1 (57+)"`.
 
 ---
 
