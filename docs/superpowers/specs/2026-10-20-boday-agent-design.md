@@ -202,7 +202,7 @@ settings. The server is stateless.
 | `proposed` | changes + one-line summary |
 | `answered` | text only |
 | `asked` | clarifying question (+ options) |
-| `refused` | declined (out of scope or injected instruction) |
+| `refused` | the model's own refusal stop reason; a text-only decline is `answered` with no changes |
 | `failed` | step cap, timeout, or unrecoverable model error |
 
 **Fail closed:** on `failed`, the draft is discarded.
