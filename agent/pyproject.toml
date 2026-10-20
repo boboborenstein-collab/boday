@@ -8,7 +8,11 @@ dependencies = [
     "httpx>=0.27",
     "pydantic>=2.9",
     "python-dateutil>=2.9",
+    "pyyaml>=6",
 ]
+
+[project.scripts]
+boday-eval = "boday_agent.evals.cli:main"
 
 [dependency-groups]
 dev = [
