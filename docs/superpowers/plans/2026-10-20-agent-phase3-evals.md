@@ -111,7 +111,7 @@ def test_validate_suite_finds_problems(tmp_path):
 - `empty` = no tasks.
 - `large` = output of `gen_large.py` (deterministic: `random.Random(20261020)`): 200 tasks (150 one-time across 2026-09-15 → 2026-12-31, 50 recurring of all four kinds), 20 completed, titles from fixed word lists, includes the 25 `typical_week` tasks verbatim so cases can target them. Running `uv run python -m boday_agent.evals.gen_large` rewrites `large.json` byte-identically.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/evals/test_fixtures.py
@@ -133,8 +133,8 @@ def test_injection_fixture_marks_external():
     assert len(ext) == 5
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Write the fixtures and `gen_large.py`** (`render() -> str` returns the JSON text; `__main__` writes it). **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: fixtures"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Write the fixtures and `gen_large.py`** (`render() -> str` returns the JSON text; `__main__` writes it). **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: fixtures"`.
 
 ---
 
