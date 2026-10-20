@@ -14,7 +14,7 @@ from ..domain.recurrence import build_day_list, build_today_list
 from .context import RunContext
 from .registry import ToolSpec, register
 from .result import ErrorCode, ToolError
-from .views import normalize, task_detail, task_summary
+from .views import normalize, short_weekday, task_detail, task_summary
 
 PRIORITY_DESC = (
     "1 = urgent, 2 = high, 3 = medium, 4 = low; "
@@ -46,7 +46,7 @@ class SearchArgs(BaseModel):
 def _score(query: str, task: Task) -> float:
     q = normalize(query)
     if not q:
-        return 1.0
+        return 0.0  # a query with no searchable characters (e.g. an emoji) matches nothing
     title = normalize(task.title)
     if q in title:
         return 1.0
@@ -197,7 +197,7 @@ def _get_agenda(ctx: RunContext, a: AgendaArgs) -> dict:
         ]
         days.append({
             "date": ds,
-            "weekday": d.strftime("%A"),
+            "weekday": short_weekday(d),
             "items": items,
             "clashes": clashes,
             "overloaded": len(open_items) > ctx.limits.overload_threshold,

@@ -86,7 +86,7 @@ def test_agenda_today_has_carry_over(ctx):
     day = execute(ctx, "get_agenda", {"start_date": "2026-10-20", "end_date": "2026-10-20"}).result.data["days"][0]
     items = {i["id"]: i for i in day["items"]}
     assert items["taxes"]["carried_over_days"] == 5 and "call-mom-1" in items and "standup" in items
-    assert day["weekday"] == "Tuesday" and "taxes" in ctx.seen_ids
+    assert day["weekday"] == "Tue" and "taxes" in ctx.seen_ids
 
 
 def test_agenda_flags_clash(ctx):
@@ -131,3 +131,9 @@ def test_resolve_date_tool(ctx):
 def test_read_tools_registered_and_extra_forbidden(ctx):
     assert {"search_tasks", "get_task", "get_agenda", "resolve_date"} <= set(REGISTRY)
     assert execute(ctx, "get_task", {"task_id": "gym", "x": 1}).result.error.code == "INVALID_ARGS"
+
+
+def test_search_symbol_only_query_matches_nothing(ctx):
+    for q in ("🦷", "!!!"):
+        d = execute(ctx, "search_tasks", {"query": q}).result.data
+        assert d["results"] == [] and d["total"] == 0

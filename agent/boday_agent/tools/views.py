@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from datetime import timedelta
+from datetime import date, timedelta
 
 from ..domain.clock import Clock
 from ..domain.models import OneTimeTask, RecurringTask, Task, TaskCompletion
@@ -19,6 +19,11 @@ def normalize(text: str) -> str:
     cleaned = "".join(c if (c.isalnum() or c == " ") else " " if c.isspace() else ""
                       for c in stripped)
     return re.sub(r" +", " ", cleaned.lower()).strip()
+
+
+def short_weekday(d: date) -> str:
+    """Locale-independent 'Mon'..'Sun' (same short names the date resolver emits)."""
+    return _DOW[(d.weekday() + 1) % 7]
 
 
 def describe_schedule(task: RecurringTask) -> str:
