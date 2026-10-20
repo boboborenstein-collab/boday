@@ -370,7 +370,7 @@ def test_error_mapping_hides_details():
   - `describe()` → `{"provider": "openai_compat", "model", "host": <netloc>, "is_local": bool}` (no headers).
 - Produces (`auto.py`): `select_provider(local: OpenAICompatProvider, fallback: Provider, *, health_timeout_s: float = 2.0, transport=None) -> tuple[Provider, str]` — GET `{local.base_url}/models` with the local provider's headers and a 2 s timeout; HTTP 200 → `(local, "auto: local reachable")`; any error/timeout/non-200 → `(fallback, "auto: local unreachable (<reason>) → fallback")`. The chosen provider is fixed for the whole run (the loop never switches).
 
-- [ ] **Step 1: Write the failing tests** (`httpx.MockTransport` handlers that record requests)
+- [x] **Step 1: Write the failing tests** (`httpx.MockTransport` handlers that record requests)
 
 ```python
 def test_request_shape_and_headers():
@@ -414,8 +414,8 @@ def test_auto_falls_back_on_timeout():
 def test_auto_falls_back_on_non_200(): ...      # 502 → fallback
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: OpenAI-compatible provider + auto router"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: OpenAI-compatible provider + auto router"`.
 
 ---
 
