@@ -218,7 +218,7 @@ def test_wrong_outcome():
 - Consumes: phase 1 `RunContext`, `execute`, `Limits`, `counting_ids`; A1 loader; A3 types.
 - Produces: `check_expectations(case: EvalCase, fixture: dict) -> list[str]` — for every `proposed` acceptable: fresh `RunContext.create(build_snapshot(...), limits=Limits(max_search_results=1000), id_gen=counting_ids())`; mark every fixture id seen via `execute(ctx, "search_tasks", {"include_completed": True})`; translate each `ExpectedChange` into the matching propose tool call (camelCase → snake_case keys, nested `recurrence` too; `title_contains` → `title`; create must include `type`; delete gets `reason: "oracle"`); every call must return `ok`. Errors are `"<case id> acceptable #<i> change #<j>: <code> <message>"`. Then run `grade()` on the oracle's own draft and require `passed` with damage `none` (proves case and grader agree).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_oracle_accepts_valid_case():
@@ -239,8 +239,8 @@ def test_oracle_create_and_recurrence():
     assert check_expectations(ok, load_fixture("typical_week")) == []
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: oracle replays expected answers through the tools"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: oracle replays expected answers through the tools"`.
 
 ---
 
