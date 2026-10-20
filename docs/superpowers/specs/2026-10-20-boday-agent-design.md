@@ -33,8 +33,9 @@ priority, tags, notes, subtasks, completion/skip status; advice questions;
 multi-turn clarification; per-user model choice; tracing; eval harness;
 app UI (chat, diff approval, undo, settings).
 
-**Out of scope (v1):** writing to Apple Calendar (the .ics feed stays
-read-only), sharing tasks, settings changes, bulk deletes, long-term memory
+**Out of scope (v1):** reading events from Apple Calendar or creating
+events in it directly (the existing one-way .ics feed already shows
+agent-made task changes in Apple Calendar automatically), sharing tasks, settings changes, bulk deletes, long-term memory
 across chats, streaming responses. The MCP server is a possible later
 phase with its own short design (see §8).
 
@@ -357,8 +358,9 @@ model ID, prompt hash, and (local) model build + settings:
 
 ### Chat UI
 
-- Entry: ✨ button on every view; command palette offers "Ask BoDay: …"
-  for full sentences. Bottom sheet on phone, side panel on desktop.
+- Entry: ✨ "Ask" item in the main navigation menu (`Layout.tsx`), plus the
+  command palette offers "Ask BoDay: …" for full sentences. Bottom sheet on
+  phone, side panel on desktop.
 - `proposed` → diff card: creates (green), updates as before → after
   (blue), deletes in a separate red section, inline warnings, per-change
   checkboxes (default all on), Approve / Reject.
