@@ -26,3 +26,14 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run pytest -q
+
+  parity-fresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: TZ=America/New_York npx tsx scripts/gen-recurrence-parity.ts > /tmp/parity.json
+      - run: diff /tmp/parity.json agent/tests/fixtures/recurrence_parity.json
