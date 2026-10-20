@@ -1,0 +1,167 @@
+- "id": "mt-thanksgiving-call"
+  "category": "multi_turn"
+  "label": "should_act"
+  "split": "holdout"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "call mom tomorrow"
+  - "assistant": "Which call, the one today or the Thanksgiving one?"
+  - "user": "the thanksgiving one"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "call-mom-thanksgiving"
+        "fields":
+          "scheduledDate": "2026-10-21"
+    "forbid_touch":
+    - "call-mom"
+- "id": "mt-no-friday"
+  "category": "multi_turn"
+  "label": "should_act"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move my dentist to wednesday"
+  - "assistant": "Drafted moving the dentist to Wednesday Oct 21."
+    "proposal":
+    - "op": "update"
+      "task": "dentist"
+      "scheduledDate": "2026-10-21"
+    "status": "pending"
+  - "user": "no, friday"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-23"
+  "notes": "Pending only. Friday is Oct 23, not the fixture's Thursday."
+- "id": "mt-make-it-3pm"
+  "category": "multi_turn"
+  "label": "should_act"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move the dentist to friday"
+  - "assistant": "Drafted Friday Oct 23."
+    "proposal":
+    - "op": "update"
+      "task": "dentist"
+      "scheduledDate": "2026-10-23"
+    "status": "pending"
+  - "user": "actually make it 3pm"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-23"
+          "reminderTime": "15:00"
+- "id": "mt-undo-applied"
+  "category": "multi_turn"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move the dentist to wednesday"
+  - "assistant": "Moved the dentist to Wednesday."
+    "proposal":
+    - "op": "update"
+      "taskId": "dentist"
+      "patch":
+        "scheduledDate": "2026-10-21"
+      "beforeFields":
+        "scheduledDate": "2026-10-22"
+    "status": "applied"
+  - "user": "undo that"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+  "notes": "The inverse patch is scheduledDate 2026-10-22, which the fixture already has. The tools reject that no-op, so the grounded outcome is an answer."
+- "id": "mt-first-one"
+  "category": "multi_turn"
+  "label": "should_act"
+  "split": "holdout"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move my dentist next friday"
+  - "assistant": "Two options: (1) Wednesday Oct 21 (2) Friday Oct 23. I drafted Wednesday."
+    "proposal":
+    - "op": "update"
+      "task": "dentist"
+      "scheduledDate": "2026-10-21"
+    "status": "rejected"
+  - "user": "ok just do the first one"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-21"
+- "id": "mt-first-on-agenda"
+  "category": "multi_turn"
+  "label": "should_act"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "whats on today"
+  - "assistant": "Today: File taxes, Standup, Call mom, Pick up prescription, Swim laps, Torah study."
+  - "user": "move the first thing to tomorrow"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "taxes"
+        "fields":
+          "scheduledDate": "2026-10-21"
+  "notes": "File taxes is the first item on today's list."
+- "id": "mt-just-this-week"
+  "category": "multi_turn"
+  "label": "should_act"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move gym to tomorrow"
+  - "assistant": "Every week, or just this week?"
+  - "user": "just this week"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "set_status"
+        "task": "gym"
+        "fields":
+          "status": "skipped"
+          "date": "2026-10-21"
+      - "op": "create"
+        "fields":
+          "title": "Gym"
+          "type": "one_time"
+          "scheduledDate": "2026-10-22"
+          "reminderTime": "07:00"
+  "now": "2026-10-21T09:00:00-04:00"
+- "id": "mt-never-mind"
+  "category": "multi_turn"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "delete the laundry task"
+  - "assistant": "I'll delete Do laundry."
+    "proposal":
+    - "op": "delete"
+      "task": "laundry"
+    "status": "pending"
+  - "user": "never mind, leave it"
+  "expect":
+    "accept":
+    - "outcome": "answered"

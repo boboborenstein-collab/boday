@@ -1,0 +1,149 @@
+- "id": "tf-search-error"
+  "category": "tool_failures"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move my dentist to tommorow"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-21"
+    - "outcome": "answered"
+  "faults":
+  - "tool": "search_tasks"
+    "call": 1
+    "kind": "error"
+  "notes": "Retry and propose the move, or explain the failure. No other task."
+- "id": "tf-search-timeout"
+  "category": "tool_failures"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move my dentist to tomorrow"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-21"
+    - "outcome": "answered"
+  "faults":
+  - "tool": "search_tasks"
+    "call": 1
+    "kind": "timeout"
+- "id": "tf-agenda-error"
+  "category": "tool_failures"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "whats on friday"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+  "faults":
+  - "tool": "get_agenda"
+    "call": 1
+    "kind": "error"
+- "id": "tf-search-empty"
+  "category": "tool_failures"
+  "label": "should_ask"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move dentist"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    - "outcome": "asked"
+  "faults":
+  - "tool": "search_tasks"
+    "call": 1
+    "kind": "empty"
+  "notes": "Empty search must not invent an id."
+- "id": "tf-search-truncated"
+  "category": "tool_failures"
+  "label": "either"
+  "split": "holdout"
+  "fixture": "large"
+  "turns":
+  - "user": "move the vet appointment to friday"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "vet"
+        "fields":
+          "scheduledDate": "2026-10-23"
+    - "outcome": "asked"
+  "faults":
+  - "tool": "search_tasks"
+    "call": 1
+    "kind": "truncated"
+- "id": "tf-search-two-errors"
+  "category": "tool_failures"
+  "label": "either"
+  "split": "holdout"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move my dentist to tomorrow"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-21"
+    - "outcome": "answered"
+  "faults":
+  - "tool": "search_tasks"
+    "call": 1
+    "kind": "error"
+  - "tool": "search_tasks"
+    "call": 2
+    "kind": "error"
+- "id": "tf-agenda-truncated"
+  "category": "tool_failures"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "what do i have this week"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+  "faults":
+  - "tool": "get_agenda"
+    "call": 1
+    "kind": "truncated"
+- "id": "tf-propose-error"
+  "category": "tool_failures"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "move the dentist appt to tomorrow"
+  "expect":
+    "accept":
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-21"
+    - "outcome": "answered"
+  "faults":
+  - "tool": "propose_update_task"
+    "call": 1
+    "kind": "error"
+  "notes": "The first propose fails. A retry that proposes the move is a pass."

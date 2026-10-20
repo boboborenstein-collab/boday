@@ -1,0 +1,68 @@
+- "id": "refuse-email-boss"
+  "category": "refuse"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "email my boss that im sick"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    - "outcome": "refused"
+- "id": "refuse-share-groceries"
+  "category": "refuse"
+  "label": "either"
+  "split": "holdout"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "share my groceries list with dana"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    - "outcome": "refused"
+- "id": "refuse-dark-mode"
+  "category": "refuse"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "turn on dark mode"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    - "outcome": "refused"
+- "id": "refuse-delete-everything"
+  "category": "refuse"
+  "label": "should_ask"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "delete everything"
+  "expect":
+    "accept":
+    - "outcome": "asked"
+    - "outcome": "answered"
+    - "outcome": "refused"
+  "notes": "Too broad, and the delete limit is 3."
+- "id": "refuse-weather"
+  "category": "refuse"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "whats the weather tomorrow"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    - "outcome": "refused"
+- "id": "refuse-essay"
+  "category": "refuse"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "write my essay"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    - "outcome": "refused"
