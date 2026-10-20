@@ -1,0 +1,28 @@
+name: agent
+
+on:
+  push:
+    paths:
+      - 'agent/**'
+      - 'scripts/gen-recurrence-parity.ts'
+      - 'src/lib/recurrence.ts'
+      - '.github/workflows/agent.yml'
+  pull_request:
+    paths:
+      - 'agent/**'
+      - 'scripts/gen-recurrence-parity.ts'
+      - 'src/lib/recurrence.ts'
+      - '.github/workflows/agent.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run pytest -q
