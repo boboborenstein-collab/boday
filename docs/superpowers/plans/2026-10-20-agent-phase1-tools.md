@@ -21,7 +21,7 @@
 - Limits: ≤25 changes and ≤3 deletes per proposal; `get_agenda` ≤14 days; search ≤20 results (with `truncated`/`total` when more); title 1–200 chars; notes ≤2000; priority 1–5; dates no earlier than today for creates/reschedules and ≤365 days ahead.
 - Tool handlers never raise to the caller: every outcome is a `ToolResult`.
 - **Changes carry patches, not rebuilt tasks.** Python fills defaults when it parses a task, so a re-serialized task never equals the app's original. `UpdateChange` carries `patch` (changed fields only, camelCase) + `beforeFields` (old values of exactly those keys, read from the raw snapshot JSON). `DeleteChange` carries `beforeRaw` (the task JSON exactly as received) + `beforeCompletionsRaw`. Stale check, apply and undo operate on those fields/raw objects only.
-- Every `priority` field in tool schemas is described exactly: `"1 = urgent, 2 = high, 3 = medium, 4 = low; 5 = Torah category, not a lower priority."`
+- Every `priority` field in tool schemas is described exactly: `"1 = urgent, 2 = high, 3 = medium, 4 = low; 5 = Torah category, not a lower priority — only use 5 when the user means Torah study."`
 - New IDs come from `RunContext.id_gen`: `uuid4` in production, counting IDs (`new-1`, `new-2`, …) in tests and evals.
 
 ## Review Focus
@@ -536,7 +536,7 @@ def test_resolve_date_tool(ctx):
 **Interfaces:**
 - Consumes: Tasks 2–6 (`ctx.require_seen`, `ctx.add_change`, `occurs_on`, `normalize`, quiet windows).
 - Produces (`tools/changes.py`), camelCase-serialized, discriminated on `op`, each with `warnings: list[ChangeWarning] = []`:
-  - `CreateChange(op="create", task_id, after: Task)`
+  - `CreateChange(op="create", task_id, after: dict)` — the new task serialized camelCase with only explicitly set fields plus required ones (`exclude_unset`); no injected defaults like `tags: []` or `excludeFromStats: false`.
   - `UpdateChange(op="update", task_id, patch: dict[str, Any], before_fields: dict[str, Any])` — `patch` keys are camelCase task fields with their new values (only fields that actually change); `before_fields` has exactly the same keys with values from `ctx.snapshot.raw_tasks[task_id]` (`None` when the key is absent there).
   - `StatusChange(op="set_status", task_id, date: str | None, before: StatusSnapshot, after: StatusSnapshot)` where `StatusSnapshot(status: Literal["open","done","skipped"])`; `date` is set for recurring tasks, None for one-time.
   - `DeleteChange(op="delete", task_id, reason: str, before_raw: dict, before_completions_raw: list[dict])` — verbatim copies from `raw_tasks` / `raw_completions`.
@@ -633,6 +633,7 @@ def test_create_recurring_every_other_tuesday(seen_ctx):
     after = seen_ctx.draft_payload()[0]["after"]
     assert r.ok and after["recurrence"] == {"kind": "everyNDays", "n": 14}
     assert after["startDate"] == "2026-10-27" and after["id"] == "new-1"
+    assert "tags" not in after and "excludeFromStats" not in after
 
 def test_create_recurring_defaults_and_shape_errors(seen_ctx):
     run(seen_ctx, "propose_create_task", title="Read", type="recurring", recurrence={"kind": "daily"})
@@ -768,3 +769,4 @@ git add agent && git commit -m "agent: end-to-end tool scenarios + README contra
 git push
 gh pr create --base main --title "Agent phase 1: domain + tools" --body "Implements phase 1 of docs/superpowers/specs/2026-10-20-boday-agent-design.md (plan: docs/superpowers/plans/2026-10-20-agent-phase1-tools.md)."
 ```
+

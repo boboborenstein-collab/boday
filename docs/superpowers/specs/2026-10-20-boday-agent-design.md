@@ -172,7 +172,8 @@ production, counting IDs in tests/evals so traces compare cleanly).
 ### Priority semantics
 
 Every `priority` field the model sees is described as: "1 = urgent,
-2 = high, 3 = medium, 4 = low; 5 = Torah category, not a lower priority."
+2 = high, 3 = medium, 4 = low; 5 = Torah category, not a lower priority —
+only use 5 when the user means Torah study."
 An eval case covers it.
 
 ### Untrusted data

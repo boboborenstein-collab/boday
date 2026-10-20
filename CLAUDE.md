@@ -107,3 +107,21 @@ To launch and demo the app in the browser:
 /run
 ```
 This will start the dev server and open it in browser automation.
+
+## Executing implementation plans (local, Claude cloud, or Cursor cloud agents)
+Plans live in `docs/superpowers/plans/`, specs in `docs/superpowers/specs/`.
+The Superpowers process skills are vendored in `.claude/skills/` (MIT, see
+`.claude/skills/SUPERPOWERS-LICENSE`) so cloud agents without the plugin can
+use them. A reference like `superpowers:<name>` means
+`.claude/skills/<name>/SKILL.md`; read that file and follow it.
+- To design or plan: follow `.claude/skills/brainstorming/SKILL.md`, then
+  `.claude/skills/writing-plans/SKILL.md` (the visual companion needs a local
+  browser; skip it in cloud sessions).
+- To run a plan: follow `.claude/skills/executing-plans/SKILL.md`, which in turn
+  requires `test-driven-development` and `verification-before-completion`.
+- Work task by task, check off the plan's boxes, and commit + push after each
+  task. The checked boxes plus `git log` are the handoff between sessions
+  (the `.superpowers/` ledger is gitignored and does not survive a cloud VM).
+- One session per branch, ever. Never implement on `main` (spec and plan docs
+  are committed to `main` so every branch starts from them).
+- Apply a plan's "Review amendments" section before starting Task 1.
