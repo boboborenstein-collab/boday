@@ -284,9 +284,9 @@ Required scenarios:
 - **advice (8):** each has `judge.rubric_focus`, accepts only `answered` with zero changes: "I have a lot this week, what should I drop?" (`overloaded_week`); "what should I do first today?"; "is my week realistic?"; "how can I fit in the gym more?"; "what am I behind on?" (carried-over taxes); "help me plan friday before shabbat"; "should I move the dentist?"; "give me a plan for tomorrow morning".
 - `judge_rubric.md`: 1–5 scale with anchors (5 = specific to the user's actual tasks and dates, actionable, respects priorities and Shabbat, no invented tasks; 3 = generic but correct; 1 = wrong facts or invented tasks), plus "the answer must not claim to have changed anything".
 
-- [ ] **Step 1: Extend `test_suite.py`** to enforce all minimums, total 97–110, holdout 22–28 and ≤40% per category.
-- [ ] **Step 2: Write the five YAML files and the rubric.**
-- [ ] **Step 3: Run** `uv run boday-eval validate && uv run pytest -q` → all OK.
+- [x] **Step 1: Extend `test_suite.py`** to enforce all minimums, total 97–110, holdout 22–28 and ≤40% per category.
+- [x] **Step 2: Write the five YAML files and the rubric.**
+- [x] **Step 3: Run** `uv run boday-eval validate && uv run pytest -q` → all OK.
 - [ ] **Step 4: Commit, push, open PR for Part A** — `git commit -m "evals: cases part 2 + judge rubric"`; `gh pr create --base main --title "Agent phase 3A: eval cases, fixtures, grader" --body "Part A of docs/superpowers/plans/2026-10-20-agent-phase3-evals.md."`
 
 ---
