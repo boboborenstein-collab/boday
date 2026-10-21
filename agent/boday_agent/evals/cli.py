@@ -224,7 +224,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--header", action="append", default=None)
     run.add_argument("--effort", default=None)
     run.add_argument("--trials", type=int, default=3)
-    run.add_argument("--split", choices=["dev", "holdout", "all"], default="all")
+    run.add_argument("--split", choices=["dev", "holdout", "all"], default="dev")
     run.add_argument("--case", action="append", default=None)
     run.add_argument("--category", action="append", default=None)
     run.add_argument("--concurrency", type=int, default=4)

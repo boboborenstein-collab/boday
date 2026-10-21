@@ -265,3 +265,21 @@ def test_eval_traces_are_gitignored():
     probe = "agent/evals/results/traces/2026-10-21/trace.json"
     result = subprocess.run(["git", "check-ignore", "-q", probe], cwd=_REPO_ROOT, check=False)
     assert result.returncode == 0
+
+
+def test_split_defaults_to_dev_so_holdout_is_not_spent(tmp_path, monkeypatch):
+    from boday_agent.evals.cli import main
+    from boday_agent.evals.runner import SuiteRun
+
+    seen: dict = {}
+
+    def fake_run(cases, factory, **kwargs):
+        seen["splits"] = {item.split for item in cases}
+        return SuiteRun(stamp={"date": "2026-10-21", "model": "m", "split": "dev"}, results=[])
+
+    monkeypatch.setattr("boday_agent.evals.cli.run_suite", fake_run)
+    code = main(
+        ["run", "--provider", "anthropic", "--category", "happy_path", "--out", str(tmp_path)]
+    )
+    assert code == 0
+    assert seen["splits"] == {"dev"}
