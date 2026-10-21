@@ -444,6 +444,23 @@ class SetStatusArgs(_Strict):
     )
 
 
+def _completion_being_cleared(ctx: RunContext, task: Task, ds: str | None) -> dict | None:
+    """Raw data `undone` clears, so a later undo can put it back unchanged."""
+    snap = ctx.snapshot
+    if isinstance(task, OneTimeTask):
+        raw = snap.raw_tasks.get(task.id, {})
+        if "completedAt" not in raw:
+            return {}
+        return {"completedAt": copy.deepcopy(raw["completedAt"])}
+    for completion in snap.completions:
+        if completion.task_id != task.id or completion.completion_date != ds:
+            continue
+        raw = snap.raw_completions.get(completion.id)
+        if raw is not None:
+            return copy.deepcopy(raw)
+    return None
+
+
 def _set_status(ctx: RunContext, a: SetStatusArgs) -> dict:
     task = ctx.require_seen(a.task_id)
     target = "open" if a.status == "undone" else a.status
@@ -472,9 +489,11 @@ def _set_status(ctx: RunContext, a: SetStatusArgs) -> dict:
                 break
     if current == target:
         raise _bad(f"No change: '{task.title}' is already {current}.")
+    cleared = _completion_being_cleared(ctx, task, ds) if a.status == "undone" else None
     change = StatusChange(
         task_id=task.id, date=ds,
         before=StatusSnapshot(status=current), after=StatusSnapshot(status=target),
+        before_completion_raw=cleared,
         warnings=_external(task),
     )
     where = f" on {ds}" if ds else ""

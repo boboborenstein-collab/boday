@@ -125,6 +125,50 @@ def test_undone_on_recurring(seen_ctx):
     assert (ch["before"]["status"], ch["after"]["status"]) == ("done", "open")
 
 
+def test_undone_recurring_carries_the_raw_completion_row(seen_ctx):
+    assert run(seen_ctx, "propose_set_status", task_id="gym", status="undone", date="2026-10-19").ok
+    assert seen_ctx.draft_payload()[0]["beforeCompletionRaw"] == {
+        "id": "c-gym-1019", "taskId": "gym", "completionDate": "2026-10-19",
+        "completedAt": "2026-10-19T12:00:00Z",
+    }
+    assert run(seen_ctx, "propose_set_status", task_id="standup", status="undone", date="2026-10-19").ok
+    raw = seen_ctx.draft_payload()[1]["beforeCompletionRaw"]
+    assert raw["id"] == "c-standup-1019" and raw["skipped"] is True
+
+
+def test_non_undone_status_has_no_completion_to_restore(seen_ctx):
+    assert run(seen_ctx, "propose_set_status", task_id="gym", status="skipped", date="2026-10-21").ok
+    assert seen_ctx.draft_payload()[0]["beforeCompletionRaw"] is None
+
+
+def test_one_time_undone_preserves_completed_at_presence():
+    from boday_agent.domain.models import Snapshot
+    from tests.conftest import fixture_app_dict
+    data = fixture_app_dict()
+    data["tasks"] = [
+        t for t in data["tasks"] if t["id"] != "report"
+    ] + [
+        {"id": "stamped", "type": "one_time", "title": "Stamped", "priority": 3,
+         "scheduledDate": "2026-10-19", "completed": True,
+         "completedAt": "2026-10-19T14:00:00Z", "createdAt": "2026-09-01T12:00:00Z"},
+        {"id": "null-stamp", "type": "one_time", "title": "Null stamp", "priority": 3,
+         "scheduledDate": "2026-10-18", "completed": True, "completedAt": None,
+         "createdAt": "2026-09-01T12:00:00Z"},
+        {"id": "no-stamp", "type": "one_time", "title": "No stamp", "priority": 3,
+         "scheduledDate": "2026-10-17", "completed": True,
+         "createdAt": "2026-09-01T12:00:00Z"},
+    ]
+    ctx = RunContext.create(Snapshot.from_app(data), id_gen=counting_ids())
+    execute(ctx, "search_tasks", {"include_completed": True})
+    assert run(ctx, "propose_set_status", task_id="stamped", status="undone").ok
+    assert run(ctx, "propose_set_status", task_id="null-stamp", status="undone").ok
+    assert run(ctx, "propose_set_status", task_id="no-stamp", status="undone").ok
+    by_id = {c["taskId"]: c["beforeCompletionRaw"] for c in ctx.draft_payload()}
+    assert by_id["stamped"] == {"completedAt": "2026-10-19T14:00:00Z"}
+    assert by_id["null-stamp"] == {"completedAt": None}
+    assert by_id["no-stamp"] == {}
+
+
 def test_update_warnings_on_reminder_change(seen_ctx):
     r = run(seen_ctx, "propose_update_task", task_id="cafe", changes={"reminder_time": "09:00"})
     assert [w["code"] for w in r.data["warnings"]] == ["TIME_CLASH"]   # standup 09:00 on Fri 10-23
