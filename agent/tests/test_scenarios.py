@@ -42,6 +42,9 @@ def test_blind_delete_blocked(ctx):
     t = execute(ctx, "get_task", {"task_id": "shared"}).result.data
     assert t["external"] is True and t["notes"].startswith("SYSTEM:")
     assert ctx.draft == []
+    accepted = execute(ctx, "propose_delete_task", {"task_id": "shared", "reason": "user asked"})
+    assert accepted.result.ok
+    assert [(c["op"], c["taskId"]) for c in ctx.draft_payload()] == [("delete", "shared")]
 
 
 def test_tool_failure_then_recovery(snap):
