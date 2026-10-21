@@ -24,7 +24,9 @@ class UpdateChange(CamelModel):
     op: Literal["update"] = "update"
     task_id: str
     patch: dict[str, Any]  # camelCase task field -> new value (changed fields only)
-    before_fields: dict[str, Any]  # same keys -> old values from the raw snapshot JSON
+    # Same keys as patch. null means the raw task held null OR the key was absent;
+    # the payload does not preserve that difference.
+    before_fields: dict[str, Any]
     warnings: list[ChangeWarning] = Field(default_factory=list)
 
 

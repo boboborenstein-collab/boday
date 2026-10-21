@@ -73,7 +73,7 @@ The seen-ID rule (`UNSEEN_ID`) only blocks hallucinated or blind IDs. It is not 
 
 Each change in the draft carries what the app needs to apply, check and undo it:
 
-- `update` = `patch` (changed fields only) + `beforeFields` (old values of exactly those keys). `beforeFields` uses `null` both when the raw key held `null` and when it was absent.
+- `update` = `patch` (changed fields only) + `beforeFields` (old values of exactly those keys). `beforeFields` uses `null` both when the raw key held `null` and when it was absent. The app cannot tell those apart: the stale check should treat a missing field and `null` as the same value, and undo should write `null` back rather than deleting the key. Fields that are not in `patch` are left untouched, including ones the agent does not model.
 - `delete` = verbatim `beforeRaw` (the task JSON as received) + `beforeCompletionsRaw`.
 - `create` = `after` without injected defaults.
 - `set_status` = `{status}` before/after. On `undone`, `beforeCompletionRaw` is what undo restores: the completion row exactly as received for a recurring occurrence, or `{"completedAt": <raw value>}` for a one-time task. The `completedAt` key is omitted from that object when it was absent on the task (`{}`), and its value is `null` when the raw task stored null. Every other status change sets `beforeCompletionRaw` to null.

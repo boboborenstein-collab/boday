@@ -105,6 +105,29 @@ def test_create_recurring_defaults_and_shape_errors(seen_ctx):
                recurrence={"kind": "daily"}).error.code == "INVALID_ARGS"
 
 
+def test_before_fields_null_covers_absent_and_explicit_null():
+    # Undo and the stale check cannot tell a missing raw key from JSON null.
+    from boday_agent.domain.models import Snapshot
+    from tests.conftest import fixture_app_dict
+    data = fixture_app_dict()
+    base = {
+        "type": "recurring", "title": "R", "priority": 3,
+        "recurrence": {"kind": "daily"}, "startDate": "2026-09-01",
+        "createdAt": "2026-09-01T12:00:00Z",
+    }
+    data["tasks"] = [
+        {**base, "id": "absent"},
+        {**base, "id": "explicit", "endDate": None, "notes": None},
+    ]
+    ctx = RunContext.create(Snapshot.from_app(data), id_gen=counting_ids())
+    execute(ctx, "search_tasks", {})
+    assert run(ctx, "propose_update_task", task_id="absent", changes={"end_date": "2026-12-31"}).ok
+    assert run(ctx, "propose_update_task", task_id="explicit", changes={"notes": "hello"}).ok
+    by_id = {c["taskId"]: c["beforeFields"] for c in ctx.draft_payload()}
+    assert by_id["absent"] == {"endDate": None}
+    assert by_id["explicit"] == {"notes": None}
+
+
 def test_update_recurrence_and_end_date(seen_ctx):
     run(seen_ctx, "propose_update_task", task_id="gym",
         changes={"recurrence": {"kind": "weekly", "days_of_week": [2, 4]}})

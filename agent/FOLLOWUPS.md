@@ -28,7 +28,7 @@ Deferred items from the phase 1 final review, grouped by the phase that should p
 ## Before phase 5
 
 - [x] Lossless undo of `set_status` `undone`: `StatusChange` should carry the raw completion row / `completedAt` (`boday_agent/tools/changes.py`).
-- Document or change the `beforeFields` null-vs-absent convention (`changes.py`, `README.md`).
+- [x] Document or change the `beforeFields` null-vs-absent convention (`changes.py`, `README.md`).
 - `Snapshot.from_app` with non-dict input should be guarded at the API boundary (`boday_agent/domain/models.py`).
 - The app should delete only the completion ids listed in `beforeCompletionsRaw` (unparseable rows are excluded from it).
 
