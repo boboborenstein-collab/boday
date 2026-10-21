@@ -37,14 +37,16 @@ def test_move_one_occurrence_of_recurring(snap):
 def test_blind_delete_blocked(ctx):
     # Seen-ID only blocks hallucinated/blind IDs. It is NOT an injection defense:
     # any read (e.g. get_agenda) marks everything it returns as seen.
-    blind = execute(ctx, "propose_delete_task", {"task_id": "dentist", "reason": "x"})
+    blind = execute(ctx, "propose_delete_task", {"task_id": "shared", "reason": "x"})
     assert blind.result.error.code == "UNSEEN_ID"
+    assert ctx.draft == []
     t = execute(ctx, "get_task", {"task_id": "shared"}).result.data
     assert t["external"] is True and t["notes"].startswith("SYSTEM:")
-    assert ctx.draft == []
     accepted = execute(ctx, "propose_delete_task", {"task_id": "shared", "reason": "user asked"})
     assert accepted.result.ok
-    assert [(c["op"], c["taskId"]) for c in ctx.draft_payload()] == [("delete", "shared")]
+    [change] = ctx.draft_payload()
+    assert (change["op"], change["taskId"]) == ("delete", "shared")
+    assert [w["code"] for w in change["warnings"]] == ["EXTERNAL_TASK"]
 
 
 def test_tool_failure_then_recovery(snap):
