@@ -250,3 +250,15 @@ def test_400_not_retried():
     assert len(calls) == 1 and err.value.retryable is False
     assert "sk-ant-leak" not in str(err.value)
     assert "400" in str(err.value)
+
+
+def test_credentials_in_base_url_never_reach_describe_or_errors():
+    url = "https://bob:hunter2@llm.example.com:8443/v1"
+    p = OpenAICompatProvider(
+        url, "m", transport=httpx.MockTransport(lambda r: httpx.Response(401)), sleep=lambda s: None
+    )
+    assert p.describe()["host"] == "llm.example.com:8443"
+    with pytest.raises(ProviderError) as err:
+        p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
+    assert "hunter2" not in str(err.value) and "bob" not in str(err.value)
+    assert "llm.example.com:8443" in str(err.value)

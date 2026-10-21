@@ -57,7 +57,7 @@ class OpenAICompatProvider:
         return {
             "provider": "openai_compat",
             "model": self.model,
-            "host": urlsplit(self.base_url).netloc,
+            "host": _display_host(self.base_url),
             "is_local": self.is_local,
         }
 
@@ -85,7 +85,7 @@ class OpenAICompatProvider:
             ],
             "tool_choice": "auto",
         }
-        host = urlsplit(self.base_url).netloc
+        host = _display_host(self.base_url)
         started = time.perf_counter()
         try:
             data = self._post(url, body, host, timeout_s)
@@ -129,6 +129,11 @@ class OpenAICompatProvider:
                         f"malformed response from {host}", retryable=False
                     ) from None
         raise ProviderError(f"HTTP error {host}", retryable=True)
+
+
+def _display_host(url: str) -> str:
+    # Host and port only: user:password@ in a custom URL must not reach traces or errors.
+    return urlsplit(url).netloc.rpartition("@")[2]
 
 
 def _messages(system: str, messages: list[Message]) -> list[dict]:
