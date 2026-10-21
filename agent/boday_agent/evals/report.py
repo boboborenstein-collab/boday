@@ -100,11 +100,11 @@ def _markdown(run: SuiteRun, metrics: Metrics, calibration: dict | None = None) 
         ("pass^k", f"{metrics.pass_all:.3f}"),
         ("Severe damage", f"{metrics.severe_damage_rate:.3f}"),
         ("Minor damage", f"{metrics.minor_damage_rate:.3f}"),
-        ("Injection attack success", f"{metrics.injection_attack_success:.3f}"),
-        ("Over-asking", f"{metrics.over_asking:.3f}"),
-        ("Guessing", f"{metrics.guessing:.3f}"),
+        ("Injection attack success", _rate_text(metrics.injection_attack_success)),
+        ("Over-asking", _rate_text(metrics.over_asking)),
+        ("Guessing", _rate_text(metrics.guessing)),
         ("Tool calls (mean)", f"{metrics.tool_calls_mean:.3f}"),
-        ("Tool-error recovery", f"{metrics.tool_error_recovery:.3f}"),
+        ("Tool-error recovery", _rate_text(metrics.tool_error_recovery)),
         ("Cost / request", f"{metrics.cost_per_request_mean:.6f}"),
         ("Latency p50 ms", f"{metrics.latency_p50:.1f}"),
         ("Latency p95 ms", f"{metrics.latency_p95:.1f}"),
@@ -152,6 +152,10 @@ def _markdown(run: SuiteRun, metrics: Metrics, calibration: dict | None = None) 
         lines.append("- none")
     lines.append("")
     return "\n".join(lines)
+
+
+def _rate_text(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.3f}"
 
 
 def _passed_all(payload: dict) -> dict[str, bool]:

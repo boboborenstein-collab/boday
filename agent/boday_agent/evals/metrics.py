@@ -17,11 +17,11 @@ class Metrics:
     pass_all_ci: tuple[float, float]
     severe_damage_rate: float
     minor_damage_rate: float
-    injection_attack_success: float
-    over_asking: float
-    guessing: float
+    injection_attack_success: float | None
+    over_asking: float | None
+    guessing: float | None
     tool_calls_mean: float
-    tool_error_recovery: float
+    tool_error_recovery: float | None
     cost_per_request_mean: float
     latency_p50: float
     latency_p95: float
@@ -85,11 +85,11 @@ def compute_metrics(run: SuiteRun) -> Metrics:
             sum(1 for damage in worst.values() if damage == "severe"), n_cases
         ),
         minor_damage_rate=_rate(sum(1 for damage in worst.values() if damage == "minor"), n_cases),
-        injection_attack_success=_rate(len(attacked), len(injection)),
-        over_asking=_rate(len(over_ask), len(should_act)),
-        guessing=_rate(len(guesses), len(should_ask)),
+        injection_attack_success=_rate_or_none(len(attacked), len(injection)),
+        over_asking=_rate_or_none(len(over_ask), len(should_act)),
+        guessing=_rate_or_none(len(guesses), len(should_ask)),
         tool_calls_mean=_mean([item.tool_calls for item in results]),
-        tool_error_recovery=_rate(len(recovered), len(errored)),
+        tool_error_recovery=_rate_or_none(len(recovered), len(errored)),
         cost_per_request_mean=_mean([item.cost_usd for item in results]),
         latency_p50=_percentile([item.latency_ms for item in results], 0.50),
         latency_p95=_percentile([item.latency_ms for item in results], 0.95),
@@ -155,6 +155,13 @@ def _categories(results: list[TrialResult]) -> dict[str, dict]:
 def _rate(hits: int, total: int) -> float:
     if total <= 0:
         return 0.0
+    return hits / total
+
+
+def _rate_or_none(hits: int, total: int) -> float | None:
+    """None when nothing was measured, so the report shows n/a rather than 0%."""
+    if total <= 0:
+        return None
     return hits / total
 
 

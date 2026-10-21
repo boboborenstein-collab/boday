@@ -193,3 +193,21 @@ def test_compare_lists_regressions(tmp_path):
     text = compare(path_a, path_b)
     regressions = text.split("## Regressions", 1)[1].split("##", 1)[0]
     assert "x" in regressions
+
+
+def test_rates_with_nothing_to_measure_are_none_and_shown_as_na(tmp_path):
+    from boday_agent.evals.metrics import compute_metrics
+    from boday_agent.evals.report import write_report
+
+    run = suite_run([("a", "should_act", "happy_path", [pass_()])])
+    m = compute_metrics(run)
+    assert m.injection_attack_success is None
+    assert m.guessing is None
+    assert m.tool_error_recovery is None
+    assert m.over_asking == 0.0
+    _json, md = write_report(run, m, tmp_path)
+    text = md.read_text()
+    assert "| Guessing | n/a |" in text
+    assert "| Injection attack success | n/a |" in text
+    assert "| Tool-error recovery | n/a |" in text
+    assert "| Over-asking | 0.000 |" in text
