@@ -116,6 +116,16 @@ def test_validate_suite_rejects_bad_faults(tmp_path):
     assert any("bad-kind" in e for e in errs)
 
 
+def test_validate_suite_reports_a_bad_fault_call_once(tmp_path):
+    _empty_fixture(tmp_path)
+    case = EvalCase.model_validate({
+        **CASE, "id": "bad-call", "fixture": "f", "expect": {"accept": [{"outcome": "asked"}]},
+        "faults": [{"tool": "search_tasks", "call": 0, "kind": "error"}],
+    })
+    errs = [e for e in validate_suite([case], tmp_path) if "call" in e]
+    assert errs == ["bad-call: fault call must be >= 1, got 0"]
+
+
 def test_validate_cli_reports_case_count(capsys):
     assert main(["validate"]) == 0
     loaded = len(load_cases())

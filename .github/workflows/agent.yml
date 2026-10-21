@@ -34,6 +34,14 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run pytest -q
+      - name: cassette replay
+        run: |
+          if compgen -G "evals/cassettes/*.json" > /dev/null; then
+            uv run boday-eval run --replay --case-file evals/ci_cases.txt --trials 1 \
+              --fail-on-regression evals/results/ci_baseline.json
+          else
+            echo "no cassettes; skipping replay"
+          fi
 
   parity-fresh:
     runs-on: ubuntu-latest

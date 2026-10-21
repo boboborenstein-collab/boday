@@ -309,7 +309,7 @@ Required scenarios:
   - `stamp` = `{"git_commit", "git_dirty", "provider": describe(), "model", "prompt_version", "trials", "split", "date", "case_count"}`.
   - CLI: `boday-eval run --provider anthropic|openai|auto --model ID [--base-url] [--header] [--effort] --trials 3 --split dev|holdout|all [--case ID ...] [--category C ...] --concurrency 4 [--record|--replay] [--out results/]` → writes the results JSON (B2 adds the report).
 
-- [ ] **Step 1: Write the failing tests** — `provider_factory` returns `FakeProvider` scripts chosen per case id.
+- [x] **Step 1: Write the failing tests** — `provider_factory` returns `FakeProvider` scripts chosen per case id.
 
 ```python
 def test_runs_trials_and_grades(tmp_path):
@@ -327,8 +327,8 @@ def test_history_and_faults_are_applied(tmp_path):
          # fault case: assert the trace's first tool_call has injected_fault == "error"
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: runner"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: runner"`.
 
 ---
 
@@ -349,7 +349,7 @@ def test_history_and_faults_are_applied(tmp_path):
   - `by_category: dict[str, {success_rate, ci, n}]`, `failure_types: dict[str, int]`.
 - Produces (`report.py`): `write_report(run, metrics, out_dir) -> tuple[Path, Path]` → `<date>-<model-slug>-<split>.json` (stamp + metrics + per-trial results) and `.md` (headline table, by-category table, failure types, list of failed case ids with trace paths); `compare(a: Path, b: Path) -> str` markdown listing regressions (cases passing all trials in A, not in B), fixes, and metric deltas.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_wilson_known_value():
@@ -373,8 +373,8 @@ def test_compare_lists_regressions(tmp_path): ...  # A: case x passes all; B: x 
 
 (`suite_run`, `pass_`, `fail`, `outcome` are small test builders of `TrialResult`s; `accepts_asked` sets the case's acceptables to include `asked`.)
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: metrics with confidence intervals + reports"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: metrics with confidence intervals + reports"`.
 
 ---
 
@@ -390,7 +390,7 @@ def test_compare_lists_regressions(tmp_path): ...  # A: case x passes all; B: x 
   - `Metrics` gains `advice_quality_mean` and `judge_errors` (only when `--judge`).
   - Calibration: export writes `case_id,trial,answer_text,judge_score,owner_score` (owner_score empty); import computes `exact_agreement` and `within_one_agreement` over rated rows and writes `agent/evals/results/judge_calibration.json`; the report shows both numbers next to `advice_quality_mean`. Needs 20–30 owner-rated rows to be reported as calibrated.
 
-- [ ] **Step 1: Write the failing tests** — stub client whose `messages.parse` records kwargs and returns `SimpleNamespace(parsed_output=JudgeScore(score=4, reasons="specific"), stop_reason="end_turn")`.
+- [x] **Step 1: Write the failing tests** — stub client whose `messages.parse` records kwargs and returns `SimpleNamespace(parsed_output=JudgeScore(score=4, reasons="specific"), stop_reason="end_turn")`.
 
 ```python
 def test_judge_request_uses_fixed_model_and_rubric():
@@ -407,8 +407,8 @@ def test_calibration_agreement(tmp_path):
     assert result["exact_agreement"] == 0.5 and result["within_one_agreement"] == 0.75
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: LLM judge + calibration"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: LLM judge + calibration"`.
 
 ---
 
@@ -426,7 +426,7 @@ def test_calibration_agreement(tmp_path):
   - Cassette path: `agent/evals/cassettes/<case_id>--t<trial>.json`.
   - `--fail-on-regression BASELINE.json`: exit 1 if any case that passed in the baseline fails now.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_record_then_replay_is_identical(tmp_path):
@@ -442,8 +442,8 @@ def test_stale_prompt_refuses(tmp_path, monkeypatch):
 def test_exhausted(tmp_path): ...
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: cassette record/replay + CI replay step"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: cassette record/replay + CI replay step"`.
 
 ---
 

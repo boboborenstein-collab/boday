@@ -51,3 +51,4 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 agent/traces/
+agent/evals/results/traces/
