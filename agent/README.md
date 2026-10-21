@@ -2,6 +2,29 @@ BoDay agent: Python package (`boday_agent`) holding the LLM agent's tools.
 Setup: `uv sync` (run inside `agent/`).
 Tests: `uv run pytest`.
 
+## Run
+
+```bash
+uv run boday-agent "move my dentist appointment to tomorrow" \
+  --snapshot examples/demo_snapshot.json \
+  --provider anthropic --model claude-haiku-5-5
+```
+
+Prints one JSON object: `outcome`, `text`, `changes`, `question`, `options`,
+`trace_path`, `cost_usd`, `latency_ms`, `provider`. Exit code 0 for every
+outcome, 2 for bad arguments or an unreadable snapshot. The Anthropic
+provider reads credentials from the environment or an Anthropic profile
+(`--api-key-env NAME` to choose a variable). Traces go under `traces/`
+(gitignored).
+
+`--provider openai` posts to an OpenAI-compatible `--base-url` with `--model`.
+`--provider auto` checks `{base-url}/models` for 2 seconds and, if that fails,
+uses `claude-haiku-5-5` with the Anthropic SDK's own credentials.
+`--api-key-env` applies to `--provider anthropic` and `--provider openai`;
+auto does not send that key to the local URL. `--now` replaces the snapshot
+clock and keeps its timezone. `--header "Name: value"` is sent with the
+OpenAI-compatible request (for example Cloudflare Access).
+
 ## Tool contract
 
 Exactly 9 tools, called through `execute(ctx, name, args)`; schemas come from `tool_schemas()`.

@@ -53,7 +53,7 @@
   - `class Provider(Protocol)`: attributes `name: str`, `model: str`, `is_local: bool`; method `complete(system: str, messages: list[Message], tools: list[dict], timeout_s: float) -> ModelResponse`; method `describe() -> dict` (provider, model, base_url host, local build info if known; never secrets).
 - Produces (`providers/fake.py`): `FakeProvider(script: list[ModelResponse | Exception], name="fake", model="fake-1", is_local=False)`; each `complete` pops the next item (raising it if an exception), records `(system, messages, tools)` in `.calls`; raises `AssertionError("FakeProvider script exhausted")` when empty. Helpers `fake_text(text)` and `fake_tools(*calls: tuple[str, dict])` build `ModelResponse`s (ids `call-1`, `call-2`, …; usage 100 in / 20 out).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_providers_base.py
@@ -78,10 +78,10 @@ def test_fake_provider_raises_scripted_errors():
         p.complete("sys", [], [], timeout_s=5)
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_providers_base.py -q` → FAIL.
-- [ ] **Step 3: Implement** per Interfaces; `uv add anthropic httpx`.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: provider interface + fake provider"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_providers_base.py -q` → FAIL.
+- [x] **Step 3: Implement** per Interfaces; `uv add anthropic httpx`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: provider interface + fake provider"`.
 
 ---
 
@@ -100,7 +100,7 @@ def test_fake_provider_raises_scripted_errors():
   - `render_context(snapshot: Snapshot, clock: Clock) -> str` — block starting `<context>` and ending `</context>`: `Now: Tue 2026-10-20 09:00 (America/New_York)`, a 14-day table starting today, one line per day `Wed 2026-10-21`, and, if `snapshot.parse_warnings`, a line `Note: N task(s) could not be read and are not shown.`
   - `build_messages(request_text: str, history: list[HistoryTurn], snapshot, clock, max_history: int = 10) -> list[Message]` — the last `max_history` history turns become alternating `UserText` / assistant text, where an assistant turn with a proposal is rendered as its text + `\n[proposal <status>]: <compact JSON of changes>`; then one final `UserText` = `render_context(...) + "\n\n" + request_text`. History assistant turns are plain text (`AssistantTurn` with a synthetic `ModelResponse(text=..., stop_reason="end_turn")`), never replayed provider-native content.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_prompt.py
@@ -130,8 +130,8 @@ def test_parse_warning_note(snap):
     assert "1 task(s) could not be read" in render_context(snap, Clock.from_snapshot(snap))
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: system prompt + context builder"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: system prompt + context builder"`.
 
 ---
 
@@ -151,7 +151,7 @@ def test_parse_warning_note(snap):
   - `FileSink(root: Path).write(trace) -> Path` — writes redacted JSON to `root/<YYYY-MM-DD>/<run_id>.json` (date from `started_at`), returns the path.
   - `request` in the trace stores message, history length, task count, and fixture/snapshot hash — not the full snapshot (privacy); the eval runner adds the fixture name.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/test_tracing.py
@@ -187,8 +187,8 @@ def test_sink_redacts(tmp_path):
     assert "sk-ant-x1" not in text
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: tracing, redaction, pricing"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: tracing, redaction, pricing"`.
 
 ---
 
@@ -216,7 +216,7 @@ def test_sink_redacts(tmp_path):
   4. `failed` and `asked` return `changes=[]`; `proposed` returns `ctx.draft_payload()`; `answered`/`refused` return `[]` even if a draft exists. Trace gets `parse_warnings`, `prompt_version`, `provider.describe()`, `selection_reason`, and is finalized.
 - **Ruling recorded in spec:** `refused` comes only from the model's own `refusal` stop reason; a polite text-only decline of an out-of-scope request is `answered` with no changes. Eval cases in the refuse category accept `answered` or `refused` with zero changes.
 
-- [ ] **Step 1: Write the failing tests** (all use `snap` from conftest, `FakeProvider`, `id_gen=counting_ids()`)
+- [x] **Step 1: Write the failing tests** (all use `snap` from conftest, `FakeProvider`, `id_gen=counting_ids()`)
 
 ```python
 # agent/tests/test_loop.py
@@ -290,9 +290,9 @@ def test_injected_fault_recorded(snap):
 
 (For `test_timeout`, make the timer read count match your implementation's call pattern; the assertion is what matters: elapsed ≥ 60 s before a model call → `failed("timeout")`.)
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement `loop.py`.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Update the spec** — in `docs/superpowers/specs/2026-10-20-boday-agent-design.md` §2 outcome table, change the `refused` row to "the model's own refusal stop reason; a text-only decline is `answered` with no changes".
-- [ ] **Step 6: Commit + push** — `git commit -m "agent: agent loop with limits, outcomes, tracing"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement `loop.py`.** **Step 4: Run** → PASS.
+- [x] **Step 5: Update the spec** — in `docs/superpowers/specs/2026-10-20-boday-agent-design.md` §2 outcome table, change the `refused` row to "the model's own refusal stop reason; a text-only decline is `answered` with no changes".
+- [x] **Step 6: Commit + push** — `git commit -m "agent: agent loop with limits, outcomes, tracing"`.
 
 ---
 
@@ -312,7 +312,7 @@ def test_injected_fault_recorded(snap):
   - Errors (after the SDK's own retries): `anthropic.RateLimitError`, `APIConnectionError`, `APITimeoutError`, `APIStatusError` with status ≥500 → `ProviderError(retryable=True)`; other `APIStatusError` (400/401/403/404) → `ProviderError(retryable=False)`. Message = `f"{type(e).__name__}: {status}"` — never the raw body or headers.
   - `describe()` → `{"provider": "anthropic", "model": model, "effort": effort, "refusal_fallback": bool}`.
 
-- [ ] **Step 1: Write the failing tests** — a `StubClient` with `messages.create` and `beta.messages.create` that record kwargs and return objects built with `types.SimpleNamespace` (`content` = list of namespaces with `type`, `text` / `id`, `name`, `input`; `stop_reason`; `model`; `usage` with the four token fields), and `with_options(**kw)` returning itself and recording `timeout`.
+- [x] **Step 1: Write the failing tests** — a `StubClient` with `messages.create` and `beta.messages.create` that record kwargs and return objects built with `types.SimpleNamespace` (`content` = list of namespaces with `type`, `text` / `id`, `name`, `input`; `stop_reason`; `model`; `usage` with the four token fields), and `with_options(**kw)` returning itself and recording `timeout`.
 
 ```python
 def test_request_shape_and_cache_control():
@@ -351,8 +351,8 @@ def test_error_mapping_hides_details():
 
 (Build SDK exceptions with `anthropic.AuthenticationError(message="bad key sk-ant-x", response=httpx.Response(401, request=httpx.Request("POST", "https://api.anthropic.com/v1/messages")), body=None)`; same pattern for `RateLimitError` with 429.)
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: Anthropic provider"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: Anthropic provider"`.
 
 ---
 
@@ -370,7 +370,7 @@ def test_error_mapping_hides_details():
   - `describe()` → `{"provider": "openai_compat", "model", "host": <netloc>, "is_local": bool}` (no headers).
 - Produces (`auto.py`): `select_provider(local: OpenAICompatProvider, fallback: Provider, *, health_timeout_s: float = 2.0, transport=None) -> tuple[Provider, str]` — GET `{local.base_url}/models` with the local provider's headers and a 2 s timeout; HTTP 200 → `(local, "auto: local reachable")`; any error/timeout/non-200 → `(fallback, "auto: local unreachable (<reason>) → fallback")`. The chosen provider is fixed for the whole run (the loop never switches).
 
-- [ ] **Step 1: Write the failing tests** (`httpx.MockTransport` handlers that record requests)
+- [x] **Step 1: Write the failing tests** (`httpx.MockTransport` handlers that record requests)
 
 ```python
 def test_request_shape_and_headers():
@@ -414,8 +414,8 @@ def test_auto_falls_back_on_timeout():
 def test_auto_falls_back_on_non_200(): ...      # 502 → fallback
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: OpenAI-compatible provider + auto router"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: OpenAI-compatible provider + auto router"`.
 
 ---
 
@@ -436,7 +436,7 @@ def test_auto_falls_back_on_non_200(): ...      # 502 → fallback
   - Prints JSON `{"outcome", "text", "changes", "question", "options", "trace_path", "cost_usd", "latency_ms", "provider"}` to stdout; exit code 0 for any outcome, 2 for bad CLI input/unreadable snapshot.
 - `examples/demo_snapshot.json` — the shared phase 1 fixture (same tasks, completions, quiet window, `now`, `timezone`) as app-shaped camelCase JSON.
 
-- [ ] **Step 1: Write the failing tests** — monkeypatch the provider factory in `cli` to return a `FakeProvider` script.
+- [x] **Step 1: Write the failing tests** — monkeypatch the provider factory in `cli` to return a `FakeProvider` script.
 
 ```python
 def test_cli_prints_result_and_writes_trace(tmp_path, monkeypatch, capsys):
@@ -452,7 +452,7 @@ def test_cli_bad_snapshot_exit_2(tmp_path):
     assert cli.main(["x", "--snapshot", str(tmp_path / "missing.json")]) == 2
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
 - [ ] **Step 5: Manual end-to-end run (needs credentials — run on the owner's Mac, or any session with `ANTHROPIC_API_KEY` / `ant auth login`; costs well under $0.01):**
 
 ```bash
