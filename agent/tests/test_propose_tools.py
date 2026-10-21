@@ -137,6 +137,41 @@ def test_priority_description_explains_torah():
     assert "5 = Torah category, not a lower priority" in s["input_schema"]["properties"]["priority"]["description"]
 
 
+def _schema_allows_null(field):
+    if field.get("type") == "null":
+        return True
+    return any(opt.get("type") == "null" for opt in field.get("anyOf", []))
+
+
+def _schema_pattern(field):
+    if "pattern" in field:
+        return field["pattern"]
+    for opt in field.get("anyOf", []):
+        if "pattern" in opt:
+            return opt["pattern"]
+    return None
+
+
+def test_update_changes_schema_has_no_null_default_on_non_nullable_fields():
+    # A null default on a non-nullable field tells the model it may send null.
+    schema = {t["name"]: t for t in tool_schemas()}["propose_update_task"]["input_schema"]
+    props = schema["$defs"]["UpdateChanges"]["properties"]
+    for name in ("title", "priority", "tags", "scheduled_date", "recurrence"):
+        field = props[name]
+        assert "default" not in field, name
+        assert not _schema_allows_null(field), name
+    for name in ("reminder_time", "notes", "end_date"):
+        field = props[name]
+        assert field["default"] is None, name
+        assert _schema_allows_null(field), name
+    assert props["title"]["minLength"] == 1 and props["title"]["maxLength"] == 200
+    assert props["tags"]["maxItems"] == 10
+    assert "5 = Torah category, not a lower priority" in props["priority"]["description"]
+    for name in ("scheduled_date", "end_date"):
+        assert "yyyy-MM-dd" in props[name]["description"], name
+        assert _schema_pattern(props[name]) == r"^\d{4}-\d{2}-\d{2}$", name
+
+
 def test_delete_limit(seen_ctx):
     for tid in ["shared", "gym", "cafe"]:
         assert run(seen_ctx, "propose_delete_task", task_id=tid, reason="x").ok

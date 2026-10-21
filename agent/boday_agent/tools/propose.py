@@ -291,21 +291,49 @@ register(ToolSpec(
 # ---------------------------------------------------------------------- update
 
 
+def _omit_null_default(schema: dict) -> None:
+    """Optional fields stay un-required, but non-nullable ones must not advertise default null."""
+    schema.pop("default", None)
+
+
+def _date_pattern(schema: dict) -> None:
+    pattern = r"^\d{4}-\d{2}-\d{2}$"
+    if schema.get("type") == "string":
+        schema["pattern"] = pattern
+    for option in schema.get("anyOf", []):
+        if option.get("type") == "string":
+            option["pattern"] = pattern
+
+
+def _optional_date(schema: dict) -> None:
+    _omit_null_default(schema)
+    _date_pattern(schema)
+
+
+_DATE_HINT = "yyyy-MM-dd. Use resolve_date first, not a natural-language date."
+
+
 class UpdateChanges(_Strict):
-    title: Title
-    priority: Priority
-    reminder_time: TimeStr | None
-    notes: Notes | None
-    tags: Tags
-    scheduled_date: DateStr
-    recurrence: RecurrenceArg
-    end_date: DateStr | None
-
-
-# all fields optional: omission leaves a field unchanged, explicit null clears nullable ones
-for _f in UpdateChanges.model_fields.values():
-    _f.default = None
-UpdateChanges.model_rebuild(force=True)
+    # default None makes every field optional (omission leaves it unchanged).
+    # Nullable fields keep that null in the schema because null is a real value
+    # (it clears the field). Non-nullable fields strip it so the schema does not
+    # claim null is valid.
+    title: Title = Field(default=None, json_schema_extra=_omit_null_default)
+    priority: Priority = Field(default=None, json_schema_extra=_omit_null_default)
+    reminder_time: TimeStr | None = Field(default=None)
+    notes: Notes | None = Field(default=None)
+    tags: Tags = Field(default=None, json_schema_extra=_omit_null_default)
+    scheduled_date: DateStr = Field(
+        default=None,
+        description=f"One-time tasks only. {_DATE_HINT}",
+        json_schema_extra=_optional_date,
+    )
+    recurrence: RecurrenceArg = Field(default=None, json_schema_extra=_omit_null_default)
+    end_date: DateStr | None = Field(
+        default=None,
+        description=f"Recurring tasks only: last day. Null clears it. {_DATE_HINT}",
+        json_schema_extra=_date_pattern,
+    )
 
 
 class UpdateArgs(_Strict):
