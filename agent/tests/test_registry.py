@@ -45,6 +45,46 @@ def test_unexpected_exception_becomes_tool_failure(ctx):
     assert r.error.code == "TOOL_FAILURE" and "secret internals" not in r.error.message
 
 
+def test_handler_returning_non_dict_is_tool_failure(ctx):
+    # ToolResult.success validates `data` as a dict. That validation sits after
+    # the handler try, so a bad return used to escape execute() entirely.
+    register(ToolSpec("badresult", "Returns a list.", _NoArgs, lambda c, a: ["nope"], "read"))
+    try:
+        try:
+            rec = execute(ctx, "badresult", {})
+        except Exception as exc:
+            pytest.fail(f"execute raised {type(exc).__name__}: {exc}")
+        assert rec.result.ok is False
+        assert rec.result.error.code == "TOOL_FAILURE"
+        assert "nope" not in rec.result.error.message
+    finally:
+        REGISTRY.pop("badresult", None)
+
+
+def test_post_fault_exception_is_tool_failure(snap):
+    # empty/truncated faults rewrite the handler payload after the try. A
+    # rewrite that raises must become TOOL_FAILURE, not an escaped exception.
+    search = ToolSpec("search_tasks", "s", _NoArgs, lambda c, a: ["nope"], "read")
+    saved = REGISTRY.get("search_tasks")
+    register(search)
+    try:
+        ctx = RunContext.create(snap, faults=FaultPlan(
+            faults=[Fault(tool="search_tasks", call=1, kind="empty")]))
+        try:
+            rec = execute(ctx, "search_tasks", {})
+        except Exception as exc:
+            pytest.fail(f"execute raised {type(exc).__name__}: {exc}")
+        assert rec.result.ok is False
+        assert rec.result.error.code == "TOOL_FAILURE"
+        assert rec.injected_fault == "empty"
+        assert "nope" not in rec.result.error.message
+    finally:
+        if saved is not None:
+            REGISTRY["search_tasks"] = saved
+        else:
+            REGISTRY.pop("search_tasks", None)
+
+
 def test_error_fault_on_second_call_only(snap):
     plan = FaultPlan(faults=[Fault(tool="echo", call=2, kind="error")])
     ctx = RunContext.create(snap, faults=plan)

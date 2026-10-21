@@ -4,7 +4,7 @@ Deferred items from the phase 1 final review, grouped by the phase that should p
 
 ## Before / during phase 2
 
-- Post-handler fault and `ToolResult.success` are outside the `try` in `registry._run`; wrap them too (`boday_agent/tools/registry.py`).
+- [x] Post-handler fault and `ToolResult.success` are outside the `try` in `registry._run`; wrap them too (`boday_agent/tools/registry.py`).
 - `tool_schemas()` returns Anthropic-shaped schemas. The OpenAI provider must wrap them as `{"type": "function", "function": {name, description, parameters}}`, and `$defs` / `oneOf` / discriminator schemas must be verified on local models (inline them if not) (`registry.py`).
 - `UpdateChanges` schema: replace the `FieldInfo.default` mutation plus `model_rebuild` with `Field(default=None)`; no `default: null` on non-nullable fields; add description/pattern to date fields (`boday_agent/tools/propose.py`).
 - The agent loop must discard the draft whenever the outcome is `asked` (`ask_user` does not stop later propose calls in the same step), and should put `parse_warnings` in the trace.

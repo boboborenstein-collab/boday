@@ -65,17 +65,17 @@ def _run(ctx: RunContext, name: str, args: dict) -> tuple[ToolResult, str | None
     seen_before = set(ctx.seen_ids)
     try:
         data = spec.handler(ctx, parsed)
+        rewritten = post_fault_data(fault, name, data)
+        if fault is not None and fault.kind in ("empty", "truncated"):
+            # The model only saw the rewritten data: hidden ids must not count as seen.
+            ctx.seen_ids = seen_before | _ids_in(name, rewritten)
+        return ToolResult.success(rewritten), injected
     except ToolError as exc:
         return ToolResult.failure(exc.code, exc.message, exc.hint), injected
     except Exception as exc:  # noqa: BLE001 - never leak internals to the model
         return ToolResult.failure(
             ErrorCode.TOOL_FAILURE, f"{name} failed unexpectedly ({type(exc).__name__})."
         ), injected
-    rewritten = post_fault_data(fault, name, data)
-    if fault is not None and fault.kind in ("empty", "truncated"):
-        # The model only saw the rewritten data: hidden ids must not count as seen.
-        ctx.seen_ids = seen_before | _ids_in(name, rewritten)
-    return ToolResult.success(rewritten), injected
 
 
 def _ids_in(name: str, data: dict) -> set[str]:
