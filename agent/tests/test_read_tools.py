@@ -153,21 +153,44 @@ def test_agenda_overload_counts_items_hidden_by_the_cap():
     assert day["overloaded"] is True
 
 
-def test_agenda_clash_lists_ids_the_cap_left_out():
+def _capped_snap(tasks):
     from boday_agent.domain.models import Snapshot
-    snap = Snapshot.from_app({
-        "tasks": [
-            _one_time("low", 4, "2026-09-02T12:00:00Z"),
-            _one_time("high", 1, "2026-09-01T12:00:00Z"),
-        ],
-        "completions": [], "quietWindows": [],
+    return Snapshot.from_app({
+        "tasks": tasks, "completions": [], "quietWindows": [],
         "now": "2026-10-20T09:00:00-04:00", "timezone": "America/New_York",
     })
-    ctx = RunContext.create(snap, limits=Limits(max_agenda_items=1))
+
+
+def test_agenda_cap_keeps_clash_members_in_items():
+    # Clash members are kept even when they sort below the cap; the rest of the
+    # slots are filled in normal order. A seen id always came with its details.
+    ext = _one_time("ext", 4, "2026-09-03T12:00:00Z") | {"assignedByEmail": "friend@example.com"}
+    ctx = RunContext.create(_capped_snap([
+        _one_time("f1", 1, "2026-09-01T12:00:00Z", reminder=None),
+        _one_time("f2", 1, "2026-09-02T12:00:00Z", reminder=None),
+        ext,
+        _one_time("mine", 4, "2026-09-04T12:00:00Z"),
+    ]), limits=Limits(max_agenda_items=3))
     day = execute(ctx, "get_agenda", {"start_date": "2026-10-21", "end_date": "2026-10-21"}).result.data["days"][0]
-    assert [i["id"] for i in day["items"]] == ["high"]
-    assert day["clashes"] == [{"time": "09:00", "task_ids": ["high", "low"]}]
-    assert ctx.seen_ids == {"high", "low"}
+    assert [i["id"] for i in day["items"]] == ["f1", "ext", "mine"]
+    assert day["total"] == 4 and day["truncated"] is True
+    assert day["clashes"] == [{"time": "09:00", "task_ids": ["ext", "mine"]}]
+    assert {i["id"]: i["external"] for i in day["items"]}["ext"] is True
+    assert ctx.seen_ids == {"f1", "ext", "mine"}
+
+
+def test_agenda_clash_bigger_than_the_cap_lists_only_shown_ids():
+    ctx = RunContext.create(_capped_snap([
+        _one_time("low", 4, "2026-09-02T12:00:00Z"),
+        _one_time("high", 1, "2026-09-01T12:00:00Z"),
+        _one_time("mid", 2, "2026-09-03T12:00:00Z"),
+    ]), limits=Limits(max_agenda_items=2))
+    day = execute(ctx, "get_agenda", {"start_date": "2026-10-21", "end_date": "2026-10-21"}).result.data["days"][0]
+    assert [i["id"] for i in day["items"]] == ["high", "mid"]
+    assert day["clashes"] == [{"time": "09:00", "task_ids": ["high", "mid"]}]
+    assert ctx.seen_ids == {"high", "mid"}
+    blind = execute(ctx, "propose_delete_task", {"task_id": "low", "reason": "x"})
+    assert blind.result.error.code == "UNSEEN_ID"
 
 
 def test_agenda_rejects_15_days(ctx):
@@ -242,25 +265,19 @@ def test_empty_agenda_fault_hides_clash_ids(snap):
     assert "dentist" not in ctx.seen_ids and "standup" not in ctx.seen_ids
 
 
-def test_truncated_fault_marks_capped_clash_partners_seen():
-    from boday_agent.domain.models import Snapshot
+def test_truncated_fault_marks_only_shown_ids_seen():
     from boday_agent.tools.faults import Fault, FaultPlan
-    snap = Snapshot.from_app({
-        "tasks": [
-            _one_time("low", 4, "2026-09-02T12:00:00Z"),
-            _one_time("high", 1, "2026-09-01T12:00:00Z"),
-        ],
-        "completions": [], "quietWindows": [],
-        "now": "2026-10-20T09:00:00-04:00", "timezone": "America/New_York",
-    })
-    ctx = RunContext.create(snap, limits=Limits(max_agenda_items=1), faults=FaultPlan(
+    ctx = RunContext.create(_capped_snap([
+        _one_time("low", 4, "2026-09-02T12:00:00Z"),
+        _one_time("high", 1, "2026-09-01T12:00:00Z"),
+    ]), limits=Limits(max_agenda_items=1), faults=FaultPlan(
         faults=[Fault(tool="get_agenda", call=1, kind="truncated")]))
     day = execute(ctx, "get_agenda", {
         "start_date": "2026-10-21", "end_date": "2026-10-21",
     }).result.data["days"][0]
     assert [i["id"] for i in day["items"]] == ["high"]
-    assert day["clashes"] == [{"time": "09:00", "task_ids": ["high", "low"]}]
-    assert ctx.seen_ids == {"high", "low"}
+    assert day["clashes"] == []
+    assert ctx.seen_ids == {"high"}
 
 
 def test_empty_agenda_fault_zeros_the_per_day_total(snap):
