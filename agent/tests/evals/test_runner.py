@@ -175,3 +175,63 @@ def test_run_subcommand_filters_cases_without_calling_provider(tmp_path, monkeyp
     assert seen["ids"] == ["move-dentist-tomorrow"]
     assert seen["trials"] == 1
     assert list(tmp_path.glob("*.json"))
+
+
+def _auto_run(tmp_path, monkeypatch, chosen):
+    from boday_agent.evals.cli import main
+    from boday_agent.evals.runner import SuiteRun
+
+    made: list[tuple[str, str | None]] = []
+    seen: dict = {}
+
+    def fake_make(args):
+        made.append((args.provider, args.model))
+        if args.provider == "auto":
+            return chosen, "auto: picked once"
+        return FakeProvider([], name=chosen.name, model=chosen.model), "explicit"
+
+    def fake_run(cases, factory, **kwargs):
+        seen["providers"] = [factory().name for _ in range(3)]
+        seen["reason"] = kwargs["selection_reason"]
+        return SuiteRun(stamp={"date": "2026-10-21", "model": "m", "split": "dev"}, results=[])
+
+    monkeypatch.setattr("boday_agent.evals.cli.make_provider", fake_make)
+    monkeypatch.setattr("boday_agent.evals.cli.run_suite", fake_run)
+    code = main(
+        [
+            "run", "--provider", "auto", "--base-url", "http://localhost:11434/v1",
+            "--model", "local-30b", "--case", "move-dentist-tomorrow", "--trials", "3",
+            "--out", str(tmp_path),
+        ]
+    )
+    assert code == 0
+    return made, seen
+
+
+def test_auto_provider_is_chosen_once_per_run_local(tmp_path, monkeypatch):
+    local = FakeProvider([], name="openai_compat", model="local-30b", is_local=True)
+    made, seen = _auto_run(tmp_path, monkeypatch, local)
+    assert made == [("auto", "local-30b")] + [("openai", "local-30b")] * 3
+    assert seen["providers"] == ["openai_compat"] * 3
+    assert seen["reason"] == "auto: picked once"
+
+
+def test_auto_provider_is_chosen_once_per_run_fallback(tmp_path, monkeypatch):
+    fallback = FakeProvider([], name="anthropic", model="claude-haiku-5-5")
+    made, seen = _auto_run(tmp_path, monkeypatch, fallback)
+    assert made == [("auto", "local-30b")] + [("anthropic", "claude-haiku-5-5")] * 3
+    assert seen["reason"] == "auto: picked once"
+
+
+def test_stamp_records_the_selection_reason(tmp_path):
+    from boday_agent.evals.runner import run_suite
+
+    run = run_suite(
+        [case()],
+        lambda: FakeProvider(list(DENTIST_SCRIPT)),
+        trials=1,
+        concurrency=1,
+        traces_dir=tmp_path,
+        selection_reason="auto: local reachable",
+    )
+    assert run.stamp["selection_reason"] == "auto: local reachable"

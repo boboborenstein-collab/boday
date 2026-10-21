@@ -123,6 +123,7 @@ def run_suite(
             results.append(future.result())
     results.sort(key=lambda item: (item.case_id, item.trial))
     stamp = _stamp(cases, trials, describes, commit, dirty, cassette_mode)
+    stamp["selection_reason"] = selection_reason
     return SuiteRun(stamp=stamp, results=results)
 
 

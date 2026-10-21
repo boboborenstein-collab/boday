@@ -64,6 +64,14 @@ def _provider_args(args: argparse.Namespace) -> argparse.Namespace:
     )
 
 
+def _resolved_auto(provider_args: argparse.Namespace, chosen) -> argparse.Namespace:
+    """The explicit provider arguments for what Auto picked."""
+    fields = vars(provider_args)
+    if chosen.name == "anthropic":
+        return argparse.Namespace(**{**fields, "provider": "anthropic", "model": chosen.model})
+    return argparse.Namespace(**{**fields, "provider": "openai"})
+
+
 def _filter_cases(cases, args: argparse.Namespace):
     if args.split != "all":
         cases = [case for case in cases if case.split == args.split]
@@ -129,11 +137,19 @@ def _run(args: argparse.Namespace) -> int:
         return 1
     out = Path(args.out) if args.out else RESULTS_DIR
 
+    provider_args = _provider_args(args)
+    selection_reason = "explicit"
+    if not args.replay and args.provider == "auto":
+        # Spec §2: choose once per run, never switch mid-run. Every trial then
+        # builds a fresh client of the provider Auto picked.
+        chosen, selection_reason = make_provider(provider_args)
+        provider_args = _resolved_auto(provider_args, chosen)
+
     def factory():
         # Replay never calls this. A fresh client per live or recorded trial.
         if args.replay:
             raise RuntimeError("replay does not construct a provider")
-        provider, _reason = make_provider(_provider_args(args))
+        provider, _reason = make_provider(provider_args)
         return provider
 
     mode = "replay" if args.replay else "record" if args.record else "live"
@@ -144,7 +160,7 @@ def _run(args: argparse.Namespace) -> int:
             traces_dir=out / "traces",
             trials=args.trials,
             concurrency=args.concurrency,
-            selection_reason="explicit",
+            selection_reason=selection_reason,
             cassette_dir=CASSETTES_DIR,
             cassette_mode=mode,
         )
