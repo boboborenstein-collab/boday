@@ -12,6 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
+boday-agent = "boday_agent.cli:main"
 boday-eval = "boday_agent.evals.cli:main"
 
 [dependency-groups]
@@ -19,9 +20,6 @@ dev = [
     "pytest>=8",
     "ruff>=0.6",
 ]
-
-[project.scripts]
-boday-agent = "boday_agent.cli:main"
 
 [build-system]
 requires = ["hatchling"]
