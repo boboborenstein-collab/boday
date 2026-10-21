@@ -34,6 +34,12 @@ def test_dumps_camel_case_for_the_app():
     out = snap.tasks[0].model_dump(by_alias=True)
     assert out["scheduledDate"] == "2026-10-22" and "scheduled_date" not in out
 
+def test_from_app_rejects_non_dict():
+    for bad in (["not", "a", "dict"], None, "nope", 3):
+        with pytest.raises(ValidationError):
+            Snapshot.from_app(bad)  # type: ignore[arg-type]
+
+
 def test_rejects_naive_now_and_bad_timezone():
     with pytest.raises(ValidationError):
         Snapshot.from_app({**APP_JSON, "now": "2026-10-20T09:00:00"})
