@@ -110,6 +110,66 @@ def test_agenda_overloaded(ctx):
     assert day["overloaded"] is True
 
 
+def _one_time(id_, priority, created, reminder="09:00"):
+    return {
+        "id": id_, "type": "one_time", "title": id_, "priority": priority,
+        "scheduledDate": "2026-10-21", "completed": False, "createdAt": created,
+        "reminderTime": reminder,
+    }
+
+
+def test_agenda_default_cap_keeps_twenty_highest_priority_items():
+    from boday_agent.domain.models import Snapshot
+    tasks = [_one_time(f"p3-{i:02d}", 3, f"2026-09-{i:02d}T12:00:00Z", reminder=None)
+             for i in range(1, 21)]
+    tasks.append(_one_time("p1", 1, "2026-09-21T12:00:00Z", reminder=None))
+    snap = Snapshot.from_app({
+        "tasks": tasks, "completions": [], "quietWindows": [],
+        "now": "2026-10-20T09:00:00-04:00", "timezone": "America/New_York",
+    })
+    ctx = RunContext.create(snap)
+    day = execute(ctx, "get_agenda", {"start_date": "2026-10-21", "end_date": "2026-10-21"}).result.data["days"][0]
+    assert day["total"] == 21 and day["truncated"] is True and len(day["items"]) == 20
+    assert day["items"][0]["id"] == "p1"
+    assert "p3-20" not in {i["id"] for i in day["items"]}
+    assert "p3-20" not in ctx.seen_ids and "p1" in ctx.seen_ids
+
+
+def test_agenda_under_the_cap_reports_the_full_day(ctx):
+    day = execute(ctx, "get_agenda", {"start_date": "2026-10-22", "end_date": "2026-10-22"}).result.data["days"][0]
+    assert day["truncated"] is False and day["total"] == len(day["items"])
+
+
+def test_agenda_overload_counts_items_hidden_by_the_cap():
+    from boday_agent.domain.models import Snapshot
+    tasks = [_one_time(f"t{i}", 3, f"2026-09-{i:02d}T12:00:00Z", reminder=None) for i in range(1, 10)]
+    snap = Snapshot.from_app({
+        "tasks": tasks, "completions": [], "quietWindows": [],
+        "now": "2026-10-20T09:00:00-04:00", "timezone": "America/New_York",
+    })
+    ctx = RunContext.create(snap, limits=Limits(max_agenda_items=1))
+    day = execute(ctx, "get_agenda", {"start_date": "2026-10-21", "end_date": "2026-10-21"}).result.data["days"][0]
+    assert len(day["items"]) == 1 and day["total"] == 9 and day["truncated"] is True
+    assert day["overloaded"] is True
+
+
+def test_agenda_clash_lists_ids_the_cap_left_out():
+    from boday_agent.domain.models import Snapshot
+    snap = Snapshot.from_app({
+        "tasks": [
+            _one_time("low", 4, "2026-09-02T12:00:00Z"),
+            _one_time("high", 1, "2026-09-01T12:00:00Z"),
+        ],
+        "completions": [], "quietWindows": [],
+        "now": "2026-10-20T09:00:00-04:00", "timezone": "America/New_York",
+    })
+    ctx = RunContext.create(snap, limits=Limits(max_agenda_items=1))
+    day = execute(ctx, "get_agenda", {"start_date": "2026-10-21", "end_date": "2026-10-21"}).result.data["days"][0]
+    assert [i["id"] for i in day["items"]] == ["high"]
+    assert day["clashes"] == [{"time": "09:00", "task_ids": ["high", "low"]}]
+    assert ctx.seen_ids == {"high", "low"}
+
+
 def test_agenda_rejects_15_days(ctx):
     r = execute(ctx, "get_agenda", {"start_date": "2026-10-20", "end_date": "2026-11-03"}).result
     assert r.error.code == "LIMIT_EXCEEDED" and r.error.hint == "Split into 14-day ranges."
@@ -169,6 +229,16 @@ def test_truncated_search_fault_marks_only_returned_ids(snap):
         faults=[Fault(tool="search_tasks", call=1, kind="truncated")]))
     data = execute(ctx, "search_tasks", {}).result.data
     assert ctx.seen_ids == {r["id"] for r in data["results"]} and len(ctx.seen_ids) == 1
+
+
+def test_empty_agenda_fault_zeros_the_per_day_total(snap):
+    from boday_agent.tools.faults import Fault, FaultPlan
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="empty")]))
+    data = execute(ctx, "get_agenda", {"start_date": "2026-10-21", "end_date": "2026-10-22"}).result.data
+    assert data["days"]
+    for day in data["days"]:
+        assert day["items"] == [] and day["total"] == 0 and day["truncated"] is False
 
 
 def test_agenda_faults_restore_seen_ids(snap):

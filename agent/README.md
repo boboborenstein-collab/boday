@@ -45,7 +45,7 @@ Exactly 9 tools, called through `execute(ctx, name, args)`; schemas come from `t
 
 - `search_tasks` - find tasks by text/filters (max 20 results, `truncated`/`total` when more); marks results as seen.
 - `get_task` - full detail for one task, including notes and `external` (assigned by someone else); marks it seen.
-- `get_agenda` - what is due over a date range (max 14 days); marks returned tasks as seen.
+- `get_agenda` - what is due over a date range (max 14 days, 20 items per day with `total`/`truncated`); marks returned ids as seen, including ones that appear only in a clash.
 - `resolve_date` - turn a natural-language date expression into candidate `yyyy-MM-dd` dates.
 - `propose_create_task` - add a create change to the draft.
 - `propose_update_task` - add an update change (patch of changed fields only) to the draft.

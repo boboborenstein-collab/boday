@@ -55,5 +55,8 @@ def post_fault_data(fault: Fault | None, tool: str, data: dict) -> dict:
     # get_agenda
     days = data.get("days", [])
     if fault.kind == "empty":
-        return {**data, "days": [{**d, "items": []} for d in days]}
+        return {
+            **data,
+            "days": [{**d, "items": [], "total": 0, "truncated": False} for d in days],
+        }
     return {**data, "days": days[:1], "truncated": True}
