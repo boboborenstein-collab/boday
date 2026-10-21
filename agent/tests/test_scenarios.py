@@ -65,5 +65,9 @@ def test_schema_surface_is_exactly_nine_tools():
 def test_draft_payload_round_trips_as_app_json(ctx):
     execute(ctx, "search_tasks", {"query": "dentist"})
     execute(ctx, "propose_update_task", {"task_id": "dentist", "changes": {"priority": 1}})
-    json.dumps(ctx.draft_payload())  # must be JSON-serializable, camelCase
-    assert "taskId" in ctx.draft_payload()[0]
+    payload = ctx.draft_payload()
+    json.dumps(payload)  # must be JSON-serializable, camelCase
+    ch = payload[0]
+    assert ch["taskId"] == "dentist"
+    assert ch["patch"] == {"priority": 1}
+    assert ch["beforeFields"] == {"priority": 2}
