@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
-import re
 import sys
 from pathlib import Path
 
@@ -15,8 +13,10 @@ from boday_agent.evals.loader import (
     load_fixture,
     validate_suite,
 )
+from boday_agent.evals.metrics import compute_metrics
 from boday_agent.evals.oracle import check_expectations
-from boday_agent.evals.runner import SuiteRun, run_suite, suite_payload
+from boday_agent.evals.report import compare, write_report
+from boday_agent.evals.runner import run_suite
 
 RESULTS_DIR = CASES_DIR.parent / "results"
 
@@ -74,18 +74,6 @@ def _filter_cases(cases, args: argparse.Namespace):
     return cases
 
 
-def _write_results(run: SuiteRun, out_dir: Path) -> Path:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    slug = re.sub(r"[^A-Za-z0-9._-]+", "-", str(run.stamp.get("model") or "model")).strip("-")
-    slug = slug or "model"
-    date = str(run.stamp.get("date") or "undated")
-    split = str(run.stamp.get("split") or "all")
-    path = out_dir / f"{date}-{slug}-{split}.json"
-    path.write_text(json.dumps(suite_payload(run), indent=2) + "\n")
-    print(path)
-    return path
-
-
 def _run(args: argparse.Namespace) -> int:
     if not args.provider:
         print("--provider is required", file=sys.stderr)
@@ -127,7 +115,15 @@ def _run(args: argparse.Namespace) -> int:
         concurrency=args.concurrency,
         selection_reason="explicit",
     )
-    _write_results(run, out)
+    json_path, md_path = write_report(run, compute_metrics(run), out)
+    print(json_path)
+    print(md_path)
+    return 0
+
+
+def _report(args: argparse.Namespace) -> int:
+    text = compare(Path(args.compare[0]), Path(args.compare[1]))
+    print(text)
     return 0
 
 
@@ -135,7 +131,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="boday-eval")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate", help="Check case files, fixtures, and expected answers")
-    run = sub.add_parser("run", help="Run cases and write graded results JSON")
+    run = sub.add_parser("run", help="Run cases and write the JSON and markdown report")
     run.add_argument("--provider", choices=["anthropic", "openai", "auto"])
     run.add_argument("--model", default=None)
     run.add_argument("--base-url", default=None)
@@ -147,6 +143,8 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--category", action="append", default=None)
     run.add_argument("--concurrency", type=int, default=4)
     run.add_argument("--out", default=None)
+    report = sub.add_parser("report", help="Compare two result JSON files")
+    report.add_argument("--compare", nargs=2, metavar=("A", "B"), required=True)
     return parser
 
 
@@ -156,6 +154,8 @@ def main(argv: list[str] | None = None) -> int:
         return _validate()
     if args.command == "run":
         return _run(args)
+    if args.command == "report":
+        return _report(args)
     return 2
 
 
