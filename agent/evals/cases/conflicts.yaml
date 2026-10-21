@@ -65,7 +65,7 @@
   split: dev
   fixture: overloaded_week
   turns:
-  - user: add one more thing to wednesday
+  - user: can u add pick up dry cleaning to wednesday
   expect:
     accept:
     - outcome: asked
@@ -73,9 +73,10 @@
       changes:
       - op: create
         fields:
-          title: One more thing
+          title_contains: dry clean
           type: one_time
           scheduledDate: '2026-10-21'
+  notes: Wednesday already has 12 errands. Adding it or first asking about the overload are both fine.
 - id: wednesday-to-thursday
   category: conflicts
   label: should_act

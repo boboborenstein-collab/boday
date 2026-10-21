@@ -56,7 +56,7 @@
       changes:
       - op: create
         fields:
-          title: Mail the permit
+          title_contains: permit
           type: one_time
           scheduledDate: '2026-10-23'
           reminderTime: '15:00'
@@ -73,7 +73,7 @@
       changes:
       - op: create
         fields:
-          title: Call the bank
+          title_contains: bank
           type: one_time
           scheduledDate: '2026-10-21'
           priority: 1
@@ -242,7 +242,7 @@
       changes:
       - op: create
         fields:
-          title: Team lunch
+          title_contains: lunch
           type: recurring
           recurrence:
             kind: weekly

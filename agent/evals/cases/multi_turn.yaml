@@ -65,25 +65,30 @@
           "reminderTime": "15:00"
 - "id": "mt-undo-applied"
   "category": "multi_turn"
-  "label": "either"
+  "label": "should_act"
   "split": "dev"
   "fixture": "typical_week"
   "turns":
-  - "user": "move the dentist to wednesday"
-  - "assistant": "Moved the dentist to Wednesday."
+  - "user": "move the dentist to thursday"
+  - "assistant": "Moved the dentist to Thursday."
     "proposal":
     - "op": "update"
       "taskId": "dentist"
       "patch":
-        "scheduledDate": "2026-10-21"
-      "beforeFields":
         "scheduledDate": "2026-10-22"
+      "beforeFields":
+        "scheduledDate": "2026-10-21"
     "status": "applied"
   - "user": "undo that"
   "expect":
     "accept":
-    - "outcome": "answered"
-  "notes": "The inverse patch is scheduledDate 2026-10-22, which the fixture already has. The tools reject that no-op, so the grounded outcome is an answer."
+    - "outcome": "proposed"
+      "changes":
+      - "op": "update"
+        "task": "dentist"
+        "fields":
+          "scheduledDate": "2026-10-21"
+  "notes": "The applied move is already in the snapshot (dentist on 10-22). Undo proposes the inverse patch: the prior beforeFields, scheduledDate 2026-10-21."
 - "id": "mt-first-one"
   "category": "multi_turn"
   "label": "should_act"

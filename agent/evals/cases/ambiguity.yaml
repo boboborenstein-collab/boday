@@ -43,7 +43,7 @@
     - outcome: asked
 - id: reschedule-meeting
   category: ambiguity
-  label: either
+  label: should_ask
   split: holdout
   fixture: typical_week
   turns:

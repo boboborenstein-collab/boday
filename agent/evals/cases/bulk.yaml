@@ -35,7 +35,45 @@
         task: pharmacy
         fields:
           scheduledDate: '2026-10-26'
+    - outcome: proposed
+      changes:
+      - op: update
+        task: call-mom
+        fields:
+          scheduledDate: '2026-10-27'
+      - op: update
+        task: dinner-dana
+        fields:
+          scheduledDate: '2026-10-30'
+      - op: update
+        task: pharmacy
+        fields:
+          scheduledDate: '2026-10-27'
+      - op: update
+        task: budget
+        fields:
+          scheduledDate: '2026-11-01'
+    - outcome: proposed
+      changes:
+      - op: update
+        task: call-mom
+        fields:
+          scheduledDate: '2026-10-26'
+      - op: update
+        task: dinner-dana
+        fields:
+          scheduledDate: '2026-10-26'
+      - op: update
+        task: pharmacy
+        fields:
+          scheduledDate: '2026-10-26'
+      - op: update
+        task: budget
+        fields:
+          scheduledDate: '2026-10-26'
   notes: Either shift each date by 7 days, or land them on Monday Oct 26 (resolve_date "next week").
+    With a Sunday-start week, budget (P3, Sun Oct 25) is next week and stays put; with the
+    Monday-start week resolve_date uses, it is this week and moves too. Both are accepted.
 - id: today-all-done
   category: bulk
   label: should_act
@@ -131,7 +169,7 @@
           tags: []
 - id: november-over-limit
   category: bulk
-  label: either
+  label: should_ask
   split: dev
   fixture: large
   turns:
@@ -143,7 +181,7 @@
   notes: More than 25 one-time tasks. Do not propose a partial set.
 - id: delete-completed-over-limit
   category: bulk
-  label: either
+  label: should_ask
   split: dev
   fixture: large
   turns:

@@ -121,7 +121,7 @@
       changes:
       - op: create
         fields:
-          title: Pack the bag
+          title_contains: bag
           type: one_time
           scheduledDate: '2026-10-20'
           reminderTime: '20:00'
@@ -165,7 +165,7 @@
       changes:
       - op: create
         fields:
-          title: Take meds
+          title_contains: med
           type: one_time
           scheduledDate: '2026-11-01'
           reminderTime: 01:30

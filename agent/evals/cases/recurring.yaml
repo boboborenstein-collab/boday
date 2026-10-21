@@ -93,23 +93,35 @@
           endDate: '2026-11-30'
 - id: every-other-tuesday
   category: recurring
-  label: should_act
+  label: either
   split: dev
   fixture: typical_week
   turns:
   - user: add team lunch every other tuesday
   expect:
     accept:
+    - outcome: asked
     - outcome: proposed
       changes:
       - op: create
         fields:
-          title: Team lunch
+          title_contains: lunch
           type: recurring
           recurrence:
             kind: everyNDays
             n: 14
           startDate: '2026-10-27'
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: lunch
+          type: recurring
+          recurrence:
+            kind: everyNDays
+            n: 14
+          startDate: '2026-10-20'
+  notes: Said on Tuesday Oct 20, so starting today or next Tuesday are both valid; asking which is fine.
 - id: gym-6am
   category: recurring
   label: should_act
@@ -177,4 +189,13 @@
             kind: weekly
             daysOfWeek:
             - 2
-  notes: Series change versus a new task. Tuesday matches the current start.
+    - outcome: proposed
+      changes:
+      - op: update
+        task: team-sync
+        fields:
+          recurrence:
+            kind: everyNDays
+            n: 7
+  notes: Series change versus a new task. Tuesday matches the current start; every 7 days from
+    the existing Tuesday start date is the same schedule as weekly on Tuesday.
