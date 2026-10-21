@@ -426,7 +426,7 @@ def test_calibration_agreement(tmp_path):
   - Cassette path: `agent/evals/cassettes/<case_id>--t<trial>.json`.
   - `--fail-on-regression BASELINE.json`: exit 1 if any case that passed in the baseline fails now.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_record_then_replay_is_identical(tmp_path):
@@ -442,8 +442,8 @@ def test_stale_prompt_refuses(tmp_path, monkeypatch):
 def test_exhausted(tmp_path): ...
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: cassette record/replay + CI replay step"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: cassette record/replay + CI replay step"`.
 
 ---
 
