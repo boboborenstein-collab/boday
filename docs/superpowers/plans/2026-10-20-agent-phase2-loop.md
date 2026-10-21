@@ -453,7 +453,7 @@ def test_cli_bad_snapshot_exit_2(tmp_path):
 ```
 
 - [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Manual end-to-end run (needs credentials — run on the owner's Mac, or any session with `ANTHROPIC_API_KEY` / `ant auth login`; costs well under $0.01):**
+- [x] **Step 5: Manual end-to-end run (needs credentials — run on the owner's Mac, or any session with `ANTHROPIC_API_KEY` / `ant auth login`; costs well under $0.01):**
 
 ```bash
 uv run boday-agent "move my dentist appointment to tomorrow" --snapshot examples/demo_snapshot.json \
@@ -463,8 +463,8 @@ Expected: `"outcome": "proposed"`, one change with `"op": "update"`, `"taskId": 
 
 Optional, if Ollama is running locally: same command with `--provider openai --base-url http://localhost:11434/v1 --model <local model>`.
 
-- [ ] **Step 6: Commit the evidence** — copy the trace to `agent/examples/traces/first-run-haiku.json` (already redacted by the sink), add a "First run" section to `agent/README.md` with the command, outcome, tokens, cost, latency.
-- [ ] **Step 7: Commit, push, open PR**
+- [x] **Step 6: Commit the evidence** — copy the trace to `agent/examples/traces/first-run-haiku.json` (already redacted by the sink), add a "First run" section to `agent/README.md` with the command, outcome, tokens, cost, latency.
+- [x] **Step 7: Commit, push, open PR**
 
 ```bash
 git add agent docs && git commit -m "agent: CLI + first end-to-end run"
