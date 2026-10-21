@@ -13,7 +13,7 @@ Deferred items from the phase 1 final review, grouped by the phase that should p
 ## Before phase 3
 
 - [x] `get_agenda` needs a per-day item cap for the large fixture (~200 tasks) (`boday_agent/tools/read.py`).
-- Validate `Fault.call >= 1` once faults are loaded from YAML (`boday_agent/tools/faults.py`).
+- [x] Validate `Fault.call >= 1` once faults are loaded from YAML (`boday_agent/tools/faults.py`).
 - `CONFLICTING_CHANGE` granularity: consider merging a second update into the first (conflict only on same key with a different value) and allowing one update plus one `set_status` per task. Decide from eval evidence (`boday_agent/tools/context.py`).
 
 ## Phase 4 (iteration candidates)

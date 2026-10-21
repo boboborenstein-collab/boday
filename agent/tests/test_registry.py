@@ -98,6 +98,20 @@ def test_empty_fault_rejected_for_non_list_tool():
         FaultPlan(faults=[Fault(tool="get_task", call=1, kind="empty")])
 
 
+def test_fault_plan_rejects_call_below_one():
+    # A lone Fault stays constructable so a case file can be loaded and the
+    # suite checker can report the bad call. Using the faults (FaultPlan)
+    # is what must reject call < 1.
+    from pydantic import ValidationError
+    assert Fault(tool="search_tasks", call=0, kind="error").call == 0
+    with pytest.raises(ValidationError, match="call must be >= 1"):
+        FaultPlan(faults=[Fault(tool="search_tasks", call=0, kind="error")])
+    with pytest.raises(ValidationError, match="call must be >= 1"):
+        FaultPlan(faults=[{"tool": "get_agenda", "call": -3, "kind": "truncated"}])
+    plan = FaultPlan(faults=[Fault(tool="search_tasks", call=1, kind="timeout")])
+    assert plan.faults[0].call == 1
+
+
 def test_schemas_have_name_description_schema():
     s = {t["name"]: t for t in tool_schemas()}["echo"]
     assert s["input_schema"]["properties"]["text"]["type"] == "string" and s["description"]

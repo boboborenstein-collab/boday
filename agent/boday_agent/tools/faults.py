@@ -12,7 +12,7 @@ LIST_TOOLS = frozenset({"search_tasks", "get_agenda"})
 
 class Fault(BaseModel):
     tool: str
-    call: int  # 1-based, per tool
+    call: int  # 1-based, per tool; FaultPlan rejects values below 1
     kind: FaultKind
 
 
@@ -22,6 +22,8 @@ class FaultPlan(BaseModel):
     @model_validator(mode="after")
     def _check(self) -> FaultPlan:
         for f in self.faults:
+            if f.call < 1:
+                raise ValueError(f"fault call must be >= 1, got {f.call}")
             if f.kind in ("empty", "truncated") and f.tool not in LIST_TOOLS:
                 raise ValueError(f"fault '{f.kind}' is only allowed for {sorted(LIST_TOOLS)}")
         return self
