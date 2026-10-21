@@ -309,7 +309,7 @@ Required scenarios:
   - `stamp` = `{"git_commit", "git_dirty", "provider": describe(), "model", "prompt_version", "trials", "split", "date", "case_count"}`.
   - CLI: `boday-eval run --provider anthropic|openai|auto --model ID [--base-url] [--header] [--effort] --trials 3 --split dev|holdout|all [--case ID ...] [--category C ...] --concurrency 4 [--record|--replay] [--out results/]` → writes the results JSON (B2 adds the report).
 
-- [ ] **Step 1: Write the failing tests** — `provider_factory` returns `FakeProvider` scripts chosen per case id.
+- [x] **Step 1: Write the failing tests** — `provider_factory` returns `FakeProvider` scripts chosen per case id.
 
 ```python
 def test_runs_trials_and_grades(tmp_path):
@@ -327,8 +327,8 @@ def test_history_and_faults_are_applied(tmp_path):
          # fault case: assert the trace's first tool_call has injected_fault == "error"
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: runner"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: runner"`.
 
 ---
 
