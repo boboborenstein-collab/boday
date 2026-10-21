@@ -26,6 +26,21 @@ const tasks: Task[] = [
   syn('syn-monthly-31', { kind: 'monthly', dateOfMonth: 31 }, '2026-06-01'),
   syn('syn-every-0', { kind: 'everyNDays', n: 0 }, '2026-06-01'),
   syn('syn-ended', { kind: 'daily' }, '2026-06-10', '2026-06-20'),
+  // Sunday (0) and Saturday (6): the parity range must include positive hits, not only misses.
+  syn('syn-weekly-sun-sat', { kind: 'weekly', daysOfWeek: [0, 6] }, '2026-06-01'),
+  {
+    id: 'ot-completed-utc-midnight',
+    type: 'one_time',
+    title: 'Completed near UTC midnight',
+    priority: 3,
+    scheduledDate: TODAY,
+    completed: true,
+    // 03:30Z is 23:30 the previous calendar day in New York (EDT, UTC-4):
+    // still TODAY locally, already the next day in UTC.
+    completedAt: '2026-06-18T03:30:00.000Z',
+    reminderTime: null,
+    createdAt: `${TODAY}T08:00:00.000Z`,
+  },
 ]
 
 const base = fromDateStr(TODAY)
@@ -40,7 +55,7 @@ const day_lists: Record<string, string[]> = {}
 for (const d of dates) day_lists[d] = buildDayList(tasks, seed.completions, d).map((i) => i.task.id)
 
 const today_lists: Record<string, [string, number, boolean, boolean][]> = {}
-for (const n of [0, 1, 3]) {
+for (const n of [-1, 0, 1, 3]) {
   const t = toDateStr(addDays(base, n))
   today_lists[t] = buildTodayList(tasks, seed.completions, t).map((i) => [
     i.task.id, i.carriedOverFromDays, i.completed, i.skipped,
