@@ -6,6 +6,13 @@ import sys
 from pathlib import Path
 
 from boday_agent.cli import _headers, make_provider
+from boday_agent.evals.judge import (
+    default_client,
+    export_ratings,
+    import_ratings,
+    load_calibration,
+    score_advice,
+)
 from boday_agent.evals.loader import (
     CASES_DIR,
     FIXTURES_DIR,
@@ -115,10 +122,33 @@ def _run(args: argparse.Namespace) -> int:
         concurrency=args.concurrency,
         selection_reason="explicit",
     )
-    json_path, md_path = write_report(run, compute_metrics(run), out)
+    if args.judge:
+        score_advice(run, selected, default_client())
+    json_path, md_path = write_report(
+        run, compute_metrics(run), out, calibration=load_calibration()
+    )
     print(json_path)
     print(md_path)
     return 0
+
+
+def _calibrate(args: argparse.Namespace) -> int:
+    if args.export and args.import_csv:
+        print("pass only one of --export or --import", file=sys.stderr)
+        return 2
+    if args.export:
+        count = export_ratings(Path(args.export[0]), Path(args.export[1]))
+        print(f"wrote {count} advice rows to {args.export[1]}")
+        return 0
+    if args.import_csv:
+        result = import_ratings(Path(args.import_csv[0]), Path(args.import_csv[1]))
+        exact = result["exact_agreement"]
+        within = result["within_one_agreement"]
+        state = "calibrated" if result["calibrated"] else "not calibrated"
+        print(f"exact {exact:.3f}, within one {within:.3f} ({result['n']} rows, {state})")
+        return 0
+    print("pass --export or --import", file=sys.stderr)
+    return 2
 
 
 def _report(args: argparse.Namespace) -> int:
@@ -143,8 +173,14 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--category", action="append", default=None)
     run.add_argument("--concurrency", type=int, default=4)
     run.add_argument("--out", default=None)
+    run.add_argument("--judge", action="store_true", help="Score advice answers")
     report = sub.add_parser("report", help="Compare two result JSON files")
     report.add_argument("--compare", nargs=2, metavar=("A", "B"), required=True)
+    calibrate = sub.add_parser("calibrate", help="Export or import owner ratings of the judge")
+    calibrate.add_argument("--export", nargs=2, metavar=("RESULTS.json", "OUT.csv"))
+    calibrate.add_argument(
+        "--import", dest="import_csv", nargs=2, metavar=("RATED.csv", "RESULTS.json")
+    )
     return parser
 
 
@@ -156,6 +192,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run(args)
     if args.command == "report":
         return _report(args)
+    if args.command == "calibrate":
+        return _calibrate(args)
     return 2
 
 

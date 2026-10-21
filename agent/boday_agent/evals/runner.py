@@ -41,6 +41,8 @@ class TrialResult:
     trace_path: str
     answer_text: str
     error: str | None = None
+    judge_score: int | None = None
+    judge_error: str | None = None
 
 
 @dataclass

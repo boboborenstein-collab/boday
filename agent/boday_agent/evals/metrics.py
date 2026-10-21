@@ -28,6 +28,8 @@ class Metrics:
     tokens_mean: float
     by_category: dict[str, dict]
     failure_types: dict[str, int]
+    advice_quality_mean: float | None = None
+    judge_errors: int = 0
 
 
 def wilson(successes: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -72,6 +74,7 @@ def compute_metrics(run: SuiteRun) -> Metrics:
         if item.grade.passed or not item.grade.failure_type:
             continue
         failures[item.grade.failure_type] = failures.get(item.grade.failure_type, 0) + 1
+    scores = [item.judge_score for item in results if item.judge_score is not None]
     return Metrics(
         success_rate=_rate(successes, n_trials),
         success_ci=wilson(successes, n_trials),
@@ -92,6 +95,8 @@ def compute_metrics(run: SuiteRun) -> Metrics:
         tokens_mean=_mean([item.input_tokens + item.output_tokens for item in results]),
         by_category=_categories(results),
         failure_types=dict(sorted(failures.items(), key=lambda item: (-item[1], item[0]))),
+        advice_quality_mean=(sum(scores) / len(scores)) if scores else None,
+        judge_errors=sum(1 for item in results if item.judge_error),
     )
 
 

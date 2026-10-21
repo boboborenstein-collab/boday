@@ -22,18 +22,28 @@ _SCALARS = (
     "latency_p50",
     "latency_p95",
     "tokens_mean",
+    "advice_quality_mean",
+    "judge_errors",
 )
 
 
-def write_report(run: SuiteRun, metrics: Metrics, out_dir: Path) -> tuple[Path, Path]:
+def write_report(
+    run: SuiteRun,
+    metrics: Metrics,
+    out_dir: Path,
+    *,
+    calibration: dict | None = None,
+) -> tuple[Path, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"{_date(run)}-{_slug(run)}-{_split(run)}"
     json_path = out_dir / f"{stem}.json"
     md_path = out_dir / f"{stem}.md"
     payload = suite_payload(run)
     payload["metrics"] = metrics_payload(metrics)
+    if calibration is not None:
+        payload["calibration"] = calibration
     json_path.write_text(json.dumps(payload, indent=2) + "\n")
-    md_path.write_text(_markdown(run, metrics))
+    md_path.write_text(_markdown(run, metrics, calibration))
     return json_path, md_path
 
 
@@ -72,16 +82,18 @@ def compare(a: Path, b: Path) -> str:
     metrics_a = left.get("metrics") or {}
     metrics_b = right.get("metrics") or {}
     for name in _SCALARS:
-        if name not in metrics_a and name not in metrics_b:
+        before = metrics_a.get(name)
+        after = metrics_b.get(name)
+        if before is None or after is None:
             continue
-        before = float(metrics_a.get(name) or 0)
-        after = float(metrics_b.get(name) or 0)
-        lines.append(f"| {name} | {before:.3f} | {after:.3f} | {after - before:+.3f} |")
+        before_f = float(before)
+        after_f = float(after)
+        lines.append(f"| {name} | {before_f:.3f} | {after_f:.3f} | {after_f - before_f:+.3f} |")
     lines.append("")
     return "\n".join(lines)
 
 
-def _markdown(run: SuiteRun, metrics: Metrics) -> str:
+def _markdown(run: SuiteRun, metrics: Metrics, calibration: dict | None = None) -> str:
     lo, hi = metrics.success_ci
     rows = [
         ("Success rate", f"{metrics.success_rate:.3f} (95% CI {lo:.3f}–{hi:.3f})"),
@@ -98,6 +110,14 @@ def _markdown(run: SuiteRun, metrics: Metrics) -> str:
         ("Latency p95 ms", f"{metrics.latency_p95:.1f}"),
         ("Tokens (mean)", f"{metrics.tokens_mean:.1f}"),
     ]
+    if metrics.advice_quality_mean is not None:
+        text = f"{metrics.advice_quality_mean:.3f}"
+        if calibration:
+            text += (
+                f"; exact {float(calibration['exact_agreement']):.3f},"
+                f" within one {float(calibration['within_one_agreement']):.3f}"
+            )
+        rows.append(("Advice quality", text))
     lines = [
         f"# Eval report {_date(run)} {_slug(run)} {_split(run)}",
         "",
