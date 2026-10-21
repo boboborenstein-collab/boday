@@ -82,7 +82,14 @@ def _ids_in(name: str, data: dict) -> set[str]:
     if name == "search_tasks":
         rows = data.get("results", [])
     elif name == "get_agenda":
-        rows = [i for d in data.get("days", []) for i in d.get("items", [])]
+        days = data.get("days", [])
+        rows = [i for d in days for i in d.get("items", [])]
+        rows += [
+            {"id": task_id}
+            for d in days
+            for clash in d.get("clashes", [])
+            for task_id in clash.get("task_ids", [])
+        ]
     else:
         rows = []
     return {r["id"] for r in rows if isinstance(r, dict) and "id" in r}

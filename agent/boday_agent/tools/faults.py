@@ -59,6 +59,9 @@ def post_fault_data(fault: Fault | None, tool: str, data: dict) -> dict:
     if fault.kind == "empty":
         return {
             **data,
-            "days": [{**d, "items": [], "total": 0, "truncated": False} for d in days],
+            "days": [{
+                **d, "items": [], "total": 0, "truncated": False,
+                "clashes": [], "overloaded": False,
+            } for d in days],
         }
     return {**data, "days": days[:1], "truncated": True}

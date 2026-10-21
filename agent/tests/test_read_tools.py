@@ -231,6 +231,38 @@ def test_truncated_search_fault_marks_only_returned_ids(snap):
     assert ctx.seen_ids == {r["id"] for r in data["results"]} and len(ctx.seen_ids) == 1
 
 
+def test_empty_agenda_fault_hides_clash_ids(snap):
+    from boday_agent.tools.faults import Fault, FaultPlan
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="empty")]))
+    day = execute(ctx, "get_agenda", {
+        "start_date": "2026-10-22", "end_date": "2026-10-22",
+    }).result.data["days"][0]
+    assert day["clashes"] == [] and day["overloaded"] is False
+    assert "dentist" not in ctx.seen_ids and "standup" not in ctx.seen_ids
+
+
+def test_truncated_fault_marks_capped_clash_partners_seen():
+    from boday_agent.domain.models import Snapshot
+    from boday_agent.tools.faults import Fault, FaultPlan
+    snap = Snapshot.from_app({
+        "tasks": [
+            _one_time("low", 4, "2026-09-02T12:00:00Z"),
+            _one_time("high", 1, "2026-09-01T12:00:00Z"),
+        ],
+        "completions": [], "quietWindows": [],
+        "now": "2026-10-20T09:00:00-04:00", "timezone": "America/New_York",
+    })
+    ctx = RunContext.create(snap, limits=Limits(max_agenda_items=1), faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="truncated")]))
+    day = execute(ctx, "get_agenda", {
+        "start_date": "2026-10-21", "end_date": "2026-10-21",
+    }).result.data["days"][0]
+    assert [i["id"] for i in day["items"]] == ["high"]
+    assert day["clashes"] == [{"time": "09:00", "task_ids": ["high", "low"]}]
+    assert ctx.seen_ids == {"high", "low"}
+
+
 def test_empty_agenda_fault_zeros_the_per_day_total(snap):
     from boday_agent.tools.faults import Fault, FaultPlan
     ctx = RunContext.create(snap, faults=FaultPlan(
