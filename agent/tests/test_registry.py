@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 from boday_agent.tools.context import RunContext, counting_ids
 from boday_agent.tools.faults import Fault, FaultPlan
 from boday_agent.tools.registry import REGISTRY, ToolSpec, execute, register, tool_schemas
-from boday_agent.tools.result import ToolResult
+from boday_agent.tools.result import ErrorCode, ToolError, ToolResult
 
 
 class _EchoArgs(BaseModel):
@@ -155,6 +155,45 @@ def test_empty_and_truncated_faults_on_search():
             REGISTRY["search_tasks"] = saved
         else:
             REGISTRY.pop("search_tasks", None)
+
+
+def test_tool_error_from_handler_is_returned_by_execute(ctx):
+    def _missing(c, a):
+        raise ToolError(ErrorCode.NOT_FOUND, "missing task", "look again")
+
+    register(ToolSpec("missing", "nope", _NoArgs, _missing, "read"))
+    try:
+        try:
+            rec = execute(ctx, "missing", {})
+        except Exception as exc:
+            pytest.fail(f"execute raised {type(exc).__name__}: {exc}")
+        err = rec.result.error
+        assert rec.result.ok is False
+        assert err.code == "NOT_FOUND"
+        assert err.message == "missing task" and err.hint == "look again"
+    finally:
+        REGISTRY.pop("missing", None)
+
+
+def test_agenda_faults_rewrite_the_payload_not_only_seen_ids(snap):
+    args = {"start_date": "2026-10-21", "end_date": "2026-10-22"}
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="empty")]))
+    rec = execute(ctx, "get_agenda", args)
+    data = rec.result.data
+    assert rec.injected_fault == "empty" and "truncated" not in data
+    assert data["days"]
+    for day in data["days"]:
+        assert day["items"] == [] and day["total"] == 0 and day["truncated"] is False
+
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="truncated")]))
+    rec = execute(ctx, "get_agenda", args)
+    data = rec.result.data
+    assert rec.injected_fault == "truncated" and data["truncated"] is True
+    assert [d["date"] for d in data["days"]] == ["2026-10-21"]
+    assert data["days"][0]["items"]
+    assert "dentist" not in {i["id"] for i in data["days"][0]["items"]}
 
 
 def test_require_seen_and_task(ctx):

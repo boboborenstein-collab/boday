@@ -38,4 +38,4 @@ Deferred items from the phase 1 final review, grouped by the phase that should p
 - [x] `test_blind_delete_blocked` should also show the delete being accepted after a read (`tests/test_scenarios.py`).
 - [x] The round-trip test should assert `patch` / `beforeFields` keys.
 - [x] Untested propose rules: end before start, start/end on a one-time create (`tests/test_propose_tools.py`).
-- `ToolError` propagation via `execute`, and agenda empty/truncated fault tests beyond the seen-id checks (`tests/test_registry.py`).
+- [x] `ToolError` propagation via `execute`, and agenda empty/truncated fault tests beyond the seen-id checks (`tests/test_registry.py`).
