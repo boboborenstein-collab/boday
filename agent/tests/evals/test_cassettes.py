@@ -229,3 +229,55 @@ def test_ci_case_file_matches_the_plan():
         "refuse": 1,
     }
     assert len(ids) == 10
+
+
+def _record_dentist(tmp_path):
+    from boday_agent.evals.runner import run_suite
+
+    cassettes = tmp_path / "cassettes"
+    run_suite(
+        [case()],
+        lambda: FakeProvider(list(DENTIST_SCRIPT)),
+        trials=1,
+        concurrency=1,
+        traces_dir=tmp_path / "traces",
+        cassette_dir=cassettes,
+        cassette_mode="record",
+    )
+    return cassettes
+
+
+def _replay(tmp_path, cassettes):
+    from boday_agent.evals.runner import run_suite
+
+    def boom():
+        raise AssertionError("replay must not construct a provider")
+
+    return run_suite(
+        [case()],
+        boom,
+        trials=1,
+        concurrency=1,
+        traces_dir=tmp_path / "replay-traces",
+        cassette_dir=cassettes,
+        cassette_mode="replay",
+    )
+
+
+def test_exhausted_cassette_aborts_the_replay_with_a_rerecord_message(tmp_path):
+    from boday_agent.evals.cassettes import CassetteMismatch
+
+    cassettes = _record_dentist(tmp_path)
+    path = cassettes / "move-dentist--t1.json"
+    payload = json.loads(path.read_text())
+    payload["responses"] = payload["responses"][:-1]
+    path.write_text(json.dumps(payload))
+    with pytest.raises(CassetteMismatch, match=r"exhausted.*re-record with --record"):
+        _replay(tmp_path, cassettes)
+
+
+def test_missing_cassette_says_to_rerecord(tmp_path):
+    from boday_agent.evals.cassettes import CassetteMismatch
+
+    with pytest.raises(CassetteMismatch, match=r"missing.*re-record with --record"):
+        _replay(tmp_path, tmp_path / "empty")

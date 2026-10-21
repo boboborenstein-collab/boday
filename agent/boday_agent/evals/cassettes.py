@@ -61,7 +61,7 @@ class ReplayProvider:
     def __init__(self, cassette: Path):
         path = Path(cassette)
         if not path.is_file():
-            raise CassetteMismatch(f"cassette missing: {path}")
+            raise CassetteMismatch(f"cassette missing: {path}: re-record with --record")
         data = json.loads(path.read_text())
         recorded = data.get("prompt_version")
         if recorded != PROMPT_VERSION:
@@ -73,6 +73,10 @@ class ReplayProvider:
             ModelResponse.model_validate(item) for item in data.get("responses") or []
         ]
         self._index = 0
+        self.path = path
+        # The loop turns any provider exception into a failed trial, so the
+        # runner checks this flag after the run and aborts instead.
+        self.exhausted = False
         info = data.get("provider") or {}
         self.name = str(info.get("provider") or "replay")
         self.model = str(info.get("model") or "replay")
@@ -84,6 +88,7 @@ class ReplayProvider:
 
     def complete(self, system: str, messages: list, tools: list[dict], timeout_s: float):
         if self._index >= len(self._responses):
+            self.exhausted = True
             raise CassetteMismatch("cassette exhausted")
         response = self._responses[self._index]
         self._index += 1

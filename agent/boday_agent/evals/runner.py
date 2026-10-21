@@ -104,6 +104,11 @@ def run_suite(
                 selection_reason=selection_reason,
                 now_iso=case.now.isoformat(),
             )
+            if getattr(provider, "exhausted", False):
+                raise CassetteMismatch(
+                    f"cassette exhausted: {provider.path}: the agent needed more model "
+                    "calls than were recorded; re-record with --record"
+                )
             path = sink.write(result.trace)
             totals = result.trace.totals
             return _from_result(case, trial, result, str(path), totals)
