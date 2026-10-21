@@ -1,9 +1,13 @@
-"""`boday-eval` command line. Part A ships `validate` only."""
+"""`boday-eval` command line."""
 from __future__ import annotations
 
 import argparse
+import json
+import re
 import sys
+from pathlib import Path
 
+from boday_agent.cli import _headers, make_provider
 from boday_agent.evals.loader import (
     CASES_DIR,
     FIXTURES_DIR,
@@ -12,6 +16,9 @@ from boday_agent.evals.loader import (
     validate_suite,
 )
 from boday_agent.evals.oracle import check_expectations
+from boday_agent.evals.runner import SuiteRun, run_suite, suite_payload
+
+RESULTS_DIR = CASES_DIR.parent / "results"
 
 
 def _validate() -> int:
@@ -38,13 +45,117 @@ def _validate() -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def _provider_args(args: argparse.Namespace) -> argparse.Namespace:
+    return argparse.Namespace(
+        provider=args.provider,
+        model=args.model,
+        base_url=args.base_url,
+        api_key_env=None,
+        header=args.header,
+        effort=args.effort,
+    )
+
+
+def _filter_cases(cases, args: argparse.Namespace):
+    if args.split != "all":
+        cases = [case for case in cases if case.split == args.split]
+    if args.case:
+        wanted = list(dict.fromkeys(args.case))
+        found = {case.id for case in cases}
+        missing = [item for item in wanted if item not in found]
+        if missing:
+            print("unknown case: " + ", ".join(missing))
+            return None
+        chosen = set(wanted)
+        cases = [case for case in cases if case.id in chosen]
+    if args.category:
+        allowed = set(args.category)
+        cases = [case for case in cases if case.category in allowed]
+    return cases
+
+
+def _write_results(run: SuiteRun, out_dir: Path) -> Path:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    slug = re.sub(r"[^A-Za-z0-9._-]+", "-", str(run.stamp.get("model") or "model")).strip("-")
+    slug = slug or "model"
+    date = str(run.stamp.get("date") or "undated")
+    split = str(run.stamp.get("split") or "all")
+    path = out_dir / f"{date}-{slug}-{split}.json"
+    path.write_text(json.dumps(suite_payload(run), indent=2) + "\n")
+    print(path)
+    return path
+
+
+def _run(args: argparse.Namespace) -> int:
+    if not args.provider:
+        print("--provider is required", file=sys.stderr)
+        return 2
+    if args.provider in ("openai", "auto") and not args.base_url:
+        print("--base-url is required for provider " + args.provider, file=sys.stderr)
+        return 2
+    if args.provider in ("openai", "auto") and not args.model:
+        print("--model is required for provider " + args.provider, file=sys.stderr)
+        return 2
+    try:
+        _headers(args.header or [])
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return 2
+    try:
+        cases = load_cases(CASES_DIR)
+    except ValueError as exc:
+        print(exc)
+        return 1
+    selected = _filter_cases(cases, args)
+    if selected is None:
+        return 1
+    if not selected:
+        print("no cases matched")
+        return 1
+    out = Path(args.out) if args.out else RESULTS_DIR
+
+    def factory():
+        # A fresh client per trial. Construction waits until the trial runs.
+        provider, _reason = make_provider(_provider_args(args))
+        return provider
+
+    run = run_suite(
+        selected,
+        factory,
+        traces_dir=out / "traces",
+        trials=args.trials,
+        concurrency=args.concurrency,
+        selection_reason="explicit",
+    )
+    _write_results(run, out)
+    return 0
+
+
+def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="boday-eval")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate", help="Check case files, fixtures, and expected answers")
-    args = parser.parse_args(argv)
+    run = sub.add_parser("run", help="Run cases and write graded results JSON")
+    run.add_argument("--provider", choices=["anthropic", "openai", "auto"])
+    run.add_argument("--model", default=None)
+    run.add_argument("--base-url", default=None)
+    run.add_argument("--header", action="append", default=None)
+    run.add_argument("--effort", default=None)
+    run.add_argument("--trials", type=int, default=3)
+    run.add_argument("--split", choices=["dev", "holdout", "all"], default="all")
+    run.add_argument("--case", action="append", default=None)
+    run.add_argument("--category", action="append", default=None)
+    run.add_argument("--concurrency", type=int, default=4)
+    run.add_argument("--out", default=None)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
     if args.command == "validate":
         return _validate()
+    if args.command == "run":
+        return _run(args)
     return 2
 
 
