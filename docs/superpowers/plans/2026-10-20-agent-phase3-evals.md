@@ -287,7 +287,7 @@ Required scenarios:
 - [x] **Step 1: Extend `test_suite.py`** to enforce all minimums, total 97–110, holdout 22–28 and ≤40% per category.
 - [x] **Step 2: Write the five YAML files and the rubric.**
 - [x] **Step 3: Run** `uv run boday-eval validate && uv run pytest -q` → all OK.
-- [ ] **Step 4: Commit, push, open PR for Part A** — `git commit -m "evals: cases part 2 + judge rubric"`; `gh pr create --base main --title "Agent phase 3A: eval cases, fixtures, grader" --body "Part A of docs/superpowers/plans/2026-10-20-agent-phase3-evals.md."`
+- [x] **Step 4: Commit, push, open PR for Part A** — `git commit -m "evals: cases part 2 + judge rubric"`; `gh pr create --base main --title "Agent phase 3A: eval cases, fixtures, grader" --body "Part A of docs/superpowers/plans/2026-10-20-agent-phase3-evals.md."`
 
 ---
 
