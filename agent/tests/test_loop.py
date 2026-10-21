@@ -67,9 +67,11 @@ def test_ask_after_propose_discards_draft(snap):
 
 
 def test_step_cap_fails_closed(snap):
-    script = [fake_tools(("search_tasks", {"query": "x"}))] * 8
-    r = run(script, snapshot=snap)
+    # One response more than the cap, so an off-by-one in either direction shows up.
+    provider = FakeProvider([fake_tools(("search_tasks", {"query": "x"}))] * 9)
+    r = run_agent(AgentRequest(message="x", snapshot=snap), provider, id_gen=counting_ids())
     assert r.outcome == "failed" and r.changes == [] and r.trace.error == "step limit reached"
+    assert r.trace.totals["model_calls"] == 8 and len(provider.calls) == 8
 
 
 def test_bad_json_args_become_invalid_args(snap):
@@ -106,14 +108,105 @@ def test_provider_error_fails_and_is_redacted(snap):
     assert r.outcome == "failed" and "sk-ant-secret1" not in (r.trace.error or "")
 
 
-def test_timeout(snap):
-    ticks = iter([0.0, 0.0, 61.0, 61.0])
-    r = run(
-        [fake_tools(("search_tasks", {"query": "x"})), fake_text("never")],
-        snapshot=snap,
-        timer=lambda: next(ticks),
+class SlowProvider(FakeProvider):
+    """Each model call advances a shared clock, independent of how often the loop reads it."""
+
+    def __init__(self, script, clock, seconds_per_call, **kw):
+        super().__init__(script, **kw)
+        self.clock = clock
+        self.seconds_per_call = seconds_per_call
+
+    def complete(self, system, messages, tools, timeout_s):
+        self.clock["t"] += self.seconds_per_call
+        return super().complete(system, messages, tools, timeout_s)
+
+
+def run_slow(snap, script, seconds_per_call, **kw):
+    clock = {"t": 0.0}
+    provider = SlowProvider(script, clock, seconds_per_call, **kw)
+    r = run_agent(
+        AgentRequest(message="x", snapshot=snap),
+        provider,
+        id_gen=counting_ids(),
+        timer=lambda: clock["t"],
     )
-    assert r.outcome == "failed" and r.trace.error == "timeout"
+    return r, provider
+
+
+def test_timeout_is_checked_before_each_model_call(snap):
+    r, provider = run_slow(
+        snap, [fake_tools(("search_tasks", {"query": "x"})), fake_text("never")], 61.0
+    )
+    assert r.outcome == "failed" and r.trace.error == "timeout" and r.changes == []
+    assert len(provider.calls) == 1
+
+
+def test_provider_gets_the_remaining_budget(snap):
+    script = [fake_tools(("search_tasks", {"query": "x"})), fake_text("ok")]
+    r, provider = run_slow(snap, script, 45.0)
+    assert r.outcome == "answered" and provider.timeouts == [60.0, 15.0]
+    _, local = run_slow(snap, [fake_text("ok")], 1.0, is_local=True)
+    assert local.timeouts == [90.0]
+
+
+def test_unseen_id_is_rejected_without_a_read(snap):
+    r = run(
+        [
+            fake_tools(("propose_delete_task", {"task_id": "dentist", "reason": "x"})),
+            fake_text("I need to look that up first."),
+        ],
+        snapshot=snap,
+    )
+    ev = [e for e in r.trace.events if e.type == "tool_call"][0]
+    assert ev.ok is False and ev.error_code == "UNSEEN_ID"
+    assert r.outcome == "answered" and r.changes == []
+
+
+def test_refusal_after_a_draft_returns_no_changes(snap):
+    refusal = fake_text("I won't do that.")
+    refusal.stop_reason = "refusal"
+    r = run(
+        [
+            fake_tools(("search_tasks", {"query": "dentist"})),
+            fake_tools(("propose_update_task", {"task_id": "dentist", "changes": {"priority": 1}})),
+            refusal,
+        ],
+        snapshot=snap,
+    )
+    assert r.outcome == "refused" and r.changes == []
+
+
+def test_delete_limit_holds_through_the_loop(snap):
+    ids = ["dentist", "call-mom-1", "call-mom-2", "taxes"]
+    deletes = [("propose_delete_task", {"task_id": i, "reason": "cleanup"}) for i in ids]
+    r = run(
+        [fake_tools(("search_tasks", {})), fake_tools(*deletes), fake_text("Deleting three.")],
+        snapshot=snap,
+    )
+    evs = [e for e in r.trace.events if e.type == "tool_call"][1:]
+    assert [e.ok for e in evs] == [True, True, True, False]
+    assert evs[-1].error_code == "LIMIT_EXCEEDED"
+    assert r.outcome == "proposed" and len(r.changes) == 3
+
+
+def test_change_limit_holds_through_the_loop(snap):
+    creates = [
+        ("propose_create_task",
+         {"title": f"Errand {i}", "type": "one_time", "scheduled_date": "2026-10-28"})
+        for i in range(26)
+    ]
+    r = run(
+        [
+            fake_tools(*creates[:10]),
+            fake_tools(*creates[10:20]),
+            fake_tools(*creates[20:]),
+            fake_text("Added them."),
+        ],
+        snapshot=snap,
+    )
+    evs = [e for e in r.trace.events if e.type == "tool_call"]
+    assert all(e.ok for e in evs[:25]) and evs[25].error_code == "LIMIT_EXCEEDED"
+    assert r.outcome == "proposed" and len(r.changes) == 25
 
 
 def test_run_ids_do_not_share_the_counting_generator(snap):

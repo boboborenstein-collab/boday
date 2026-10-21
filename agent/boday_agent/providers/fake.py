@@ -18,11 +18,13 @@ class FakeProvider:
         self.model = model
         self.is_local = is_local
         self.calls: list[tuple] = []
+        self.timeouts: list[float] = []
 
     def complete(
         self, system: str, messages: list, tools: list[dict], timeout_s: float
     ) -> ModelResponse:
         self.calls.append((system, messages, tools))
+        self.timeouts.append(timeout_s)
         if not self.script:
             raise AssertionError("FakeProvider script exhausted")
         item = self.script.pop(0)
