@@ -1,0 +1,96 @@
+- "id": "adv-what-to-drop"
+  "category": "advice"
+  "label": "either"
+  "split": "holdout"
+  "fixture": "overloaded_week"
+  "turns":
+  - "user": "i have a lot this week, what should i drop?"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Name the crowded Wednesday errands and what can move, without inventing tasks."
+- "id": "adv-first-today"
+  "category": "advice"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "what should i do first today?"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Put carried-over P1 taxes ahead of lower-priority items actually on Tuesday."
+- "id": "adv-week-realistic"
+  "category": "advice"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "is my week realistic?"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Judge the real Tuesday-through-Sunday load, including Shabbat Friday evening."
+- "id": "adv-fit-gym"
+  "category": "advice"
+  "label": "either"
+  "split": "holdout"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "how can i fit in the gym more?"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Use the existing Mon/Wed/Fri 7am gym series. Do not invent a second gym."
+- "id": "adv-behind"
+  "category": "advice"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "what am i behind on?"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Taxes were due Oct 15 and are still open. Do not invent other late tasks."
+- "id": "adv-friday-shabbat"
+  "category": "advice"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "help me plan friday before shabbat"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Friday candle-lighting is 17:52. Dinner with Dana is 19:00, inside the quiet window."
+- "id": "adv-move-dentist"
+  "category": "advice"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "should i move the dentist?"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Dentist is Thursday Oct 22 at 9am, same time as standup. Suggest, do not claim it moved."
+- "id": "adv-tomorrow-morning"
+  "category": "advice"
+  "label": "either"
+  "split": "dev"
+  "fixture": "typical_week"
+  "turns":
+  - "user": "give me a plan for tomorrow morning"
+  "expect":
+    "accept":
+    - "outcome": "answered"
+    "judge":
+      "rubric_focus": "Tomorrow is Wednesday Oct 21: gym 7am, standup 9am, torah 6:30am. No invented errands."

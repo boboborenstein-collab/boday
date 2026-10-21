@@ -1,0 +1,155 @@
+- id: dentist-wed-9am
+  category: conflicts
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move the dentist to wednesday at 9am
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-21'
+  notes: Dentist is already at 09:00, so only the date changes. Standup clashes; a
+    warning is fine.
+- id: haircut-wed-9am
+  category: conflicts
+  label: either
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: book 9am wed for haircut
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: haircut
+          type: one_time
+          scheduledDate: '2026-10-21'
+          reminderTime: 09:00
+    - outcome: proposed
+      changes:
+      - op: update
+        task: haircut
+        fields:
+          scheduledDate: '2026-10-21'
+          reminderTime: 09:00
+- id: shabbat-call
+  category: conflicts
+  label: either
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: schedule a call friday at 7pm
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: call
+          type: one_time
+          scheduledDate: '2026-10-23'
+          reminderTime: '19:00'
+  notes: 19:00 Friday is inside the Shabbat quiet window.
+- id: wednesday-one-more
+  category: conflicts
+  label: either
+  split: dev
+  fixture: overloaded_week
+  turns:
+  - user: can u add pick up dry cleaning to wednesday
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: dry clean
+          type: one_time
+          scheduledDate: '2026-10-21'
+  notes: Wednesday already has 12 errands. Adding it or first asking about the overload are both fine.
+- id: wednesday-to-thursday
+  category: conflicts
+  label: should_act
+  split: dev
+  fixture: overloaded_week
+  turns:
+  - user: move everything from wensday to thursday
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: errand-1
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-2
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-3
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-4
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-5
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-6
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-7
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-8
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-9
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-10
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-11
+        fields:
+          scheduledDate: '2026-10-22'
+      - op: update
+        task: errand-12
+        fields:
+          scheduledDate: '2026-10-22'
+  notes: The 12 one-time errands. Recurring series stay put.
+- id: dinner-9am
+  category: conflicts
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: put dinner with dana at 9am instead
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dinner-dana
+        fields:
+          reminderTime: 09:00
+  notes: Clashes with standup on Friday. A warning is fine.

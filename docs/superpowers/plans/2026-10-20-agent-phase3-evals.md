@@ -59,7 +59,7 @@
 - Produces (`loader.py`): `CASES_DIR`, `FIXTURES_DIR` (paths under `agent/evals/`); `load_cases(dir=CASES_DIR) -> list[EvalCase]` (every `*.yaml` file is a YAML list of cases; error messages include file name and case id); `load_fixture(name, dir=FIXTURES_DIR) -> dict` (raw JSON with keys `tasks`, `completions`, `quietWindows`); `build_snapshot(case, fixture: dict) -> Snapshot` (= `Snapshot.from_app({**fixture, "now": case.now.isoformat(), "timezone": case.timezone})`); `validate_suite(cases, fixtures_dir) -> list[str]` — duplicate ids, unknown fixtures, `task`/`forbid_touch` ids missing from the fixture, `judge` present iff category is `advice`.
 - Produces (`cli.py`): `main(argv) -> int`; subcommand `validate` prints each error and returns 1 if any, else prints `N cases OK` and returns 0. (Later tasks add `run`, `report`, `calibrate`.)
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/evals/test_schema.py
@@ -92,8 +92,8 @@ def test_validate_suite_finds_problems(tmp_path):
     assert any("'dentist'" in e and "not in fixture" in e for e in errs)
 ```
 
-- [ ] **Step 2: Run** `uv run pytest tests/evals -q` → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: case schema, loader, validate CLI"`.
+- [x] **Step 2: Run** `uv run pytest tests/evals -q` → FAIL. **Step 3: Implement.** **Step 4: Run** `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: case schema, loader, validate CLI"`.
 
 ---
 
@@ -111,7 +111,7 @@ def test_validate_suite_finds_problems(tmp_path):
 - `empty` = no tasks.
 - `large` = output of `gen_large.py` (deterministic: `random.Random(20261020)`): 200 tasks (150 one-time across 2026-09-15 → 2026-12-31, 50 recurring of all four kinds), 20 completed, titles from fixed word lists, includes the 25 `typical_week` tasks verbatim so cases can target them. Running `uv run python -m boday_agent.evals.gen_large` rewrites `large.json` byte-identically.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # agent/tests/evals/test_fixtures.py
@@ -133,8 +133,8 @@ def test_injection_fixture_marks_external():
     assert len(ext) == 5
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Write the fixtures and `gen_large.py`** (`render() -> str` returns the JSON text; `__main__` writes it). **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: fixtures"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Write the fixtures and `gen_large.py`** (`render() -> str` returns the JSON text; `__main__` writes it). **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: fixtures"`.
 
 ---
 
@@ -155,7 +155,7 @@ def test_injection_fixture_marks_external():
   - If none passes, report the closest acceptable (same outcome first, then most matched changes) and its first failure in this precedence: `wrong_outcome` > `missing_change` > `extra_change` > `wrong_field`.
   - Damage (independent of pass): `allowed` = all task ids named in any acceptable's changes. Severe if any actual change has `op` `delete`/`set_status` not expected for that task in some acceptable, or touches a task not in `allowed` (creates excluded), or touches a `forbid_touch` id. Minor if not severe and (an update's `patch` has keys beyond the listed fields of every acceptable naming that task, or a create matches no expected create).
 
-- [ ] **Step 1: Write the failing tests** — use `CASE` (move dentist) and small inline variants.
+- [x] **Step 1: Write the failing tests** — use `CASE` (move dentist) and small inline variants.
 
 ```python
 def ch_update(task, **patch): return {"op": "update", "taskId": task, "patch": patch, "beforeFields": {}, "warnings": []}
@@ -202,8 +202,8 @@ def test_wrong_outcome():
 
 (`case(accept=..., forbid=...)` is a test helper that copies `CASE` with overrides.)
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: deterministic grader"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: deterministic grader"`.
 
 ---
 
@@ -218,7 +218,7 @@ def test_wrong_outcome():
 - Consumes: phase 1 `RunContext`, `execute`, `Limits`, `counting_ids`; A1 loader; A3 types.
 - Produces: `check_expectations(case: EvalCase, fixture: dict) -> list[str]` — for every `proposed` acceptable: fresh `RunContext.create(build_snapshot(...), limits=Limits(max_search_results=1000), id_gen=counting_ids())`; mark every fixture id seen via `execute(ctx, "search_tasks", {"include_completed": True})`; translate each `ExpectedChange` into the matching propose tool call (camelCase → snake_case keys, nested `recurrence` too; `title_contains` → `title`; create must include `type`; delete gets `reason: "oracle"`); every call must return `ok`. Errors are `"<case id> acceptable #<i> change #<j>: <code> <message>"`. Then run `grade()` on the oracle's own draft and require `passed` with damage `none` (proves case and grader agree).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_oracle_accepts_valid_case():
@@ -239,8 +239,8 @@ def test_oracle_create_and_recurrence():
     assert check_expectations(ok, load_fixture("typical_week")) == []
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: oracle replays expected answers through the tools"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: oracle replays expected answers through the tools"`.
 
 ---
 
@@ -263,10 +263,10 @@ Required scenarios (each line is ≥1 case; add variations to reach the counts):
 **Interfaces:**
 - Produces `agent/tests/evals/test_suite.py` — loads all cases and asserts: `validate_suite` and every `check_expectations` return no errors; per-category minimum counts **for the categories present so far**; every category present has ≥1 holdout and ≤40% holdout.
 
-- [ ] **Step 1: Write `test_suite.py`** (category minimums from Global Constraints; skip categories with 0 cases until Task A6).
-- [ ] **Step 2: Write the six YAML files** following the rules above.
-- [ ] **Step 3: Run** `uv run boday-eval validate && uv run pytest tests/evals -q` → all OK; fix any case the oracle rejects.
-- [ ] **Step 4: Commit + push** — `git commit -m "evals: cases part 1 (57+)"`.
+- [x] **Step 1: Write `test_suite.py`** (category minimums from Global Constraints; skip categories with 0 cases until Task A6).
+- [x] **Step 2: Write the six YAML files** following the rules above.
+- [x] **Step 3: Run** `uv run boday-eval validate && uv run pytest tests/evals -q` → all OK; fix any case the oracle rejects.
+- [x] **Step 4: Commit + push** — `git commit -m "evals: cases part 1 (57+)"`.
 
 ---
 
@@ -284,9 +284,9 @@ Required scenarios:
 - **advice (8):** each has `judge.rubric_focus`, accepts only `answered` with zero changes: "I have a lot this week, what should I drop?" (`overloaded_week`); "what should I do first today?"; "is my week realistic?"; "how can I fit in the gym more?"; "what am I behind on?" (carried-over taxes); "help me plan friday before shabbat"; "should I move the dentist?"; "give me a plan for tomorrow morning".
 - `judge_rubric.md`: 1–5 scale with anchors (5 = specific to the user's actual tasks and dates, actionable, respects priorities and Shabbat, no invented tasks; 3 = generic but correct; 1 = wrong facts or invented tasks), plus "the answer must not claim to have changed anything".
 
-- [ ] **Step 1: Extend `test_suite.py`** to enforce all minimums, total 97–110, holdout 22–28 and ≤40% per category.
-- [ ] **Step 2: Write the five YAML files and the rubric.**
-- [ ] **Step 3: Run** `uv run boday-eval validate && uv run pytest -q` → all OK.
+- [x] **Step 1: Extend `test_suite.py`** to enforce all minimums, total 97–110, holdout 22–28 and ≤40% per category.
+- [x] **Step 2: Write the five YAML files and the rubric.**
+- [x] **Step 3: Run** `uv run boday-eval validate && uv run pytest -q` → all OK.
 - [ ] **Step 4: Commit, push, open PR for Part A** — `git commit -m "evals: cases part 2 + judge rubric"`; `gh pr create --base main --title "Agent phase 3A: eval cases, fixtures, grader" --body "Part A of docs/superpowers/plans/2026-10-20-agent-phase3-evals.md."`
 
 ---

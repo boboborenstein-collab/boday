@@ -1,0 +1,2850 @@
+{
+  "tasks": [
+    {
+      "id": "dentist",
+      "type": "one_time",
+      "title": "Dentist appointment",
+      "priority": 2,
+      "scheduledDate": "2026-10-22",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "09:00",
+      "tags": [
+        "health"
+      ]
+    },
+    {
+      "id": "gym",
+      "type": "recurring",
+      "title": "Gym",
+      "priority": 4,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          1,
+          3,
+          5
+        ]
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00",
+      "tags": [
+        "health"
+      ]
+    },
+    {
+      "id": "standup",
+      "type": "recurring",
+      "title": "Standup",
+      "priority": 2,
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "09:00",
+      "tags": [
+        "work"
+      ]
+    },
+    {
+      "id": "torah",
+      "type": "recurring",
+      "title": "Torah study",
+      "priority": 5,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "06:30"
+    },
+    {
+      "id": "call-mom",
+      "type": "one_time",
+      "title": "Call mom",
+      "priority": 3,
+      "scheduledDate": "2026-10-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "call-mom-thanksgiving",
+      "type": "one_time",
+      "title": "Call mom about Thanksgiving",
+      "priority": 4,
+      "scheduledDate": "2026-10-24",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "taxes",
+      "type": "one_time",
+      "title": "File taxes",
+      "priority": 1,
+      "scheduledDate": "2026-10-15",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "rent",
+      "type": "recurring",
+      "title": "Pay rent",
+      "priority": 2,
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 1
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "groceries",
+      "type": "recurring",
+      "title": "Groceries",
+      "priority": 4,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0
+        ]
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "team-sync",
+      "type": "recurring",
+      "title": "Team sync",
+      "priority": 2,
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 14
+      },
+      "startDate": "2026-10-13",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00",
+      "tags": [
+        "work"
+      ]
+    },
+    {
+      "id": "report",
+      "type": "one_time",
+      "title": "Send report",
+      "priority": 2,
+      "scheduledDate": "2026-10-19",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-10-19T14:00:00Z",
+      "tags": [
+        "work"
+      ]
+    },
+    {
+      "id": "dinner-dana",
+      "type": "one_time",
+      "title": "Dinner with Dana",
+      "priority": 3,
+      "scheduledDate": "2026-10-23",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "vet",
+      "type": "one_time",
+      "title": "Vet appointment",
+      "priority": 2,
+      "scheduledDate": "2026-10-26",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "15:00",
+      "tags": [
+        "health"
+      ]
+    },
+    {
+      "id": "book-flights",
+      "type": "one_time",
+      "title": "Book flights",
+      "priority": 2,
+      "scheduledDate": "2026-10-28",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "work"
+      ],
+      "notes": "Compare JFK and EWR for the December trip",
+      "subtasks": [
+        {
+          "id": "book-flights-dates",
+          "title": "Check dates",
+          "done": false
+        },
+        {
+          "id": "book-flights-fares",
+          "title": "Compare fares",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "pharmacy",
+      "type": "one_time",
+      "title": "Pick up prescription",
+      "priority": 3,
+      "scheduledDate": "2026-10-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "health"
+      ]
+    },
+    {
+      "id": "laundry",
+      "type": "one_time",
+      "title": "Do laundry",
+      "priority": 4,
+      "scheduledDate": "2026-10-22",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "budget",
+      "type": "one_time",
+      "title": "Review budget",
+      "priority": 3,
+      "scheduledDate": "2026-10-25",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "oil-change",
+      "type": "one_time",
+      "title": "Oil change",
+      "priority": 2,
+      "scheduledDate": "2026-10-27",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "presentation",
+      "type": "one_time",
+      "title": "Finish presentation",
+      "priority": 1,
+      "scheduledDate": "2026-10-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "work"
+      ]
+    },
+    {
+      "id": "inbox",
+      "type": "one_time",
+      "title": "Clear inbox",
+      "priority": 3,
+      "scheduledDate": "2026-10-30",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00",
+      "tags": [
+        "work"
+      ]
+    },
+    {
+      "id": "haircut",
+      "type": "one_time",
+      "title": "Haircut",
+      "priority": 3,
+      "scheduledDate": "2026-11-02",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "plants",
+      "type": "one_time",
+      "title": "Water plants",
+      "priority": 4,
+      "scheduledDate": "2026-11-04",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "tags": [
+        "home"
+      ]
+    },
+    {
+      "id": "volunteer",
+      "type": "one_time",
+      "title": "Volunteer shift",
+      "priority": 2,
+      "scheduledDate": "2026-11-05",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "10:00",
+      "tags": [
+        "work"
+      ]
+    },
+    {
+      "id": "backup",
+      "type": "recurring",
+      "title": "Back up laptop",
+      "priority": 2,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          4
+        ]
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00",
+      "tags": [
+        "work"
+      ]
+    },
+    {
+      "id": "swim",
+      "type": "recurring",
+      "title": "Swim laps",
+      "priority": 4,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          2,
+          4
+        ]
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "17:00",
+      "tags": [
+        "health"
+      ]
+    },
+    {
+      "id": "g-ot-001",
+      "type": "one_time",
+      "title": "keen invoice 1",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-01",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-002",
+      "type": "one_time",
+      "title": "plain checklist 2",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-02",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-003",
+      "type": "one_time",
+      "title": "calm journal 3",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-03",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "09:00"
+    },
+    {
+      "id": "g-ot-004",
+      "type": "one_time",
+      "title": "quiet invoice 4",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-04",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-005",
+      "type": "one_time",
+      "title": "inner recap 5",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-05",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00"
+    },
+    {
+      "id": "g-ot-006",
+      "type": "one_time",
+      "title": "gentle recap 6",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-06",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-007",
+      "type": "one_time",
+      "title": "gentle checklist 7",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-07",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-008",
+      "type": "one_time",
+      "title": "open invoice 8",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-08",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-009",
+      "type": "one_time",
+      "title": "tidy errand 9",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-09",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "15:00"
+    },
+    {
+      "id": "g-ot-010",
+      "type": "one_time",
+      "title": "calm packet 10",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-10",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "09:00"
+    },
+    {
+      "id": "g-ot-011",
+      "type": "one_time",
+      "title": "minor update 11",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-11",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-012",
+      "type": "one_time",
+      "title": "minor packet 12",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-12",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-ot-013",
+      "type": "one_time",
+      "title": "joint survey 13",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-13",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-014",
+      "type": "one_time",
+      "title": "open journal 14",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-14",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00"
+    },
+    {
+      "id": "g-ot-015",
+      "type": "one_time",
+      "title": "quiet invoice 15",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-15",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-016",
+      "type": "one_time",
+      "title": "rapid update 16",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-16",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-017",
+      "type": "one_time",
+      "title": "final recap 17",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-17",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00"
+    },
+    {
+      "id": "g-ot-018",
+      "type": "one_time",
+      "title": "local kickoff 18",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-18",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "06:00"
+    },
+    {
+      "id": "g-ot-019",
+      "type": "one_time",
+      "title": "rapid journal 19",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-19",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "13:00"
+    },
+    {
+      "id": "g-ot-020",
+      "type": "one_time",
+      "title": "calm kickoff 20",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "13:00"
+    },
+    {
+      "id": "g-ot-021",
+      "type": "one_time",
+      "title": "minor update 21",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-21",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00"
+    },
+    {
+      "id": "g-ot-022",
+      "type": "one_time",
+      "title": "open errand 22",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-22",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "09:00"
+    },
+    {
+      "id": "g-ot-023",
+      "type": "one_time",
+      "title": "plain packet 23",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-23",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00"
+    },
+    {
+      "id": "g-ot-024",
+      "type": "one_time",
+      "title": "quiet lunch 24",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-24",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00"
+    },
+    {
+      "id": "g-ot-025",
+      "type": "one_time",
+      "title": "plain worksheet 25",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-25",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-026",
+      "type": "one_time",
+      "title": "brisk invoice 26",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-26",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "20:00"
+    },
+    {
+      "id": "g-ot-027",
+      "type": "one_time",
+      "title": "gentle budget 27",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-27",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "14:00"
+    },
+    {
+      "id": "g-ot-028",
+      "type": "one_time",
+      "title": "rapid lunch 28",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-28",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-ot-029",
+      "type": "one_time",
+      "title": "open followup 29",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00"
+    },
+    {
+      "id": "g-ot-030",
+      "type": "one_time",
+      "title": "local budget 30",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-30",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00"
+    },
+    {
+      "id": "g-ot-031",
+      "type": "one_time",
+      "title": "gentle checklist 31",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-07",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-032",
+      "type": "one_time",
+      "title": "open budget 32",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-10-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-033",
+      "type": "one_time",
+      "title": "quiet followup 33",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-24",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-034",
+      "type": "one_time",
+      "title": "quiet worksheet 34",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-23",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00"
+    },
+    {
+      "id": "g-ot-035",
+      "type": "one_time",
+      "title": "early visit 35",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-14",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "14:00"
+    },
+    {
+      "id": "g-ot-036",
+      "type": "one_time",
+      "title": "daily kickoff 36",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-30",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "20:00"
+    },
+    {
+      "id": "g-ot-037",
+      "type": "one_time",
+      "title": "final budget 37",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-28",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-038",
+      "type": "one_time",
+      "title": "keen template 38",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-12-12",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-039",
+      "type": "one_time",
+      "title": "gentle memo 39",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-16",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-040",
+      "type": "one_time",
+      "title": "minor packet 40",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-27",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00"
+    },
+    {
+      "id": "g-ot-041",
+      "type": "one_time",
+      "title": "daily outreach 41",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-17",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-042",
+      "type": "one_time",
+      "title": "small worksheet 42",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-01",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-043",
+      "type": "one_time",
+      "title": "small template 43",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-10-16",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-044",
+      "type": "one_time",
+      "title": "hasty checklist 44",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-19",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "17:00"
+    },
+    {
+      "id": "g-ot-045",
+      "type": "one_time",
+      "title": "final errand 45",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-10-07",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "10:00"
+    },
+    {
+      "id": "g-ot-046",
+      "type": "one_time",
+      "title": "quiet lunch 46",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-28",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-047",
+      "type": "one_time",
+      "title": "joint recap 47",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-31",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "12:00"
+    },
+    {
+      "id": "g-ot-048",
+      "type": "one_time",
+      "title": "quiet kickoff 48",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-08",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-049",
+      "type": "one_time",
+      "title": "joint outreach 49",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-12-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-050",
+      "type": "one_time",
+      "title": "hasty outreach 50",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-051",
+      "type": "one_time",
+      "title": "plain template 51",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-16",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00"
+    },
+    {
+      "id": "g-ot-052",
+      "type": "one_time",
+      "title": "tidy memo 52",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-053",
+      "type": "one_time",
+      "title": "open lunch 53",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-07",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "20:00"
+    },
+    {
+      "id": "g-ot-054",
+      "type": "one_time",
+      "title": "open recap 54",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-30",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-055",
+      "type": "one_time",
+      "title": "brisk update 55",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-03",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "14:00"
+    },
+    {
+      "id": "g-ot-056",
+      "type": "one_time",
+      "title": "open draft 56",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-08",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "12:00"
+    },
+    {
+      "id": "g-ot-057",
+      "type": "one_time",
+      "title": "calm outreach 57",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-12-19",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00"
+    },
+    {
+      "id": "g-ot-058",
+      "type": "one_time",
+      "title": "open lunch 58",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-06",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00"
+    },
+    {
+      "id": "g-ot-059",
+      "type": "one_time",
+      "title": "tidy template 59",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-25",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-060",
+      "type": "one_time",
+      "title": "plain template 60",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-14",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-061",
+      "type": "one_time",
+      "title": "quiet draft 61",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-19",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-062",
+      "type": "one_time",
+      "title": "gentle kickoff 62",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-063",
+      "type": "one_time",
+      "title": "brisk audit 63",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-11",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-064",
+      "type": "one_time",
+      "title": "keen followup 64",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-05",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00"
+    },
+    {
+      "id": "g-ot-065",
+      "type": "one_time",
+      "title": "quiet outreach 65",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-12-31",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00"
+    },
+    {
+      "id": "g-ot-066",
+      "type": "one_time",
+      "title": "keen kickoff 66",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-26",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00"
+    },
+    {
+      "id": "g-ot-067",
+      "type": "one_time",
+      "title": "rapid lunch 67",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-14",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-068",
+      "type": "one_time",
+      "title": "tidy invoice 68",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-12-19",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00"
+    },
+    {
+      "id": "g-ot-069",
+      "type": "one_time",
+      "title": "gentle draft 69",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-26",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-070",
+      "type": "one_time",
+      "title": "tidy queue 70",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-26",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-ot-071",
+      "type": "one_time",
+      "title": "quiet checklist 71",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-10-28",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "06:00"
+    },
+    {
+      "id": "g-ot-072",
+      "type": "one_time",
+      "title": "brisk packet 72",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-03",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-073",
+      "type": "one_time",
+      "title": "gentle outreach 73",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-22",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-074",
+      "type": "one_time",
+      "title": "daily outreach 74",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-09",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "20:00"
+    },
+    {
+      "id": "g-ot-075",
+      "type": "one_time",
+      "title": "calm invoice 75",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-12-17",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-076",
+      "type": "one_time",
+      "title": "keen budget 76",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-077",
+      "type": "one_time",
+      "title": "tidy invoice 77",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-22",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00"
+    },
+    {
+      "id": "g-ot-078",
+      "type": "one_time",
+      "title": "joint survey 78",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-15",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-079",
+      "type": "one_time",
+      "title": "neat lunch 79",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-21",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-080",
+      "type": "one_time",
+      "title": "tidy template 80",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-07",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00"
+    },
+    {
+      "id": "g-ot-081",
+      "type": "one_time",
+      "title": "joint recap 81",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-21",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "13:00"
+    },
+    {
+      "id": "g-ot-082",
+      "type": "one_time",
+      "title": "amber visit 82",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-21",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00"
+    },
+    {
+      "id": "g-ot-083",
+      "type": "one_time",
+      "title": "neat queue 83",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-12-11",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "15:00"
+    },
+    {
+      "id": "g-ot-084",
+      "type": "one_time",
+      "title": "tidy memo 84",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "17:00"
+    },
+    {
+      "id": "g-ot-085",
+      "type": "one_time",
+      "title": "daily memo 85",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-26",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-086",
+      "type": "one_time",
+      "title": "keen outreach 86",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-17",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "06:00"
+    },
+    {
+      "id": "g-ot-087",
+      "type": "one_time",
+      "title": "calm draft 87",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-19",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "06:00"
+    },
+    {
+      "id": "g-ot-088",
+      "type": "one_time",
+      "title": "brisk survey 88",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-01",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "15:00"
+    },
+    {
+      "id": "g-ot-089",
+      "type": "one_time",
+      "title": "amber errand 89",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-12-07",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00"
+    },
+    {
+      "id": "g-ot-090",
+      "type": "one_time",
+      "title": "amber kickoff 90",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-12",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00"
+    },
+    {
+      "id": "g-ot-091",
+      "type": "one_time",
+      "title": "rapid outreach 91",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-12-07",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00"
+    },
+    {
+      "id": "g-ot-092",
+      "type": "one_time",
+      "title": "tidy packet 92",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-14",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-093",
+      "type": "one_time",
+      "title": "amber update 93",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-13",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00"
+    },
+    {
+      "id": "g-ot-094",
+      "type": "one_time",
+      "title": "small memo 94",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-11-27",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-095",
+      "type": "one_time",
+      "title": "tidy worksheet 95",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-18",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-096",
+      "type": "one_time",
+      "title": "neat audit 96",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-15",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-097",
+      "type": "one_time",
+      "title": "daily queue 97",
+      "priority": 3,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-098",
+      "type": "one_time",
+      "title": "daily memo 98",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-22",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00"
+    },
+    {
+      "id": "g-ot-099",
+      "type": "one_time",
+      "title": "early packet 99",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-04",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-100",
+      "type": "one_time",
+      "title": "daily draft 100",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-12",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-101",
+      "type": "one_time",
+      "title": "daily update 101",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-11-30",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-102",
+      "type": "one_time",
+      "title": "keen survey 102",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-20",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-103",
+      "type": "one_time",
+      "title": "calm queue 103",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-24",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00"
+    },
+    {
+      "id": "g-ot-104",
+      "type": "one_time",
+      "title": "brisk update 104",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-17",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "06:00"
+    },
+    {
+      "id": "g-ot-105",
+      "type": "one_time",
+      "title": "quiet lunch 105",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-16",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "17:00"
+    },
+    {
+      "id": "g-ot-106",
+      "type": "one_time",
+      "title": "minor kickoff 106",
+      "priority": 3,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-27",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-107",
+      "type": "one_time",
+      "title": "rapid kickoff 107",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-108",
+      "type": "one_time",
+      "title": "plain packet 108",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-12-16",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "14:00"
+    },
+    {
+      "id": "g-ot-109",
+      "type": "one_time",
+      "title": "early worksheet 109",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-12-26",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-110",
+      "type": "one_time",
+      "title": "amber followup 110",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-ot-111",
+      "type": "one_time",
+      "title": "joint outreach 111",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-11-01",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-ot-112",
+      "type": "one_time",
+      "title": "keen memo 112",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-25",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-113",
+      "type": "one_time",
+      "title": "joint invoice 113",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-10-29",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-ot-114",
+      "type": "one_time",
+      "title": "neat followup 114",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-12-19",
+      "completed": false,
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-ot-115",
+      "type": "one_time",
+      "title": "quiet packet 115",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-16",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-116",
+      "type": "one_time",
+      "title": "hasty errand 116",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-17",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-117",
+      "type": "one_time",
+      "title": "amber errand 117",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-18",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-118",
+      "type": "one_time",
+      "title": "plain template 118",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-19",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-119",
+      "type": "one_time",
+      "title": "brisk survey 119",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-20",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-120",
+      "type": "one_time",
+      "title": "local followup 120",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-21",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-121",
+      "type": "one_time",
+      "title": "quiet outreach 121",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-22",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-122",
+      "type": "one_time",
+      "title": "joint journal 122",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-23",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-123",
+      "type": "one_time",
+      "title": "amber survey 123",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-24",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-124",
+      "type": "one_time",
+      "title": "local kickoff 124",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-25",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-125",
+      "type": "one_time",
+      "title": "neat lunch 125",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-26",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-126",
+      "type": "one_time",
+      "title": "neat lunch 126",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-27",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "06:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-127",
+      "type": "one_time",
+      "title": "tidy template 127",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-09-28",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-128",
+      "type": "one_time",
+      "title": "minor audit 128",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-09-29",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-129",
+      "type": "one_time",
+      "title": "inner draft 129",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-09-30",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "14:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-130",
+      "type": "one_time",
+      "title": "quiet draft 130",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-10-01",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "20:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-131",
+      "type": "one_time",
+      "title": "daily memo 131",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "scheduledDate": "2026-10-02",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "18:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-132",
+      "type": "one_time",
+      "title": "amber update 132",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "scheduledDate": "2026-10-03",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-ot-133",
+      "type": "one_time",
+      "title": "tidy draft 133",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "scheduledDate": "2026-10-04",
+      "completed": true,
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00",
+      "completedAt": "2026-09-20T15:00:00Z"
+    },
+    {
+      "id": "g-rec-001",
+      "type": "recurring",
+      "title": "plain queue 1",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-27",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-rec-002",
+      "type": "recurring",
+      "title": "local visit 2",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          2,
+          4,
+          6
+        ]
+      },
+      "startDate": "2026-09-20",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-rec-003",
+      "type": "recurring",
+      "title": "amber worksheet 3",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 5
+      },
+      "startDate": "2026-09-20",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "15:00"
+    },
+    {
+      "id": "g-rec-004",
+      "type": "recurring",
+      "title": "hasty packet 4",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 22
+      },
+      "startDate": "2026-09-13",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "20:00"
+    },
+    {
+      "id": "g-rec-005",
+      "type": "recurring",
+      "title": "amber queue 5",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-14",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-006",
+      "type": "recurring",
+      "title": "inner survey 6",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          3
+        ]
+      },
+      "startDate": "2026-09-22",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-007",
+      "type": "recurring",
+      "title": "calm kickoff 7",
+      "priority": 3,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 11
+      },
+      "startDate": "2026-09-30",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "14:00"
+    },
+    {
+      "id": "g-rec-008",
+      "type": "recurring",
+      "title": "brisk queue 8",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 10
+      },
+      "startDate": "2026-09-04",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-009",
+      "type": "recurring",
+      "title": "open lunch 9",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-010",
+      "type": "recurring",
+      "title": "plain visit 10",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0,
+          3,
+          5
+        ]
+      },
+      "startDate": "2026-09-29",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-011",
+      "type": "recurring",
+      "title": "local survey 11",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 8
+      },
+      "startDate": "2026-09-29",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "09:00"
+    },
+    {
+      "id": "g-rec-012",
+      "type": "recurring",
+      "title": "joint memo 12",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 18
+      },
+      "startDate": "2026-09-03",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00"
+    },
+    {
+      "id": "g-rec-013",
+      "type": "recurring",
+      "title": "minor recap 13",
+      "priority": 4,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-22",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "17:00"
+    },
+    {
+      "id": "g-rec-014",
+      "type": "recurring",
+      "title": "gentle draft 14",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          1,
+          4
+        ]
+      },
+      "startDate": "2026-09-11",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-rec-015",
+      "type": "recurring",
+      "title": "open invoice 15",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 12
+      },
+      "startDate": "2026-09-09",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-016",
+      "type": "recurring",
+      "title": "rapid recap 16",
+      "priority": 2,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 28
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "17:00"
+    },
+    {
+      "id": "g-rec-017",
+      "type": "recurring",
+      "title": "gentle survey 17",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-19",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-018",
+      "type": "recurring",
+      "title": "inner audit 18",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0,
+          1,
+          4
+        ]
+      },
+      "startDate": "2026-09-25",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "13:00"
+    },
+    {
+      "id": "g-rec-019",
+      "type": "recurring",
+      "title": "joint outreach 19",
+      "priority": 3,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 12
+      },
+      "startDate": "2026-09-07",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-020",
+      "type": "recurring",
+      "title": "calm queue 20",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 6
+      },
+      "startDate": "2026-09-23",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-021",
+      "type": "recurring",
+      "title": "quiet draft 21",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-08",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00"
+    },
+    {
+      "id": "g-rec-022",
+      "type": "recurring",
+      "title": "minor draft 22",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0,
+          3
+        ]
+      },
+      "startDate": "2026-09-10",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-023",
+      "type": "recurring",
+      "title": "final packet 23",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 12
+      },
+      "startDate": "2026-09-16",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-024",
+      "type": "recurring",
+      "title": "tidy journal 24",
+      "priority": 3,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 20
+      },
+      "startDate": "2026-09-02",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-025",
+      "type": "recurring",
+      "title": "final audit 25",
+      "priority": 3,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-19",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "08:00"
+    },
+    {
+      "id": "g-rec-026",
+      "type": "recurring",
+      "title": "plain kickoff 26",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0,
+          3,
+          5
+        ]
+      },
+      "startDate": "2026-09-28",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-027",
+      "type": "recurring",
+      "title": "hasty worksheet 27",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 12
+      },
+      "startDate": "2026-09-13",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00"
+    },
+    {
+      "id": "g-rec-028",
+      "type": "recurring",
+      "title": "neat queue 28",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 5
+      },
+      "startDate": "2026-09-27",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "11:00"
+    },
+    {
+      "id": "g-rec-029",
+      "type": "recurring",
+      "title": "minor kickoff 29",
+      "priority": 3,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-12",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-030",
+      "type": "recurring",
+      "title": "tidy update 30",
+      "priority": 1,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          3,
+          4,
+          5
+        ]
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "14:00"
+    },
+    {
+      "id": "g-rec-031",
+      "type": "recurring",
+      "title": "rapid checklist 31",
+      "priority": 3,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 13
+      },
+      "startDate": "2026-09-30",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-032",
+      "type": "recurring",
+      "title": "minor visit 32",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 11
+      },
+      "startDate": "2026-09-14",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "16:00"
+    },
+    {
+      "id": "g-rec-033",
+      "type": "recurring",
+      "title": "quiet packet 33",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-24",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-034",
+      "type": "recurring",
+      "title": "brisk audit 34",
+      "priority": 2,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0,
+          1,
+          4
+        ]
+      },
+      "startDate": "2026-09-28",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-035",
+      "type": "recurring",
+      "title": "joint audit 35",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 4
+      },
+      "startDate": "2026-09-14",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "19:00"
+    },
+    {
+      "id": "g-rec-036",
+      "type": "recurring",
+      "title": "quiet memo 36",
+      "priority": 1,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 4
+      },
+      "startDate": "2026-09-06",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-037",
+      "type": "recurring",
+      "title": "small invoice 37",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-18",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-038",
+      "type": "recurring",
+      "title": "brisk followup 38",
+      "priority": 1,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          5
+        ]
+      },
+      "startDate": "2026-09-01",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "12:00"
+    },
+    {
+      "id": "g-rec-039",
+      "type": "recurring",
+      "title": "open checklist 39",
+      "priority": 4,
+      "tags": [
+        "home"
+      ],
+      "recurrence": {
+        "kind": "everyNDays",
+        "n": 7
+      },
+      "startDate": "2026-09-28",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "07:00"
+    },
+    {
+      "id": "g-rec-040",
+      "type": "recurring",
+      "title": "early invoice 40",
+      "priority": 4,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "monthly",
+        "dateOfMonth": 7
+      },
+      "startDate": "2026-09-19",
+      "createdAt": "2026-09-01T12:00:00Z"
+    },
+    {
+      "id": "g-rec-041",
+      "type": "recurring",
+      "title": "quiet draft 41",
+      "priority": 3,
+      "tags": [
+        "health"
+      ],
+      "recurrence": {
+        "kind": "daily"
+      },
+      "startDate": "2026-09-04",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "reminderTime": "20:00"
+    },
+    {
+      "id": "g-rec-042",
+      "type": "recurring",
+      "title": "hasty draft 42",
+      "priority": 2,
+      "tags": [
+        "work"
+      ],
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0,
+          1,
+          2
+        ]
+      },
+      "startDate": "2026-09-21",
+      "createdAt": "2026-09-01T12:00:00Z"
+    }
+  ],
+  "completions": [
+    {
+      "id": "c-gym-1014",
+      "taskId": "gym",
+      "completionDate": "2026-10-14",
+      "completedAt": "2026-10-14T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-gym-1016",
+      "taskId": "gym",
+      "completionDate": "2026-10-16",
+      "completedAt": "2026-10-16T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-gym-1019",
+      "taskId": "gym",
+      "completionDate": "2026-10-19",
+      "completedAt": "2026-10-19T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-standup-1013",
+      "taskId": "standup",
+      "completionDate": "2026-10-13",
+      "completedAt": "2026-10-13T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-standup-1014",
+      "taskId": "standup",
+      "completionDate": "2026-10-14",
+      "completedAt": "2026-10-14T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-standup-1015",
+      "taskId": "standup",
+      "completionDate": "2026-10-15",
+      "completedAt": "2026-10-15T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-standup-1016",
+      "taskId": "standup",
+      "completionDate": "2026-10-16",
+      "completedAt": "2026-10-16T12:00:00Z",
+      "skipped": true
+    },
+    {
+      "id": "c-standup-1017",
+      "taskId": "standup",
+      "completionDate": "2026-10-17",
+      "completedAt": "2026-10-17T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-standup-1018",
+      "taskId": "standup",
+      "completionDate": "2026-10-18",
+      "completedAt": "2026-10-18T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-standup-1019",
+      "taskId": "standup",
+      "completionDate": "2026-10-19",
+      "completedAt": "2026-10-19T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-torah-1013",
+      "taskId": "torah",
+      "completionDate": "2026-10-13",
+      "completedAt": "2026-10-13T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-torah-1014",
+      "taskId": "torah",
+      "completionDate": "2026-10-14",
+      "completedAt": "2026-10-14T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-torah-1015",
+      "taskId": "torah",
+      "completionDate": "2026-10-15",
+      "completedAt": "2026-10-15T12:00:00Z",
+      "skipped": true
+    },
+    {
+      "id": "c-torah-1016",
+      "taskId": "torah",
+      "completionDate": "2026-10-16",
+      "completedAt": "2026-10-16T12:00:00Z",
+      "skipped": false
+    },
+    {
+      "id": "c-torah-1019",
+      "taskId": "torah",
+      "completionDate": "2026-10-19",
+      "completedAt": "2026-10-19T12:00:00Z",
+      "skipped": false
+    }
+  ],
+  "quietWindows": [
+    {
+      "start": "2026-10-23T17:52:00-04:00",
+      "end": "2026-10-24T18:51:00-04:00",
+      "title": "Shabbat"
+    },
+    {
+      "start": "2026-10-30T17:43:00-04:00",
+      "end": "2026-10-31T18:42:00-04:00",
+      "title": "Shabbat"
+    }
+  ]
+}

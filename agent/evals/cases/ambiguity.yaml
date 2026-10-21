@@ -1,0 +1,112 @@
+- id: move-that-later
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move that to later
+  expect:
+    accept:
+    - outcome: asked
+- id: call-mom-tomorrow
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: call mom tomorrow
+  expect:
+    accept:
+    - outcome: asked
+    forbid_touch:
+    - call-mom
+    - call-mom-thanksgiving
+- id: push-dentist
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: push the dentist
+  expect:
+    accept:
+    - outcome: asked
+- id: usual-friday
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: do the usual for friday
+  expect:
+    accept:
+    - outcome: asked
+- id: reschedule-meeting
+  category: ambiguity
+  label: should_ask
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: reschedule my meeting
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: answered
+  notes: No task is named meeting.
+- id: delete-old-stuff
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: delete the old stuff
+  expect:
+    accept:
+    - outcome: asked
+- id: make-it-p1
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: make it a p1
+  expect:
+    accept:
+    - outcome: asked
+- id: move-gym-ambiguous
+  category: ambiguity
+  label: should_ask
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: move gym
+  expect:
+    accept:
+    - outcome: asked
+  notes: Series change versus just one day.
+- id: thing-from-yesterday
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: add the thing from yesterday
+  expect:
+    accept:
+    - outcome: asked
+- id: move-dentist-friday-clear
+  category: ambiguity
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move dentist to friday
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-23'
+  notes: Looks vague but there is only one dentist task and Friday is Oct 23.

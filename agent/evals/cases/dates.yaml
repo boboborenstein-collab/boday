@@ -1,0 +1,173 @@
+- id: next-friday-dentist
+  category: dates
+  label: either
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move my dentist to next friday
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-23'
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-30'
+  notes: 'Tuesday clock: next Friday is ambiguous between Oct 23 and Oct 30.'
+- id: weekend-dentist
+  category: dates
+  label: either
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move the dentist to this weekend
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-24'
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2026-10-25'
+  notes: Saturday 09:00 is inside Shabbat. Sunday, or asking, is also fine.
+- id: end-of-month-flights
+  category: dates
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: move book flights to the end of the month
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: book-flights
+        fields:
+          scheduledDate: '2026-10-31'
+- id: in-3-weeks-passport
+  category: dates
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: remind me in 3 weeks to renew the passport
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: passport
+          type: one_time
+          scheduledDate: '2026-11-10'
+- id: oct-25-vet
+  category: dates
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move the vet appointment to oct 25
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: vet
+        fields:
+          scheduledDate: '2026-10-25'
+- id: oct-1-dentist
+  category: dates
+  label: either
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: move dentist to oct 1
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: update
+        task: dentist
+        fields:
+          scheduledDate: '2027-10-01'
+  notes: No year and the date is past, so next year. Asking is also fine.
+- id: tonight-pack
+  category: dates
+  label: either
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: add pack the bag tonite at 8
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: bag
+          type: one_time
+          scheduledDate: '2026-10-20'
+          reminderTime: '20:00'
+  notes: Tonight implies 8pm. Asking is fine because 8 is an ambiguous hour.
+- id: friday-at-9
+  category: dates
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: book a haircut friday at 9
+  expect:
+    accept:
+    - outcome: asked
+  notes: 9 with no am/pm.
+- id: taxes-in-2-weeks
+  category: dates
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move file taxs to in 2 weeks
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: taxes
+        fields:
+          scheduledDate: '2026-11-03'
+- id: dst-take-meds
+  category: dates
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: remind me in 3 hours to take meds
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: med
+          type: one_time
+          scheduledDate: '2026-11-01'
+          reminderTime: 01:30
+  now: '2026-10-31T23:30:00-04:00'
+  notes: 23:30 EDT plus 3 hours crosses the DST fallback onto Nov 1 01:30.

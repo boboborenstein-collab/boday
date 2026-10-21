@@ -1,0 +1,201 @@
+- id: skip-gym-today
+  category: recurring
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: skip gym tday
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: gym
+        fields:
+          status: skipped
+          date: '2026-10-21'
+  now: '2026-10-21T09:00:00-04:00'
+- id: skip-torah-tomorrow
+  category: recurring
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: skip torah tomorrow
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: torah
+        fields:
+          status: skipped
+          date: '2026-10-21'
+- id: move-todays-gym
+  category: recurring
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move just today's gym to tomorrow
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: gym
+        fields:
+          status: skipped
+          date: '2026-10-21'
+      - op: create
+        fields:
+          title_contains: gym
+          type: one_time
+          scheduledDate: '2026-10-22'
+          reminderTime: 07:00
+  now: '2026-10-21T09:00:00-04:00'
+- id: standup-weekdays
+  category: recurring
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: make standup weekdays only
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: standup
+        fields:
+          recurrence:
+            kind: weekly
+            daysOfWeek:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+- id: groceries-end-november
+  category: recurring
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: stop grocerys after november
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: groceries
+        fields:
+          endDate: '2026-11-30'
+- id: every-other-tuesday
+  category: recurring
+  label: either
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: add team lunch every other tuesday
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: lunch
+          type: recurring
+          recurrence:
+            kind: everyNDays
+            n: 14
+          startDate: '2026-10-27'
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: lunch
+          type: recurring
+          recurrence:
+            kind: everyNDays
+            n: 14
+          startDate: '2026-10-20'
+  notes: Said on Tuesday Oct 20, so starting today or next Tuesday are both valid; asking which is fine.
+- id: gym-6am
+  category: recurring
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move gym to 6am
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: gym
+        fields:
+          reminderTime: 06:00
+- id: undo-gym-monday
+  category: recurring
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: i didnt actually go to the gym monday
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: set_status
+        task: gym
+        fields:
+          status: open
+          date: '2026-10-19'
+- id: rent-third
+  category: recurring
+  label: should_act
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: change rent to the 3rd
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: rent
+        fields:
+          recurrence:
+            kind: monthly
+            dateOfMonth: 3
+- id: team-sync-weekly
+  category: recurring
+  label: either
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: move team sync to every week
+  expect:
+    accept:
+    - outcome: asked
+    - outcome: proposed
+      changes:
+      - op: update
+        task: team-sync
+        fields:
+          recurrence:
+            kind: weekly
+            daysOfWeek:
+            - 2
+    - outcome: proposed
+      changes:
+      - op: update
+        task: team-sync
+        fields:
+          recurrence:
+            kind: everyNDays
+            n: 7
+  notes: Series change versus a new task. Tuesday matches the current start; every 7 days from
+    the existing Tuesday start date is the same schedule as weekly on Tuesday.
