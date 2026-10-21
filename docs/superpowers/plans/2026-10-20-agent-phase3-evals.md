@@ -390,7 +390,7 @@ def test_compare_lists_regressions(tmp_path): ...  # A: case x passes all; B: x 
   - `Metrics` gains `advice_quality_mean` and `judge_errors` (only when `--judge`).
   - Calibration: export writes `case_id,trial,answer_text,judge_score,owner_score` (owner_score empty); import computes `exact_agreement` and `within_one_agreement` over rated rows and writes `agent/evals/results/judge_calibration.json`; the report shows both numbers next to `advice_quality_mean`. Needs 20–30 owner-rated rows to be reported as calibrated.
 
-- [ ] **Step 1: Write the failing tests** — stub client whose `messages.parse` records kwargs and returns `SimpleNamespace(parsed_output=JudgeScore(score=4, reasons="specific"), stop_reason="end_turn")`.
+- [x] **Step 1: Write the failing tests** — stub client whose `messages.parse` records kwargs and returns `SimpleNamespace(parsed_output=JudgeScore(score=4, reasons="specific"), stop_reason="end_turn")`.
 
 ```python
 def test_judge_request_uses_fixed_model_and_rubric():
@@ -407,8 +407,8 @@ def test_calibration_agreement(tmp_path):
     assert result["exact_agreement"] == 0.5 and result["within_one_agreement"] == 0.75
 ```
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: LLM judge + calibration"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: LLM judge + calibration"`.
 
 ---
 
