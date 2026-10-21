@@ -401,7 +401,7 @@ def _update(ctx: RunContext, a: UpdateArgs) -> dict:
 
     if "scheduled_date" in new_values and "scheduledDate" in patch:
         _check_range(ctx, new_values["scheduled_date"], "scheduled_date")
-    if "end_date" in patch and patch["endDate"] is not None:
+    if "endDate" in patch and patch["endDate"] is not None:
         assert isinstance(task, RecurringTask)
         if patch["endDate"] < task.start_date:
             raise ToolError(ErrorCode.INVALID_DATE, "end_date is before start_date.")

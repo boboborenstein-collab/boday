@@ -96,6 +96,23 @@ def test_create_recurring_every_other_tuesday(seen_ctx):
     assert "tags" not in after and "excludeFromStats" not in after
 
 
+def test_end_before_start_is_rejected(seen_ctx):
+    created = run(seen_ctx, "propose_create_task", title="X", type="recurring",
+                  recurrence={"kind": "daily"}, start_date="2026-11-01", end_date="2026-10-21")
+    assert created.error.code == "INVALID_DATE"
+    updated = run(seen_ctx, "propose_update_task", task_id="gym", changes={"end_date": "2026-08-01"})
+    assert updated.error.code == "INVALID_DATE"
+
+
+def test_one_time_create_rejects_start_and_end(seen_ctx):
+    started = run(seen_ctx, "propose_create_task", title="X", type="one_time",
+                  scheduled_date="2026-10-21", start_date="2026-10-21")
+    assert started.error.code == "INVALID_ARGS"
+    ended = run(seen_ctx, "propose_create_task", title="X", type="one_time",
+                scheduled_date="2026-10-21", end_date="2026-10-22")
+    assert ended.error.code == "INVALID_ARGS"
+
+
 def test_create_recurring_defaults_and_shape_errors(seen_ctx):
     run(seen_ctx, "propose_create_task", title="Read", type="recurring", recurrence={"kind": "daily"})
     assert seen_ctx.draft_payload()[0]["after"]["startDate"] == "2026-10-20"
