@@ -445,7 +445,7 @@ class SetStatusArgs(_Strict):
 
 
 def _completion_being_cleared(ctx: RunContext, task: Task, ds: str | None) -> dict | None:
-    """Raw data `undone` clears, so a later undo can put it back unchanged."""
+    """Raw completion data a status change replaces, so a later undo can put it back unchanged."""
     snap = ctx.snapshot
     if isinstance(task, OneTimeTask):
         raw = snap.raw_tasks.get(task.id, {})
@@ -489,7 +489,8 @@ def _set_status(ctx: RunContext, a: SetStatusArgs) -> dict:
                 break
     if current == target:
         raise _bad(f"No change: '{task.title}' is already {current}.")
-    cleared = _completion_being_cleared(ctx, task, ds) if a.status == "undone" else None
+    # Leaving done/skipped removes or rewrites the completion: keep what undo must restore.
+    cleared = _completion_being_cleared(ctx, task, ds) if current != "open" else None
     change = StatusChange(
         task_id=task.id, date=ds,
         before=StatusSnapshot(status=current), after=StatusSnapshot(status=target),

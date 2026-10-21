@@ -176,9 +176,23 @@ def test_undone_recurring_carries_the_raw_completion_row(seen_ctx):
     assert raw["id"] == "c-standup-1019" and raw["skipped"] is True
 
 
-def test_non_undone_status_has_no_completion_to_restore(seen_ctx):
+def test_status_change_from_open_has_no_completion_to_restore(seen_ctx):
     assert run(seen_ctx, "propose_set_status", task_id="gym", status="skipped", date="2026-10-21").ok
-    assert seen_ctx.draft_payload()[0]["beforeCompletionRaw"] is None
+    assert run(seen_ctx, "propose_set_status", task_id="dentist", status="done").ok
+    assert [c["beforeCompletionRaw"] for c in seen_ctx.draft_payload()] == [None, None]
+
+
+def test_done_and_skipped_switches_carry_the_row_they_replace(seen_ctx):
+    # done <-> skipped rewrites the existing completion row, so undo needs it too.
+    assert run(seen_ctx, "propose_set_status", task_id="gym", status="skipped", date="2026-10-19").ok
+    assert run(seen_ctx, "propose_set_status", task_id="standup", status="done", date="2026-10-19").ok
+    gym, standup = seen_ctx.draft_payload()
+    assert (gym["before"]["status"], gym["after"]["status"]) == ("done", "skipped")
+    assert gym["beforeCompletionRaw"]["id"] == "c-gym-1019"
+    assert "skipped" not in gym["beforeCompletionRaw"]
+    assert (standup["before"]["status"], standup["after"]["status"]) == ("skipped", "done")
+    assert standup["beforeCompletionRaw"]["id"] == "c-standup-1019"
+    assert standup["beforeCompletionRaw"]["skipped"] is True
 
 
 def test_one_time_undone_preserves_completed_at_presence():

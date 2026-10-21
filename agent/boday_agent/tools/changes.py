@@ -36,10 +36,11 @@ class StatusChange(CamelModel):
     date: str | None = None
     before: StatusSnapshot
     after: StatusSnapshot
-    # Set only for `undone`, so undo can restore what was cleared.
-    # Recurring: the completion row exactly as received.
+    # Set whenever the status before the change is done or skipped (undone, or a
+    # done <-> skipped switch), so undo can restore what the change replaces.
+    # Recurring: that occurrence's completion row exactly as received.
     # One-time: {"completedAt": raw value} when that key was present (value may
-    # be null), or {} when the key was absent. Null on every other status change.
+    # be null), or {} when the key was absent. Null when the status before is open.
     before_completion_raw: dict[str, Any] | None = None
     warnings: list[ChangeWarning] = Field(default_factory=list)
 
