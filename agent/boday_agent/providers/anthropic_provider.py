@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from typing import Any
 
 import anthropic
@@ -38,8 +39,10 @@ class AnthropicProvider:
         effort: str | None = None,
         refusal_fallback: bool = True,
         client: Any = None,
+        sleep: Callable[[float], None] = time.sleep,
     ):
         self.model = model
+        self._sleep = sleep
         self.effort = effort
         self.refusal_fallback = refusal_fallback
         if client is None:
@@ -100,11 +103,15 @@ class AnthropicProvider:
                 anthropic.APIConnectionError,
                 anthropic.APITimeoutError,
             ) as exc:
-                if attempt == 2 or deadline - time.monotonic() < delays[attempt]:
-                    raise _mapped(exc, retryable=True) from None
-                time.sleep(delays[attempt])
+                failure = exc
             except anthropic.APIStatusError as exc:
-                raise _mapped(exc, retryable=exc.status_code >= 500) from None
+                # 5xx (incl. 529 overloaded) retries like 429; other 4xx are final.
+                if exc.status_code < 500:
+                    raise _mapped(exc, retryable=False) from None
+                failure = exc
+            if attempt == 2 or deadline - time.monotonic() < delays[attempt]:
+                raise _mapped(failure, retryable=True) from None
+            self._sleep(delays[attempt])
         raise ProviderError("timeout", retryable=True)
 
     def _create(self, client, kwargs: dict[str, Any]):

@@ -53,15 +53,20 @@ class _Messages:
 
     def create(self, **kwargs):
         self.last = kwargs
+        self.owner.attempts += 1
+        if self.owner.errors:
+            raise self.owner.errors.pop(0)
         if self.owner.error is not None:
             raise self.owner.error
         return self.owner.reply
 
 
 class StubClient:
-    def __init__(self, reply=None, error=None):
+    def __init__(self, reply=None, error=None, errors=()):
         self.reply = reply
         self.error = error
+        self.errors = list(errors)
+        self.attempts = 0
         self.timeout = None
         self.messages = _Messages(self)
         self.beta = ns(messages=_Messages(self))
@@ -139,10 +144,6 @@ def test_sdk_retries_are_disabled_and_deadline_limits_our_retries(monkeypatch):
     monkeypatch.setattr(
         "boday_agent.providers.anthropic_provider.time.monotonic", lambda: now["t"]
     )
-    monkeypatch.setattr(
-        "boday_agent.providers.anthropic_provider.time.sleep",
-        lambda seconds: now.__setitem__("t", now["t"] + seconds),
-    )
     c = StubClient(reply=text_reply("hi"))
     AnthropicProvider("claude-haiku-5-5", client=c).complete(
         "S", [UserText(text="x")], TOOLS, timeout_s=30
@@ -166,8 +167,12 @@ def test_sdk_retries_are_disabled_and_deadline_limits_our_retries(monkeypatch):
         return original(**kwargs)
 
     rate.messages.create = counting_create
+
+    def advance(seconds):
+        now["t"] += seconds
+
     with pytest.raises(ProviderError):
-        AnthropicProvider("claude-haiku-5-5", client=rate).complete(
+        AnthropicProvider("claude-haiku-5-5", client=rate, sleep=advance).complete(
             "S", [UserText(text="x")], TOOLS, timeout_s=0.4
         )
     assert calls["n"] == 1
@@ -184,8 +189,48 @@ def test_error_mapping_hides_details():
 
     c = StubClient(error=_status_error(anthropic.RateLimitError, 429, "slow sk-ant-x"))
     with pytest.raises(ProviderError) as ei:
-        AnthropicProvider("claude-haiku-5-5", client=c).complete(
+        AnthropicProvider("claude-haiku-5-5", client=c, sleep=lambda s: None).complete(
             "S", [UserText(text="x")], TOOLS, timeout_s=5
         )
     e429 = ei.value
     assert e429.retryable is True
+
+
+@pytest.mark.parametrize(
+    "cls,status",
+    [
+        (anthropic.RateLimitError, 429),
+        (anthropic.InternalServerError, 500),
+        (anthropic.InternalServerError, 503),
+        (anthropic.OverloadedError, 529),
+    ],
+)
+def test_retryable_status_retries_twice_with_backoff(cls, status):
+    sleeps = []
+    c = StubClient(error=_status_error(cls, status, "busy sk-ant-x"))
+    with pytest.raises(ProviderError) as ei:
+        AnthropicProvider("claude-haiku-5-5", client=c, sleep=sleeps.append).complete(
+            "S", [UserText(text="x")], TOOLS, timeout_s=30
+        )
+    assert c.attempts == 3 and sleeps == [0.5, 1.0]
+    assert ei.value.retryable is True and "sk-ant" not in str(ei.value)
+
+
+def test_server_error_then_success_returns_response():
+    c = StubClient(
+        reply=text_reply("hi"),
+        errors=[_status_error(anthropic.OverloadedError, 529, "overloaded")],
+    )
+    r = AnthropicProvider("claude-haiku-5-5", client=c, sleep=lambda s: None).complete(
+        "S", [UserText(text="x")], TOOLS, timeout_s=30
+    )
+    assert r.text == "hi" and c.attempts == 2
+
+
+def test_client_error_is_not_retried():
+    c = StubClient(error=_status_error(anthropic.BadRequestError, 400, "bad"))
+    with pytest.raises(ProviderError) as ei:
+        AnthropicProvider("claude-haiku-5-5", client=c, sleep=lambda s: None).complete(
+            "S", [UserText(text="x")], TOOLS, timeout_s=30
+        )
+    assert c.attempts == 1 and ei.value.retryable is False
