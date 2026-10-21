@@ -349,7 +349,7 @@ def test_history_and_faults_are_applied(tmp_path):
   - `by_category: dict[str, {success_rate, ci, n}]`, `failure_types: dict[str, int]`.
 - Produces (`report.py`): `write_report(run, metrics, out_dir) -> tuple[Path, Path]` → `<date>-<model-slug>-<split>.json` (stamp + metrics + per-trial results) and `.md` (headline table, by-category table, failure types, list of failed case ids with trace paths); `compare(a: Path, b: Path) -> str` markdown listing regressions (cases passing all trials in A, not in B), fixes, and metric deltas.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_wilson_known_value():
@@ -373,8 +373,8 @@ def test_compare_lists_regressions(tmp_path): ...  # A: case x passes all; B: x 
 
 (`suite_run`, `pass_`, `fail`, `outcome` are small test builders of `TrialResult`s; `accepts_asked` sets the case's acceptables to include `asked`.)
 
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "evals: metrics with confidence intervals + reports"`.
+- [x] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "evals: metrics with confidence intervals + reports"`.
 
 ---
 
