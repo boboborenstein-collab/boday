@@ -117,27 +117,93 @@ def test_replay_does_not_call_the_provider_and_stale_aborts(tmp_path):
         )
 
 
-def test_regression_flag_lists_cases_that_stopped_passing(tmp_path):
+def _baseline(tmp_path, rows):
+    path = tmp_path / "base.json"
+    path.write_text(json.dumps(rows))
+    return path
+
+
+def _row(case_id, trial, passed):
+    return {"case_id": case_id, "trial": trial, "grade": {"passed": passed}}
+
+
+class _Trial:
+    def __init__(self, case_id, trial, passed):
+        self.case_id = case_id
+        self.trial = trial
+        self.grade = Grade(passed, 0 if passed else None, "none", None, "")
+
+
+def test_regression_flag_lists_trials_that_stopped_passing(tmp_path):
     from boday_agent.evals.cassettes import regressions_against
 
-    baseline = tmp_path / "base.json"
-    baseline.write_text(
-        json.dumps(
-            {
-                "results": [
-                    {"case_id": "x", "grade": {"passed": True}},
-                    {"case_id": "y", "grade": {"passed": False}},
-                ]
-            }
+    baseline = _baseline(tmp_path, {"results": [_row("x", 1, True), _row("y", 1, False)]})
+    problems = regressions_against(baseline, [_Trial("x", 1, False), _Trial("y", 1, True)])
+    assert problems == ["x t1: passed in the baseline, fails now"]
+
+
+def test_regression_is_checked_per_trial_even_when_the_case_was_flaky(tmp_path):
+    from boday_agent.evals.cassettes import regressions_against
+
+    rows = [_row("x", 1, True), _row("x", 2, False), _row("x", 3, True)]
+    baseline = _baseline(tmp_path, {"results": rows})
+    assert regressions_against(baseline, [_Trial("x", 1, False)]) == [
+        "x t1: passed in the baseline, fails now"
+    ]
+    assert regressions_against(baseline, [_Trial("x", 1, True)]) == []
+
+
+def test_trial_missing_from_baseline_is_a_problem(tmp_path):
+    from boday_agent.evals.cassettes import regressions_against
+
+    baseline = _baseline(tmp_path, {"results": [_row("y", 1, True)]})
+    assert regressions_against(baseline, [_Trial("x", 1, True)]) == ["x t1: not in the baseline"]
+
+
+def test_baseline_without_results_is_a_problem(tmp_path):
+    from boday_agent.evals.cassettes import regressions_against
+
+    baseline = _baseline(tmp_path, {"stamp": {}})
+    assert regressions_against(baseline, [_Trial("x", 1, True)]) == ["baseline has no results"]
+
+
+def _fake_suite(results):
+    from boday_agent.evals.runner import SuiteRun
+
+    def fake_run(cases, factory, **kwargs):
+        return SuiteRun(
+            stamp={"date": "2026-10-21", "model": "fake-1", "split": "dev"},
+            results=results,
         )
+
+    return fake_run
+
+
+def _replay_args(tmp_path, baseline):
+    case_file = tmp_path / "cases.txt"
+    case_file.write_text("move-dentist-tomorrow\n")
+    return [
+        "run", "--replay", "--case-file", str(case_file), "--trials", "1",
+        "--out", str(tmp_path / "out"), "--fail-on-regression", str(baseline),
+    ]
+
+
+def test_cli_exit_code_follows_the_regression_check(tmp_path, monkeypatch):
+    from boday_agent.evals.cli import main
+    from tests.evals.test_metrics import fail, pass_, suite_run
+
+    baseline = _baseline(tmp_path, {"results": [_row("move-dentist-tomorrow", 1, True)]})
+    passing = suite_run([("move-dentist-tomorrow", "should_act", "happy_path", [pass_()])])
+    failing = suite_run(
+        [("move-dentist-tomorrow", "should_act", "happy_path", [fail("wrong_field")])]
     )
-
-    class Trial:
-        def __init__(self, case_id, passed):
-            self.case_id = case_id
-            self.grade = Grade(passed, 0 if passed else None, "none", None, "")
-
-    assert regressions_against(baseline, [Trial("x", False), Trial("y", True)]) == ["x"]
+    monkeypatch.setattr("boday_agent.evals.cli.run_suite", _fake_suite(passing.results))
+    assert main(_replay_args(tmp_path, baseline)) == 0
+    monkeypatch.setattr("boday_agent.evals.cli.run_suite", _fake_suite(failing.results))
+    assert main(_replay_args(tmp_path, baseline)) == 1
+    empty = _baseline(tmp_path, {"stamp": {}})
+    monkeypatch.setattr("boday_agent.evals.cli.run_suite", _fake_suite(passing.results))
+    assert main(_replay_args(tmp_path, empty)) == 1
 
 
 def test_ci_case_file_matches_the_plan():

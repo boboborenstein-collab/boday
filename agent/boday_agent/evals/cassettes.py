@@ -95,17 +95,26 @@ def cassette_path(directory: Path, case_id: str, trial: int) -> Path:
 
 
 def regressions_against(baseline: Path, results: list) -> list[str]:
-    """Cases that passed every baseline trial and do not pass every current trial."""
+    """Problems with this run against the baseline, compared per (case, trial).
+
+    Replay is deterministic, so a trial that passed in the baseline must pass
+    now. A trial the baseline does not have, or a baseline with no results,
+    is a problem too: the gate must not pass by having nothing to compare.
+    """
     payload = json.loads(Path(baseline).read_text())
-    before: dict[str, list[bool]] = {}
-    for row in payload.get("results") or []:
-        grade = row.get("grade") or {}
-        before.setdefault(row["case_id"], []).append(bool(grade.get("passed")))
-    after: dict[str, list[bool]] = {}
-    for item in results:
-        after.setdefault(item.case_id, []).append(bool(item.grade.passed))
-    return sorted(
-        case_id
-        for case_id, flags in before.items()
-        if flags and all(flags) and case_id in after and not all(after[case_id])
-    )
+    rows = payload.get("results") or []
+    if not rows:
+        return ["baseline has no results"]
+    before = {
+        (row["case_id"], int(row.get("trial", 1))): bool((row.get("grade") or {}).get("passed"))
+        for row in rows
+    }
+    problems = []
+    for item in sorted(results, key=lambda r: (r.case_id, r.trial)):
+        key = (item.case_id, item.trial)
+        label = f"{item.case_id} t{item.trial}"
+        if key not in before:
+            problems.append(f"{label}: not in the baseline")
+        elif before[key] and not item.grade.passed:
+            problems.append(f"{label}: passed in the baseline, fails now")
+    return problems

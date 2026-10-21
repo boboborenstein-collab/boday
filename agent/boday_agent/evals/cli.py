@@ -163,9 +163,11 @@ def _run(args: argparse.Namespace) -> int:
         if not baseline.is_file():
             print(f"baseline not found: {baseline}", file=sys.stderr)
             return 1
-        bad = regressions_against(baseline, run.results)
-        if bad:
-            print("regressions: " + ", ".join(bad), file=sys.stderr)
+        problems = regressions_against(baseline, run.results)
+        if problems:
+            print("regression check failed:", file=sys.stderr)
+            for problem in problems:
+                print("  " + problem, file=sys.stderr)
             return 1
     return 0
 
