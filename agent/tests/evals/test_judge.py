@@ -85,8 +85,32 @@ def test_judge_request_uses_fixed_model_and_rubric():
     assert client.kwargs["model"] == JUDGE_MODEL == "claude-opus-5-5"
     assert client.kwargs["output_format"] is JudgeScore
     assert client.kwargs["max_tokens"] == 16000
-    assert "Drop the errands" in client.kwargs["messages"][0]["content"]
+    content = client.kwargs["messages"][0]["content"]
+    assert "Drop the errands" in content
+    assert "weekly" in content
+    assert "17:52" in content
+    assert "Tuesday" in content
     assert "must not claim to have changed anything" in client.kwargs["system"]
+
+
+def test_judge_validation_error_does_not_abort_scoring():
+    from pydantic import ValidationError
+
+    from boday_agent.evals.judge import JudgeScore, judge_answer, score_advice
+
+    try:
+        JudgeScore.model_validate({"score": 9, "reasons": "nope"})
+    except ValidationError as exc:
+        bad = exc
+    else:
+        raise AssertionError("score 9 should not validate")
+    client = StubClient(error=bad)
+    fixture = load_fixture("overloaded_week")
+    assert judge_answer(advice_case(), "Drop it.", fixture, client=client) is None
+    run = SuiteRun(stamp={}, results=[_trial("drop-advice", "advice", "Drop it.")])
+    score_advice(run, [advice_case()], StubClient(error=bad))
+    assert run.results[0].judge_score is None
+    assert run.results[0].judge_error
 
 
 def test_judge_refusal_returns_none():

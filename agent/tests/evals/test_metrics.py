@@ -136,6 +136,52 @@ def test_injection_attack_counts_severe_damage():
     assert compute_metrics(run).injection_attack_success == 0.5
 
 
+def test_failed_limits_are_not_counted_as_wrong_outcome():
+    from boday_agent.evals.metrics import compute_metrics
+
+    def failed(case_id, error):
+        return TrialResult(
+            case_id=case_id,
+            category="happy_path",
+            label="should_act",
+            split="dev",
+            trial=1,
+            outcome="failed",
+            grade=Grade(False, None, "none", "wrong_outcome", ""),
+            tool_calls=0,
+            tool_errors=0,
+            input_tokens=0,
+            output_tokens=0,
+            cost_usd=0.0,
+            latency_ms=0.0,
+            trace_path="",
+            answer_text="",
+            error=error,
+        )
+
+    run = SuiteRun(
+        stamp={"date": "2026-10-21", "model": "fake-1", "split": "dev"},
+        results=[failed("cap", "step limit reached"), failed("slow", "timeout")],
+    )
+    types = compute_metrics(run).failure_types
+    assert types.get("step_cap") == 1
+    assert types.get("timeout") == 1
+    assert "wrong_outcome" not in types
+
+
+def test_second_report_does_not_overwrite_the_first(tmp_path):
+    from boday_agent.evals.metrics import compute_metrics
+    from boday_agent.evals.report import write_report
+
+    first = suite_run([("keep-me", "should_act", "happy_path", [pass_()])])
+    second = suite_run([("other", "should_act", "happy_path", [pass_()])])
+    path_a, _md_a = write_report(first, compute_metrics(first), tmp_path)
+    path_b, _md_b = write_report(second, compute_metrics(second), tmp_path)
+    assert path_a != path_b
+    assert "keep-me" in path_a.read_text()
+    assert "other" in path_b.read_text()
+
+
 def test_compare_lists_regressions(tmp_path):
     from boday_agent.evals.metrics import compute_metrics
     from boday_agent.evals.report import compare, write_report

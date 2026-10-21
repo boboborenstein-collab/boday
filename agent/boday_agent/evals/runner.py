@@ -77,6 +77,7 @@ def run_suite(
     if cassette_mode not in {"live", "record", "replay"}:
         raise ValueError(f"unknown cassette mode {cassette_mode!r}")
     directory = cassette_dir or CASSETTES_DIR
+    commit, dirty = _git_meta()
     jobs = [(case, trial) for case in cases for trial in range(1, trials + 1)]
     describes: dict[tuple[str, int], tuple[dict, str]] = {}
     lock = threading.Lock()
@@ -121,7 +122,8 @@ def run_suite(
         for future in futures:
             results.append(future.result())
     results.sort(key=lambda item: (item.case_id, item.trial))
-    return SuiteRun(stamp=_stamp(cases, trials, describes), results=results)
+    stamp = _stamp(cases, trials, describes, commit, dirty, cassette_mode)
+    return SuiteRun(stamp=stamp, results=results)
 
 
 def _open_provider(factory, mode: str, directory: Path, case: EvalCase, trial: int):
@@ -206,12 +208,18 @@ def _history(case: EvalCase) -> list[HistoryTurn]:
     return history
 
 
-def _stamp(cases: list[EvalCase], trials: int, describes: dict) -> dict:
+def _stamp(
+    cases: list[EvalCase],
+    trials: int,
+    describes: dict,
+    commit: str,
+    dirty: bool,
+    mode: str,
+) -> dict:
     described: dict = {}
     model = ""
     if describes:
         described, model = describes[min(describes)]
-    commit, dirty = _git_meta()
     splits = {case.split for case in cases}
     split = next(iter(splits)) if len(splits) == 1 else "all"
     return {
@@ -224,6 +232,7 @@ def _stamp(cases: list[EvalCase], trials: int, describes: dict) -> dict:
         "split": split,
         "date": datetime.now(UTC).date().isoformat(),
         "case_count": len(cases),
+        "mode": mode,
     }
 
 

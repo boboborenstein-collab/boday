@@ -52,6 +52,27 @@ def test_runs_trials_and_grades(tmp_path):
     assert run.stamp["prompt_version"] == PROMPT_VERSION
 
 
+def test_git_dirty_is_sampled_before_traces_exist(tmp_path, monkeypatch):
+    from boday_agent.evals import runner as runner_mod
+    from boday_agent.evals.runner import run_suite
+
+    traces = tmp_path / "traces"
+    original = runner_mod._git_meta
+
+    def wrapped():
+        assert not any(traces.rglob("*.json"))
+        return original()
+
+    monkeypatch.setattr(runner_mod, "_git_meta", wrapped)
+    run_suite(
+        [case()],
+        lambda: FakeProvider(list(DENTIST_SCRIPT)),
+        trials=1,
+        concurrency=1,
+        traces_dir=traces,
+    )
+
+
 def test_one_trial_crash_does_not_stop_run(tmp_path):
     from boday_agent.evals.runner import run_suite
 

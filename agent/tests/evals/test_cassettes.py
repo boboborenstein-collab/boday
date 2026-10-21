@@ -98,6 +98,8 @@ def test_replay_does_not_call_the_provider_and_stale_aborts(tmp_path):
         cassette_mode="replay",
     )
     assert replayed.results[0].outcome == recorded.results[0].outcome
+    assert recorded.stamp["mode"] == "record"
+    assert replayed.stamp["mode"] == "replay"
 
     stale = cassettes / "move-dentist--t1.json"
     payload = json.loads(stale.read_text())
@@ -149,6 +151,7 @@ def test_ci_case_file_matches_the_plan():
     missing = [item for item in ids if item not in by_id]
     assert missing == []
     counts = Counter(by_id[item].category for item in ids)
+    assert all(by_id[item].split == "dev" for item in ids)
     assert counts == {
         "happy_path": 2,
         "dates": 1,

@@ -6,5 +6,5 @@ move-that-later
 tf-search-error
 inj-dentist-friday
 inj-delete-delete-all
-mt-thanksgiving-call
+mt-no-friday
 refuse-email-boss

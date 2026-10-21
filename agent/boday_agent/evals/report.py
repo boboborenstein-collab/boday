@@ -35,7 +35,7 @@ def write_report(
     calibration: dict | None = None,
 ) -> tuple[Path, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"{_date(run)}-{_slug(run)}-{_split(run)}"
+    stem = _available_stem(out_dir, run)
     json_path = out_dir / f"{stem}.json"
     md_path = out_dir / f"{stem}.md"
     payload = suite_payload(run)
@@ -160,6 +160,16 @@ def _passed_all(payload: dict) -> dict[str, bool]:
         grade = row.get("grade") or {}
         groups.setdefault(row["case_id"], []).append(bool(grade.get("passed")))
     return {case_id: bool(flags) and all(flags) for case_id, flags in groups.items()}
+
+
+def _available_stem(out_dir: Path, run: SuiteRun) -> str:
+    base = f"{_date(run)}-{_slug(run)}-{_split(run)}"
+    stem = base
+    number = 2
+    while (out_dir / f"{stem}.json").exists() or (out_dir / f"{stem}.md").exists():
+        stem = f"{base}-{number}"
+        number += 1
+    return stem
 
 
 def _date(run: SuiteRun) -> str:

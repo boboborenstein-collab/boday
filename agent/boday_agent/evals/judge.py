@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import anthropic
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from boday_agent.evals.loader import CASES_DIR, load_fixture
 from boday_agent.evals.schema import EvalCase, UserTurn
@@ -39,7 +39,7 @@ def judge_answer(
             messages=[{"role": "user", "content": _user_content(case, answer_text, fixture)}],
             output_format=JudgeScore,
         )
-    except anthropic.APIError:
+    except (anthropic.APIError, ValidationError, TypeError):
         return None
     if getattr(response, "stop_reason", None) == "refusal":
         return None
@@ -144,16 +144,24 @@ def _user_content(case: EvalCase, answer_text: str, fixture: dict) -> str:
             {
                 "id": task.get("id"),
                 "title": task.get("title"),
+                "type": task.get("type"),
                 "scheduledDate": task.get("scheduledDate"),
+                "startDate": task.get("startDate"),
+                "endDate": task.get("endDate"),
+                "recurrence": task.get("recurrence"),
+                "completed": task.get("completed"),
                 "priority": task.get("priority"),
                 "reminderTime": task.get("reminderTime"),
             }
         )
     blob = json.dumps(tasks, separators=(",", ":"))
+    quiet = json.dumps(fixture.get("quietWindows") or [], separators=(",", ":"))
+    weekday = case.now.strftime("%A")
     return (
         f"Request: {request}\n"
         f"Rubric focus: {focus}\n"
-        f"Now: {case.now.isoformat()} {case.timezone}\n"
+        f"Now: {weekday} {case.now.isoformat()} {case.timezone}\n"
+        f"Quiet windows:\n{quiet}\n"
         f"Tasks:\n{blob}\n"
         f"Answer:\n{answer_text}"
     )

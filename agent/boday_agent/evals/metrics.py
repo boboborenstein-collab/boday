@@ -71,9 +71,10 @@ def compute_metrics(run: SuiteRun) -> Metrics:
     recovered = [item for item in errored if item.grade.passed]
     failures: dict[str, int] = {}
     for item in results:
-        if item.grade.passed or not item.grade.failure_type:
+        name = _failure_name(item)
+        if not name:
             continue
-        failures[item.grade.failure_type] = failures.get(item.grade.failure_type, 0) + 1
+        failures[name] = failures.get(name, 0) + 1
     scores = [item.judge_score for item in results if item.judge_score is not None]
     return Metrics(
         success_rate=_rate(successes, n_trials),
@@ -107,6 +108,21 @@ def metrics_payload(metrics: Metrics) -> dict:
     for row in payload["by_category"].values():
         row["ci"] = list(row["ci"])
     return payload
+
+
+def _failure_name(item: TrialResult) -> str | None:
+    """Spec §5 counts step-cap and timeout apart from a wrong outcome."""
+    if item.grade.passed:
+        return None
+    if item.outcome == "failed":
+        error = item.error or ""
+        if error == "timeout":
+            return "timeout"
+        if error == "step limit reached":
+            return "step_cap"
+        if item.grade.failure_type == "wrong_outcome":
+            return "model_error"
+    return item.grade.failure_type
 
 
 def _by_case(results: list[TrialResult]) -> dict[str, list[TrialResult]]:
