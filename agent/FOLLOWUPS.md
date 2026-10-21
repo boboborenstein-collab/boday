@@ -34,7 +34,7 @@ Deferred items from the phase 1 final review, grouped by the phase that should p
 
 ## Test gaps (any time)
 
-- Sunday "this weekend", spring-forward, Feb 30 raising, "12am" / "at 12", and weekday mapping beyond Tuesday (`tests/test_dates.py`).
+- [x] Sunday "this weekend", spring-forward, Feb 30 raising, "12am" / "at 12", and weekday mapping beyond Tuesday (`tests/test_dates.py`).
 - `test_blind_delete_blocked` should also show the delete being accepted after a read (`tests/test_scenarios.py`).
 - The round-trip test should assert `patch` / `beforeFields` keys.
 - Untested propose rules: end before start, start/end on a one-time create (`tests/test_propose_tools.py`).
