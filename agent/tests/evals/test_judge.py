@@ -177,3 +177,29 @@ def test_report_places_agreement_next_to_advice_quality(tmp_path):
     line = next(row for row in md_path.read_text().splitlines() if "Advice quality" in row)
     assert "3.000" in line
     assert "0.500" in line and "0.750" in line
+
+
+class CountingClient(StubClient):
+    def __init__(self):
+        super().__init__()
+        self.calls = 0
+
+    def parse(self, **kwargs):
+        self.calls += 1
+        return super().parse(**kwargs)
+
+
+def test_judge_scores_only_answered_advice_trials():
+    from dataclasses import replace
+
+    from boday_agent.evals.judge import score_advice
+
+    answered = _trial("drop-advice", "advice", "Drop the errands.")
+    failed = replace(_trial("drop-advice", "advice", ""), trial=2, outcome="failed")
+    proposed = replace(_trial("drop-advice", "advice", "Moved it."), trial=3, outcome="proposed")
+    run = SuiteRun(stamp={}, results=[answered, failed, proposed])
+    client = CountingClient()
+    score_advice(run, [advice_case()], client)
+    assert client.calls == 1
+    assert [item.judge_score for item in run.results] == [4, None, None]
+    assert [item.judge_error for item in run.results] == [None, None, None]

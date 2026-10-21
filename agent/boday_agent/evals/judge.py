@@ -55,6 +55,10 @@ def score_advice(run, cases: list[EvalCase], client) -> None:
     for item in run.results:
         if item.category != "advice":
             continue
+        if item.outcome != "answered":
+            # A failed or proposed trial is already a pass/fail failure; scoring
+            # its text would mix reliability into advice quality.
+            continue
         case = by_id.get(item.case_id)
         if case is None:
             item.judge_error = "missing_case"
