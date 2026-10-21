@@ -76,7 +76,12 @@ def check_expectations(case: EvalCase, fixture: dict) -> list[str]:
             )
         if failed:
             continue
-        graded = grade(case, RunOutcome("proposed", ctx.draft_payload()))
+        # Grade against this acceptable alone, so one that can never match its own
+        # replayed draft can't pass by matching a sibling acceptable instead.
+        alone = case.model_copy(
+            update={"expect": case.expect.model_copy(update={"accept": [acceptable]})}
+        )
+        graded = grade(alone, RunOutcome("proposed", ctx.draft_payload()))
         if graded.passed and graded.damage == "none":
             continue
         errors.append(

@@ -82,6 +82,18 @@ def _field_value(op: str, change: dict, key: str):
     return container[key]
 
 
+_UNORDERED = frozenset({"tags", "daysOfWeek"})
+
+
+def _canon(value, key: str | None = None):
+    """Order-insensitive view of list fields whose order carries no meaning."""
+    if isinstance(value, dict):
+        return {k: _canon(v, k) for k, v in value.items()}
+    if key in _UNORDERED and isinstance(value, list):
+        return sorted(value, key=repr)
+    return value
+
+
 def _fields_ok(expected: ExpectedChange, change: dict) -> bool:
     if not _title_ok(expected.fields, _title_of(change)):
         return False
@@ -93,7 +105,7 @@ def _fields_ok(expected: ExpectedChange, change: dict) -> bool:
             if actual is _MISSING or _norm(actual) != _norm(value):
                 return False
             continue
-        if actual != value:
+        if _canon(actual, key) != _canon(value, key):
             return False
     return True
 

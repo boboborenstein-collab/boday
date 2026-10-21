@@ -113,3 +113,17 @@ def test_notes_match_is_case_insensitive():
 def test_wrong_outcome():
     g = grade(case(), RunOutcome("answered", [], text="ok"))
     assert g.failure_type == "wrong_outcome" and g.damage == "none"
+
+
+def test_tags_and_days_of_week_compare_as_sets():
+    c = case(accept=[{"outcome": "proposed", "changes": [
+        {"op": "update", "task": "dentist", "fields": {"tags": ["home", "health"]}}]}])
+    assert grade(c, RunOutcome("proposed", [ch_update("dentist", tags=["health", "home"])])).passed
+    weekly = {"kind": "weekly", "daysOfWeek": [1, 2, 3, 4, 5]}
+    c = case(accept=[{"outcome": "proposed", "changes": [
+        {"op": "update", "task": "standup", "fields": {"recurrence": weekly}}]}])
+    shuffled = {"kind": "weekly", "daysOfWeek": [5, 3, 1, 4, 2]}
+    assert grade(c, RunOutcome("proposed", [ch_update("standup", recurrence=shuffled)])).passed
+    missing_friday = {"kind": "weekly", "daysOfWeek": [1, 2, 3, 4]}
+    g = grade(c, RunOutcome("proposed", [ch_update("standup", recurrence=missing_friday)]))
+    assert not g.passed and g.failure_type == "wrong_field"
