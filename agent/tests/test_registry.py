@@ -61,6 +61,33 @@ def test_handler_returning_non_dict_is_tool_failure(ctx):
         REGISTRY.pop("badresult", None)
 
 
+def _propose_then(outcome):
+    """A tool that adds a real delete and marks an id seen, then fails."""
+    def handler(ctx, args):
+        delete = REGISTRY["propose_delete_task"]
+        delete.handler(ctx, delete.args_model.model_validate(
+            {"task_id": "dentist", "reason": "user asked"}))
+        ctx.mark_seen(["standup"])
+        if outcome == "tool_error":
+            raise ToolError(ErrorCode.INVALID_ARGS, "changed my mind")
+        return ["not a dict"]
+    return handler
+
+
+@pytest.mark.parametrize("outcome", ["tool_error", "unexpected"])
+def test_failed_call_rolls_back_seen_ids_and_draft(ctx, outcome):
+    # The model is told the call failed, so nothing it did may stick.
+    assert execute(ctx, "get_task", {"task_id": "dentist"}).result.ok
+    register(ToolSpec("half", "Fails late.", _NoArgs, _propose_then(outcome), "propose"))
+    try:
+        rec = execute(ctx, "half", {})
+    finally:
+        REGISTRY.pop("half", None)
+    assert rec.result.ok is False
+    assert ctx.draft == []
+    assert ctx.seen_ids == {"dentist"}
+
+
 def test_post_fault_exception_is_tool_failure(snap):
     # empty/truncated faults rewrite the handler payload after the try. A
     # rewrite that raises must become TOOL_FAILURE, not an escaped exception.

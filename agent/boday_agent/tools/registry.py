@@ -3,13 +3,16 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ValidationError
 
 from .context import RunContext
 from .faults import post_fault_data, pre_fault_result
 from .result import ErrorCode, ToolError, ToolResult
+
+if TYPE_CHECKING:
+    from .propose import AskUserArgs
 
 
 @dataclass
@@ -63,6 +66,8 @@ def _run(ctx: RunContext, name: str, args: dict) -> tuple[ToolResult, str | None
     except ValidationError as exc:
         return ToolResult.failure(ErrorCode.INVALID_ARGS, _first_error(exc)), injected
     seen_before = set(ctx.seen_ids)
+    draft_before = len(ctx.draft)
+    question_before = ctx.question
     try:
         data = spec.handler(ctx, parsed)
         rewritten = post_fault_data(fault, name, data)
@@ -71,11 +76,22 @@ def _run(ctx: RunContext, name: str, args: dict) -> tuple[ToolResult, str | None
             ctx.seen_ids = seen_before | _ids_in(name, rewritten)
         return ToolResult.success(rewritten), injected
     except ToolError as exc:
+        _rollback(ctx, seen_before, draft_before, question_before)
         return ToolResult.failure(exc.code, exc.message, exc.hint), injected
     except Exception as exc:  # noqa: BLE001 - never leak internals to the model
+        _rollback(ctx, seen_before, draft_before, question_before)
         return ToolResult.failure(
             ErrorCode.TOOL_FAILURE, f"{name} failed unexpectedly ({type(exc).__name__})."
         ), injected
+
+
+def _rollback(
+    ctx: RunContext, seen: set[str], draft_len: int, question: AskUserArgs | None
+) -> None:
+    """A failed call must leave no trace: the model was told nothing happened."""
+    ctx.seen_ids = seen
+    del ctx.draft[draft_len:]
+    ctx.question = question
 
 
 def _ids_in(name: str, data: dict) -> set[str]:
