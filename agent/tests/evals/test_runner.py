@@ -235,3 +235,33 @@ def test_stamp_records_the_selection_reason(tmp_path):
         selection_reason="auto: local reachable",
     )
     assert run.stamp["selection_reason"] == "auto: local reachable"
+
+
+def _git(root, *args):
+    import subprocess
+
+    subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
+
+
+def test_git_dirty_ignores_untracked_files(tmp_path, monkeypatch):
+    from boday_agent.evals import runner as runner_mod
+
+    _git(tmp_path, "init", "-q")
+    (tmp_path / "tracked.txt").write_text("a\n")
+    _git(tmp_path, "add", "tracked.txt")
+    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init")
+    monkeypatch.setattr(runner_mod, "_REPO_ROOT", tmp_path)
+    (tmp_path / "untracked-results.json").write_text("{}")
+    assert runner_mod._git_meta()[1] is False
+    (tmp_path / "tracked.txt").write_text("b\n")
+    assert runner_mod._git_meta()[1] is True
+
+
+def test_eval_traces_are_gitignored():
+    import subprocess
+
+    from boday_agent.evals.runner import _REPO_ROOT
+
+    probe = "agent/evals/results/traces/2026-10-21/trace.json"
+    result = subprocess.run(["git", "check-ignore", "-q", probe], cwd=_REPO_ROOT, check=False)
+    assert result.returncode == 0

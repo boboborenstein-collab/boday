@@ -248,6 +248,6 @@ def _git_meta() -> tuple[str, bool]:
         )
 
     commit = run("rev-parse", "HEAD")
-    dirty = run("status", "--porcelain")
+    dirty = run("status", "--porcelain", "--untracked-files=no")
     sha = commit.stdout.strip() if commit.returncode == 0 else "unknown"
     return sha, bool(dirty.stdout.strip())
