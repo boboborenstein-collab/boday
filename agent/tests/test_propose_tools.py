@@ -96,6 +96,23 @@ def test_create_recurring_every_other_tuesday(seen_ctx):
     assert "tags" not in after and "excludeFromStats" not in after
 
 
+def test_end_before_start_is_rejected(seen_ctx):
+    created = run(seen_ctx, "propose_create_task", title="X", type="recurring",
+                  recurrence={"kind": "daily"}, start_date="2026-11-01", end_date="2026-10-21")
+    assert created.error.code == "INVALID_DATE"
+    updated = run(seen_ctx, "propose_update_task", task_id="gym", changes={"end_date": "2026-08-01"})
+    assert updated.error.code == "INVALID_DATE"
+
+
+def test_one_time_create_rejects_start_and_end(seen_ctx):
+    started = run(seen_ctx, "propose_create_task", title="X", type="one_time",
+                  scheduled_date="2026-10-21", start_date="2026-10-21")
+    assert started.error.code == "INVALID_ARGS"
+    ended = run(seen_ctx, "propose_create_task", title="X", type="one_time",
+                scheduled_date="2026-10-21", end_date="2026-10-22")
+    assert ended.error.code == "INVALID_ARGS"
+
+
 def test_create_recurring_defaults_and_shape_errors(seen_ctx):
     run(seen_ctx, "propose_create_task", title="Read", type="recurring", recurrence={"kind": "daily"})
     assert seen_ctx.draft_payload()[0]["after"]["startDate"] == "2026-10-20"
@@ -103,6 +120,29 @@ def test_create_recurring_defaults_and_shape_errors(seen_ctx):
                scheduled_date="2026-10-21").error.code == "INVALID_ARGS"
     assert run(seen_ctx, "propose_create_task", title="X", type="one_time", scheduled_date="2026-10-21",
                recurrence={"kind": "daily"}).error.code == "INVALID_ARGS"
+
+
+def test_before_fields_null_covers_absent_and_explicit_null():
+    # Undo and the stale check cannot tell a missing raw key from JSON null.
+    from boday_agent.domain.models import Snapshot
+    from tests.conftest import fixture_app_dict
+    data = fixture_app_dict()
+    base = {
+        "type": "recurring", "title": "R", "priority": 3,
+        "recurrence": {"kind": "daily"}, "startDate": "2026-09-01",
+        "createdAt": "2026-09-01T12:00:00Z",
+    }
+    data["tasks"] = [
+        {**base, "id": "absent"},
+        {**base, "id": "explicit", "endDate": None, "notes": None},
+    ]
+    ctx = RunContext.create(Snapshot.from_app(data), id_gen=counting_ids())
+    execute(ctx, "search_tasks", {})
+    assert run(ctx, "propose_update_task", task_id="absent", changes={"end_date": "2026-12-31"}).ok
+    assert run(ctx, "propose_update_task", task_id="explicit", changes={"notes": "hello"}).ok
+    by_id = {c["taskId"]: c["beforeFields"] for c in ctx.draft_payload()}
+    assert by_id["absent"] == {"endDate": None}
+    assert by_id["explicit"] == {"notes": None}
 
 
 def test_update_recurrence_and_end_date(seen_ctx):
@@ -125,6 +165,64 @@ def test_undone_on_recurring(seen_ctx):
     assert (ch["before"]["status"], ch["after"]["status"]) == ("done", "open")
 
 
+def test_undone_recurring_carries_the_raw_completion_row(seen_ctx):
+    assert run(seen_ctx, "propose_set_status", task_id="gym", status="undone", date="2026-10-19").ok
+    assert seen_ctx.draft_payload()[0]["beforeCompletionRaw"] == {
+        "id": "c-gym-1019", "taskId": "gym", "completionDate": "2026-10-19",
+        "completedAt": "2026-10-19T12:00:00Z",
+    }
+    assert run(seen_ctx, "propose_set_status", task_id="standup", status="undone", date="2026-10-19").ok
+    raw = seen_ctx.draft_payload()[1]["beforeCompletionRaw"]
+    assert raw["id"] == "c-standup-1019" and raw["skipped"] is True
+
+
+def test_status_change_from_open_has_no_completion_to_restore(seen_ctx):
+    assert run(seen_ctx, "propose_set_status", task_id="gym", status="skipped", date="2026-10-21").ok
+    assert run(seen_ctx, "propose_set_status", task_id="dentist", status="done").ok
+    assert [c["beforeCompletionRaw"] for c in seen_ctx.draft_payload()] == [None, None]
+
+
+def test_done_and_skipped_switches_carry_the_row_they_replace(seen_ctx):
+    # done <-> skipped rewrites the existing completion row, so undo needs it too.
+    assert run(seen_ctx, "propose_set_status", task_id="gym", status="skipped", date="2026-10-19").ok
+    assert run(seen_ctx, "propose_set_status", task_id="standup", status="done", date="2026-10-19").ok
+    gym, standup = seen_ctx.draft_payload()
+    assert (gym["before"]["status"], gym["after"]["status"]) == ("done", "skipped")
+    assert gym["beforeCompletionRaw"]["id"] == "c-gym-1019"
+    assert "skipped" not in gym["beforeCompletionRaw"]
+    assert (standup["before"]["status"], standup["after"]["status"]) == ("skipped", "done")
+    assert standup["beforeCompletionRaw"]["id"] == "c-standup-1019"
+    assert standup["beforeCompletionRaw"]["skipped"] is True
+
+
+def test_one_time_undone_preserves_completed_at_presence():
+    from boday_agent.domain.models import Snapshot
+    from tests.conftest import fixture_app_dict
+    data = fixture_app_dict()
+    data["tasks"] = [
+        t for t in data["tasks"] if t["id"] != "report"
+    ] + [
+        {"id": "stamped", "type": "one_time", "title": "Stamped", "priority": 3,
+         "scheduledDate": "2026-10-19", "completed": True,
+         "completedAt": "2026-10-19T14:00:00Z", "createdAt": "2026-09-01T12:00:00Z"},
+        {"id": "null-stamp", "type": "one_time", "title": "Null stamp", "priority": 3,
+         "scheduledDate": "2026-10-18", "completed": True, "completedAt": None,
+         "createdAt": "2026-09-01T12:00:00Z"},
+        {"id": "no-stamp", "type": "one_time", "title": "No stamp", "priority": 3,
+         "scheduledDate": "2026-10-17", "completed": True,
+         "createdAt": "2026-09-01T12:00:00Z"},
+    ]
+    ctx = RunContext.create(Snapshot.from_app(data), id_gen=counting_ids())
+    execute(ctx, "search_tasks", {"include_completed": True})
+    assert run(ctx, "propose_set_status", task_id="stamped", status="undone").ok
+    assert run(ctx, "propose_set_status", task_id="null-stamp", status="undone").ok
+    assert run(ctx, "propose_set_status", task_id="no-stamp", status="undone").ok
+    by_id = {c["taskId"]: c["beforeCompletionRaw"] for c in ctx.draft_payload()}
+    assert by_id["stamped"] == {"completedAt": "2026-10-19T14:00:00Z"}
+    assert by_id["null-stamp"] == {"completedAt": None}
+    assert by_id["no-stamp"] == {}
+
+
 def test_update_warnings_on_reminder_change(seen_ctx):
     r = run(seen_ctx, "propose_update_task", task_id="cafe", changes={"reminder_time": "09:00"})
     assert [w["code"] for w in r.data["warnings"]] == ["TIME_CLASH"]   # standup 09:00 on Fri 10-23
@@ -135,6 +233,41 @@ def test_update_warnings_on_reminder_change(seen_ctx):
 def test_priority_description_explains_torah():
     s = {t["name"]: t for t in tool_schemas()}["propose_create_task"]
     assert "5 = Torah category, not a lower priority" in s["input_schema"]["properties"]["priority"]["description"]
+
+
+def _schema_allows_null(field):
+    if field.get("type") == "null":
+        return True
+    return any(opt.get("type") == "null" for opt in field.get("anyOf", []))
+
+
+def _schema_pattern(field):
+    if "pattern" in field:
+        return field["pattern"]
+    for opt in field.get("anyOf", []):
+        if "pattern" in opt:
+            return opt["pattern"]
+    return None
+
+
+def test_update_changes_schema_has_no_null_default_on_non_nullable_fields():
+    # A null default on a non-nullable field tells the model it may send null.
+    schema = {t["name"]: t for t in tool_schemas()}["propose_update_task"]["input_schema"]
+    props = schema["$defs"]["UpdateChanges"]["properties"]
+    for name in ("title", "priority", "tags", "scheduled_date", "recurrence"):
+        field = props[name]
+        assert "default" not in field, name
+        assert not _schema_allows_null(field), name
+    for name in ("reminder_time", "notes", "end_date"):
+        field = props[name]
+        assert field["default"] is None, name
+        assert _schema_allows_null(field), name
+    assert props["title"]["minLength"] == 1 and props["title"]["maxLength"] == 200
+    assert props["tags"]["maxItems"] == 10
+    assert "5 = Torah category, not a lower priority" in props["priority"]["description"]
+    for name in ("scheduled_date", "end_date"):
+        assert "yyyy-MM-dd" in props[name]["description"], name
+        assert _schema_pattern(props[name]) == r"^\d{4}-\d{2}-\d{2}$", name
 
 
 def test_delete_limit(seen_ctx):

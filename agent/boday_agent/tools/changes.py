@@ -24,7 +24,9 @@ class UpdateChange(CamelModel):
     op: Literal["update"] = "update"
     task_id: str
     patch: dict[str, Any]  # camelCase task field -> new value (changed fields only)
-    before_fields: dict[str, Any]  # same keys -> old values from the raw snapshot JSON
+    # Same keys as patch. null means the raw task held null OR the key was absent;
+    # the payload does not preserve that difference.
+    before_fields: dict[str, Any]
     warnings: list[ChangeWarning] = Field(default_factory=list)
 
 
@@ -34,6 +36,12 @@ class StatusChange(CamelModel):
     date: str | None = None
     before: StatusSnapshot
     after: StatusSnapshot
+    # Set whenever the status before the change is done or skipped (undone, or a
+    # done <-> skipped switch), so undo can restore what the change replaces.
+    # Recurring: that occurrence's completion row exactly as received.
+    # One-time: {"completedAt": raw value} when that key was present (value may
+    # be null), or {} when the key was absent. Null when the status before is open.
+    before_completion_raw: dict[str, Any] | None = None
     warnings: list[ChangeWarning] = Field(default_factory=list)
 
 

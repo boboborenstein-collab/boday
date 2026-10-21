@@ -102,3 +102,46 @@ def test_unparseable_message_lists_forms():
 def test_huge_offsets_are_unparseable_not_crashes(expr):
     with pytest.raises(UnparseableDate):
         resolve(expr, TUE)
+
+
+def test_this_weekend_on_sunday_is_today():
+    sun = Clock(datetime(2026, 10, 25, 9, 0, tzinfo=NY), NY)
+    assert one("this weekend", sun) == ("2026-10-25", None)
+
+
+def test_relative_hours_across_spring_forward():
+    # 2026-03-08 02:00 does not exist in America/New_York; clocks jump to 03:00.
+    spring = Clock(datetime(2026, 3, 8, 1, 30, tzinfo=NY), NY)
+    assert one("in 1 hour", spring) == ("2026-03-08", "03:30")
+    assert one("in 30 minutes", spring) == ("2026-03-08", "03:00")
+
+
+@pytest.mark.parametrize("expr", ["2026-02-30", "feb 30", "February 30"])
+def test_february_30_is_unparseable(expr):
+    with pytest.raises(UnparseableDate):
+        resolve(expr, TUE)
+
+
+def test_twelve_am_pm_and_bare_twelve():
+    assert one("friday at 12am") == ("2026-10-23", "00:00")
+    assert one("friday at 12pm") == ("2026-10-23", "12:00")
+    assert one("12am") == ("2026-10-20", "00:00")
+    r = resolve("at 12", TUE)
+    assert r.ambiguous and [(c.date, c.time) for c in r.candidates] == [
+        ("2026-10-20", "12:00"), ("2026-10-20", "00:00")]
+
+
+@pytest.mark.parametrize("expr,day", [
+    ("monday", "2026-10-26"),
+    ("wednesday", "2026-10-21"),
+    ("thursday", "2026-10-22"),
+    ("saturday", "2026-10-24"),
+    ("sunday", "2026-10-25"),
+    ("mon", "2026-10-26"),
+    ("wed", "2026-10-21"),
+    ("thu", "2026-10-22"),
+    ("sat", "2026-10-24"),
+    ("sun", "2026-10-25"),
+])
+def test_weekday_names_beyond_tuesday(expr, day):
+    assert one(expr) == (day, None)

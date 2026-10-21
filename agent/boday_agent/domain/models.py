@@ -178,6 +178,8 @@ class Snapshot(CamelModel):
 
     @classmethod
     def from_app(cls, data: dict) -> Snapshot:
+        if not isinstance(data, dict):
+            TypeAdapter(dict).validate_python(data)
         # Strict top-level fields: raises ValidationError on bad now/timezone.
         head = cls(tasks=[], now=data.get("now"), timezone=data.get("timezone"))  # type: ignore[arg-type]
 

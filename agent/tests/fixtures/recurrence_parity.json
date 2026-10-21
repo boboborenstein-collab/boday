@@ -166,6 +166,34 @@
       "endDate": "2026-06-20",
       "reminderTime": null,
       "createdAt": "2026-06-10T08:00:00.000Z"
+    },
+    {
+      "id": "syn-weekly-sun-sat",
+      "type": "recurring",
+      "title": "syn-weekly-sun-sat",
+      "priority": 3,
+      "recurrence": {
+        "kind": "weekly",
+        "daysOfWeek": [
+          0,
+          6
+        ]
+      },
+      "startDate": "2026-06-01",
+      "endDate": null,
+      "reminderTime": null,
+      "createdAt": "2026-06-01T08:00:00.000Z"
+    },
+    {
+      "id": "ot-completed-utc-midnight",
+      "type": "one_time",
+      "title": "Completed near UTC midnight",
+      "priority": 3,
+      "scheduledDate": "2026-06-17",
+      "completed": true,
+      "completedAt": "2026-06-18T03:30:00.000Z",
+      "reminderTime": null,
+      "createdAt": "2026-06-17T08:00:00.000Z"
     }
   ],
   "completions": [
@@ -519,11 +547,30 @@
       "2026-06-18",
       "2026-06-19",
       "2026-06-20"
+    ],
+    "syn-weekly-sun-sat": [
+      "2026-06-07",
+      "2026-06-13",
+      "2026-06-14",
+      "2026-06-20",
+      "2026-06-21",
+      "2026-06-27",
+      "2026-06-28",
+      "2026-07-04",
+      "2026-07-05",
+      "2026-07-11",
+      "2026-07-12",
+      "2026-07-18",
+      "2026-07-19",
+      "2026-07-25",
+      "2026-07-26",
+      "2026-08-01"
     ]
   },
   "day_lists": {
     "2026-06-07": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-06-08": [
       "rt-workout",
@@ -554,11 +601,13 @@
       "rt-standup"
     ],
     "2026-06-13": [
+      "syn-weekly-sun-sat",
       "syn-ended",
       "rt-workout"
     ],
     "2026-06-14": [
       "ot-drycleaning",
+      "syn-weekly-sun-sat",
       "syn-ended",
       "rt-workout",
       "rt-plants"
@@ -581,7 +630,8 @@
       "rt-standup",
       "rt-workout",
       "syn-ended",
-      "rt-plants"
+      "rt-plants",
+      "ot-completed-utc-midnight"
     ],
     "2026-06-18": [
       "rt-torah",
@@ -597,11 +647,13 @@
     ],
     "2026-06-20": [
       "rt-workout",
+      "syn-weekly-sun-sat",
       "syn-ended",
       "rt-plants"
     ],
     "2026-06-21": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-06-22": [
       "rt-torah",
@@ -629,10 +681,12 @@
       "rt-plants"
     ],
     "2026-06-27": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-06-28": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-06-29": [
       "rt-torah",
@@ -660,10 +714,12 @@
       "rt-workout"
     ],
     "2026-07-04": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-07-05": [
       "rt-workout",
+      "syn-weekly-sun-sat",
       "rt-plants"
     ],
     "2026-07-06": [
@@ -692,10 +748,12 @@
     ],
     "2026-07-11": [
       "rt-workout",
+      "syn-weekly-sun-sat",
       "rt-plants"
     ],
     "2026-07-12": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-07-13": [
       "rt-torah",
@@ -723,10 +781,12 @@
       "rt-plants"
     ],
     "2026-07-18": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-07-19": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-07-20": [
       "rt-torah",
@@ -754,10 +814,12 @@
       "rt-workout"
     ],
     "2026-07-25": [
-      "rt-workout"
+      "rt-workout",
+      "syn-weekly-sun-sat"
     ],
     "2026-07-26": [
       "rt-workout",
+      "syn-weekly-sun-sat",
       "rt-plants"
     ],
     "2026-07-27": [
@@ -787,10 +849,49 @@
     ],
     "2026-08-01": [
       "rt-workout",
+      "syn-weekly-sun-sat",
       "rt-plants"
     ]
   },
   "today_lists": {
+    "2026-06-16": [
+      [
+        "ot-drycleaning",
+        2,
+        false,
+        false
+      ],
+      [
+        "syn-ended",
+        0,
+        false,
+        false
+      ],
+      [
+        "ot-gym",
+        5,
+        false,
+        false
+      ],
+      [
+        "rt-torah",
+        0,
+        true,
+        false
+      ],
+      [
+        "ot-expense",
+        0,
+        true,
+        false
+      ],
+      [
+        "rt-workout",
+        0,
+        true,
+        false
+      ]
+    ],
     "2026-06-17": [
       [
         "rt-torah",
@@ -836,6 +937,12 @@
       ],
       [
         "rt-plants",
+        0,
+        true,
+        false
+      ],
+      [
+        "ot-completed-utc-midnight",
         0,
         true,
         false
@@ -901,6 +1008,12 @@
       [
         "ot-gift",
         1,
+        false,
+        false
+      ],
+      [
+        "syn-weekly-sun-sat",
+        0,
         false,
         false
       ],

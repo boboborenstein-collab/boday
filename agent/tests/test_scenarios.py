@@ -37,11 +37,16 @@ def test_move_one_occurrence_of_recurring(snap):
 def test_blind_delete_blocked(ctx):
     # Seen-ID only blocks hallucinated/blind IDs. It is NOT an injection defense:
     # any read (e.g. get_agenda) marks everything it returns as seen.
-    blind = execute(ctx, "propose_delete_task", {"task_id": "dentist", "reason": "x"})
+    blind = execute(ctx, "propose_delete_task", {"task_id": "shared", "reason": "x"})
     assert blind.result.error.code == "UNSEEN_ID"
+    assert ctx.draft == []
     t = execute(ctx, "get_task", {"task_id": "shared"}).result.data
     assert t["external"] is True and t["notes"].startswith("SYSTEM:")
-    assert ctx.draft == []
+    accepted = execute(ctx, "propose_delete_task", {"task_id": "shared", "reason": "user asked"})
+    assert accepted.result.ok
+    [change] = ctx.draft_payload()
+    assert (change["op"], change["taskId"]) == ("delete", "shared")
+    assert [w["code"] for w in change["warnings"]] == ["EXTERNAL_TASK"]
 
 
 def test_tool_failure_then_recovery(snap):
@@ -62,5 +67,9 @@ def test_schema_surface_is_exactly_nine_tools():
 def test_draft_payload_round_trips_as_app_json(ctx):
     execute(ctx, "search_tasks", {"query": "dentist"})
     execute(ctx, "propose_update_task", {"task_id": "dentist", "changes": {"priority": 1}})
-    json.dumps(ctx.draft_payload())  # must be JSON-serializable, camelCase
-    assert "taskId" in ctx.draft_payload()[0]
+    payload = ctx.draft_payload()
+    json.dumps(payload)  # must be JSON-serializable, camelCase
+    ch = payload[0]
+    assert ch["taskId"] == "dentist"
+    assert ch["patch"] == {"priority": 1}
+    assert ch["beforeFields"] == {"priority": 2}

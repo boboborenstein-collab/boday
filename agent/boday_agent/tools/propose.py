@@ -291,21 +291,49 @@ register(ToolSpec(
 # ---------------------------------------------------------------------- update
 
 
+def _omit_null_default(schema: dict) -> None:
+    """Optional fields stay un-required, but non-nullable ones must not advertise default null."""
+    schema.pop("default", None)
+
+
+def _date_pattern(schema: dict) -> None:
+    pattern = r"^\d{4}-\d{2}-\d{2}$"
+    if schema.get("type") == "string":
+        schema["pattern"] = pattern
+    for option in schema.get("anyOf", []):
+        if option.get("type") == "string":
+            option["pattern"] = pattern
+
+
+def _optional_date(schema: dict) -> None:
+    _omit_null_default(schema)
+    _date_pattern(schema)
+
+
+_DATE_HINT = "yyyy-MM-dd. Use resolve_date first, not a natural-language date."
+
+
 class UpdateChanges(_Strict):
-    title: Title
-    priority: Priority
-    reminder_time: TimeStr | None
-    notes: Notes | None
-    tags: Tags
-    scheduled_date: DateStr
-    recurrence: RecurrenceArg
-    end_date: DateStr | None
-
-
-# all fields optional: omission leaves a field unchanged, explicit null clears nullable ones
-for _f in UpdateChanges.model_fields.values():
-    _f.default = None
-UpdateChanges.model_rebuild(force=True)
+    # default None makes every field optional (omission leaves it unchanged).
+    # Nullable fields keep that null in the schema because null is a real value
+    # (it clears the field). Non-nullable fields strip it so the schema does not
+    # claim null is valid.
+    title: Title = Field(default=None, json_schema_extra=_omit_null_default)
+    priority: Priority = Field(default=None, json_schema_extra=_omit_null_default)
+    reminder_time: TimeStr | None = Field(default=None)
+    notes: Notes | None = Field(default=None)
+    tags: Tags = Field(default=None, json_schema_extra=_omit_null_default)
+    scheduled_date: DateStr = Field(
+        default=None,
+        description=f"One-time tasks only. {_DATE_HINT}",
+        json_schema_extra=_optional_date,
+    )
+    recurrence: RecurrenceArg = Field(default=None, json_schema_extra=_omit_null_default)
+    end_date: DateStr | None = Field(
+        default=None,
+        description=f"Recurring tasks only: last day. Null clears it. {_DATE_HINT}",
+        json_schema_extra=_date_pattern,
+    )
 
 
 class UpdateArgs(_Strict):
@@ -373,7 +401,7 @@ def _update(ctx: RunContext, a: UpdateArgs) -> dict:
 
     if "scheduled_date" in new_values and "scheduledDate" in patch:
         _check_range(ctx, new_values["scheduled_date"], "scheduled_date")
-    if "end_date" in patch and patch["endDate"] is not None:
+    if "endDate" in patch and patch["endDate"] is not None:
         assert isinstance(task, RecurringTask)
         if patch["endDate"] < task.start_date:
             raise ToolError(ErrorCode.INVALID_DATE, "end_date is before start_date.")
@@ -416,6 +444,23 @@ class SetStatusArgs(_Strict):
     )
 
 
+def _completion_being_cleared(ctx: RunContext, task: Task, ds: str | None) -> dict | None:
+    """Raw completion data a status change replaces, so a later undo can put it back unchanged."""
+    snap = ctx.snapshot
+    if isinstance(task, OneTimeTask):
+        raw = snap.raw_tasks.get(task.id, {})
+        if "completedAt" not in raw:
+            return {}
+        return {"completedAt": copy.deepcopy(raw["completedAt"])}
+    for completion in snap.completions:
+        if completion.task_id != task.id or completion.completion_date != ds:
+            continue
+        raw = snap.raw_completions.get(completion.id)
+        if raw is not None:
+            return copy.deepcopy(raw)
+    return None
+
+
 def _set_status(ctx: RunContext, a: SetStatusArgs) -> dict:
     task = ctx.require_seen(a.task_id)
     target = "open" if a.status == "undone" else a.status
@@ -444,9 +489,12 @@ def _set_status(ctx: RunContext, a: SetStatusArgs) -> dict:
                 break
     if current == target:
         raise _bad(f"No change: '{task.title}' is already {current}.")
+    # Leaving done/skipped removes or rewrites the completion: keep what undo must restore.
+    cleared = _completion_being_cleared(ctx, task, ds) if current != "open" else None
     change = StatusChange(
         task_id=task.id, date=ds,
         before=StatusSnapshot(status=current), after=StatusSnapshot(status=target),
+        before_completion_raw=cleared,
         warnings=_external(task),
     )
     where = f" on {ds}" if ds else ""

@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 from boday_agent.tools.context import RunContext, counting_ids
 from boday_agent.tools.faults import Fault, FaultPlan
 from boday_agent.tools.registry import REGISTRY, ToolSpec, execute, register, tool_schemas
-from boday_agent.tools.result import ToolResult
+from boday_agent.tools.result import ErrorCode, ToolError, ToolResult
 
 
 class _EchoArgs(BaseModel):
@@ -45,6 +45,73 @@ def test_unexpected_exception_becomes_tool_failure(ctx):
     assert r.error.code == "TOOL_FAILURE" and "secret internals" not in r.error.message
 
 
+def test_handler_returning_non_dict_is_tool_failure(ctx):
+    # ToolResult.success validates `data` as a dict. That validation sits after
+    # the handler try, so a bad return used to escape execute() entirely.
+    register(ToolSpec("badresult", "Returns a list.", _NoArgs, lambda c, a: ["nope"], "read"))
+    try:
+        try:
+            rec = execute(ctx, "badresult", {})
+        except Exception as exc:
+            pytest.fail(f"execute raised {type(exc).__name__}: {exc}")
+        assert rec.result.ok is False
+        assert rec.result.error.code == "TOOL_FAILURE"
+        assert "nope" not in rec.result.error.message
+    finally:
+        REGISTRY.pop("badresult", None)
+
+
+def _propose_then(outcome):
+    """A tool that adds a real delete and marks an id seen, then fails."""
+    def handler(ctx, args):
+        delete = REGISTRY["propose_delete_task"]
+        delete.handler(ctx, delete.args_model.model_validate(
+            {"task_id": "dentist", "reason": "user asked"}))
+        ctx.mark_seen(["standup"])
+        if outcome == "tool_error":
+            raise ToolError(ErrorCode.INVALID_ARGS, "changed my mind")
+        return ["not a dict"]
+    return handler
+
+
+@pytest.mark.parametrize("outcome", ["tool_error", "unexpected"])
+def test_failed_call_rolls_back_seen_ids_and_draft(ctx, outcome):
+    # The model is told the call failed, so nothing it did may stick.
+    assert execute(ctx, "get_task", {"task_id": "dentist"}).result.ok
+    register(ToolSpec("half", "Fails late.", _NoArgs, _propose_then(outcome), "propose"))
+    try:
+        rec = execute(ctx, "half", {})
+    finally:
+        REGISTRY.pop("half", None)
+    assert rec.result.ok is False
+    assert ctx.draft == []
+    assert ctx.seen_ids == {"dentist"}
+
+
+def test_post_fault_exception_is_tool_failure(snap):
+    # empty/truncated faults rewrite the handler payload after the try. A
+    # rewrite that raises must become TOOL_FAILURE, not an escaped exception.
+    search = ToolSpec("search_tasks", "s", _NoArgs, lambda c, a: ["nope"], "read")
+    saved = REGISTRY.get("search_tasks")
+    register(search)
+    try:
+        ctx = RunContext.create(snap, faults=FaultPlan(
+            faults=[Fault(tool="search_tasks", call=1, kind="empty")]))
+        try:
+            rec = execute(ctx, "search_tasks", {})
+        except Exception as exc:
+            pytest.fail(f"execute raised {type(exc).__name__}: {exc}")
+        assert rec.result.ok is False
+        assert rec.result.error.code == "TOOL_FAILURE"
+        assert rec.injected_fault == "empty"
+        assert "nope" not in rec.result.error.message
+    finally:
+        if saved is not None:
+            REGISTRY["search_tasks"] = saved
+        else:
+            REGISTRY.pop("search_tasks", None)
+
+
 def test_error_fault_on_second_call_only(snap):
     plan = FaultPlan(faults=[Fault(tool="echo", call=2, kind="error")])
     ctx = RunContext.create(snap, faults=plan)
@@ -56,6 +123,20 @@ def test_error_fault_on_second_call_only(snap):
 def test_empty_fault_rejected_for_non_list_tool():
     with pytest.raises(ValueError):
         FaultPlan(faults=[Fault(tool="get_task", call=1, kind="empty")])
+
+
+def test_fault_plan_rejects_call_below_one():
+    # A lone Fault stays constructable so a case file can be loaded and the
+    # suite checker can report the bad call. Using the faults (FaultPlan)
+    # is what must reject call < 1.
+    from pydantic import ValidationError
+    assert Fault(tool="search_tasks", call=0, kind="error").call == 0
+    with pytest.raises(ValidationError, match="call must be >= 1"):
+        FaultPlan(faults=[Fault(tool="search_tasks", call=0, kind="error")])
+    with pytest.raises(ValidationError, match="call must be >= 1"):
+        FaultPlan(faults=[{"tool": "get_agenda", "call": -3, "kind": "truncated"}])
+    plan = FaultPlan(faults=[Fault(tool="search_tasks", call=1, kind="timeout")])
+    assert plan.faults[0].call == 1
 
 
 def test_schemas_have_name_description_schema():
@@ -101,6 +182,45 @@ def test_empty_and_truncated_faults_on_search():
             REGISTRY["search_tasks"] = saved
         else:
             REGISTRY.pop("search_tasks", None)
+
+
+def test_tool_error_from_handler_is_returned_by_execute(ctx):
+    def _missing(c, a):
+        raise ToolError(ErrorCode.NOT_FOUND, "missing task", "look again")
+
+    register(ToolSpec("missing", "nope", _NoArgs, _missing, "read"))
+    try:
+        try:
+            rec = execute(ctx, "missing", {})
+        except Exception as exc:
+            pytest.fail(f"execute raised {type(exc).__name__}: {exc}")
+        err = rec.result.error
+        assert rec.result.ok is False
+        assert err.code == "NOT_FOUND"
+        assert err.message == "missing task" and err.hint == "look again"
+    finally:
+        REGISTRY.pop("missing", None)
+
+
+def test_agenda_faults_rewrite_the_payload_not_only_seen_ids(snap):
+    args = {"start_date": "2026-10-21", "end_date": "2026-10-22"}
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="empty")]))
+    rec = execute(ctx, "get_agenda", args)
+    data = rec.result.data
+    assert rec.injected_fault == "empty" and "truncated" not in data
+    assert data["days"]
+    for day in data["days"]:
+        assert day["items"] == [] and day["total"] == 0 and day["truncated"] is False
+
+    ctx = RunContext.create(snap, faults=FaultPlan(
+        faults=[Fault(tool="get_agenda", call=1, kind="truncated")]))
+    rec = execute(ctx, "get_agenda", args)
+    data = rec.result.data
+    assert rec.injected_fault == "truncated" and data["truncated"] is True
+    assert [d["date"] for d in data["days"]] == ["2026-10-21"]
+    assert data["days"][0]["items"]
+    assert "dentist" not in {i["id"] for i in data["days"][0]["items"]}
 
 
 def test_require_seen_and_task(ctx):

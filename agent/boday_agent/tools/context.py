@@ -21,6 +21,7 @@ class Limits:
     max_changes: int = 25
     max_deletes: int = 3
     max_agenda_days: int = 14
+    max_agenda_items: int = 20
     max_search_results: int = 20
     max_days_ahead: int = 365
     overload_threshold: int = 8
