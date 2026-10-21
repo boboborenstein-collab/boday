@@ -249,3 +249,37 @@
             daysOfWeek:
             - 2
             - 4
+- id: priority-torah-create
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: add daf yomi tmrw under torah
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: create
+        fields:
+          title_contains: daf
+          type: one_time
+          scheduledDate: '2026-10-21'
+          priority: 5
+  notes: Priority 5 is the Torah category, not a lower priority (spec §1 priority semantics).
+- id: priority-lowest-not-torah
+  category: happy_path
+  label: should_act
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: make the oil change lowest priority
+  expect:
+    accept:
+    - outcome: proposed
+      changes:
+      - op: update
+        task: oil-change
+        fields:
+          priority: 4
+  notes: Lowest priority is 4 (low). 5 is the Torah category and would be wrong here.
