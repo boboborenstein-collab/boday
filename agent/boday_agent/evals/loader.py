@@ -99,14 +99,16 @@ def validate_suite(cases: list[EvalCase], fixtures_dir: Path) -> list[str]:
 
 
 def _fault_errors(case: EvalCase) -> list[str]:
+    """FaultPlan owns the call and kind rules; each fault is checked on its own
+    so every bad fault is reported once, without pydantic's wrapper text."""
     errors: list[str] = []
     for fault in case.faults:
-        if fault.call < 1:
-            errors.append(f"{case.id}: fault call must be >= 1, got {fault.call}")
         if fault.tool not in REGISTRY:
             errors.append(f"{case.id}: unknown fault tool {fault.tool!r}")
-    try:
-        FaultPlan(faults=case.faults)
-    except ValueError as exc:
-        errors.append(f"{case.id}: {exc}")
+        try:
+            FaultPlan(faults=[fault])
+        except ValidationError as exc:
+            for item in exc.errors():
+                message = str(item["msg"]).removeprefix("Value error, ")
+                errors.append(f"{case.id}: {message}")
     return errors
