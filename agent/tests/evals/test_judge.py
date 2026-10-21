@@ -203,3 +203,46 @@ def test_judge_scores_only_answered_advice_trials():
     assert client.calls == 1
     assert [item.judge_score for item in run.results] == [4, None, None]
     assert [item.judge_error for item in run.results] == [None, None, None]
+
+
+def _judge_cli(tmp_path, monkeypatch, scorer):
+    from boday_agent.evals.cli import main
+
+    run = SuiteRun(
+        stamp={"date": "2026-10-21", "model": "fake-1", "split": "dev"},
+        results=[_trial("drop-advice", "advice", "Drop the errands.")],
+    )
+    monkeypatch.setattr("boday_agent.evals.cli.run_suite", lambda *a, **k: run)
+    monkeypatch.setattr("boday_agent.evals.cli.default_client", lambda: StubClient())
+    monkeypatch.setattr("boday_agent.evals.cli.score_advice", scorer)
+    code = main(
+        [
+            "run", "--provider", "anthropic", "--category", "advice", "--judge",
+            "--out", str(tmp_path),
+        ]
+    )
+    return code, sorted(tmp_path.glob("*.json"))
+
+
+def test_judge_crash_keeps_the_suite_report(tmp_path, monkeypatch):
+    def explode(run, cases, client):
+        raise RuntimeError("judge exploded")
+
+    code, files = _judge_cli(tmp_path, monkeypatch, explode)
+    assert code == 1
+    assert len(files) == 1
+    saved = json.loads(files[0].read_text())
+    assert saved["results"][0]["answer_text"] == "Drop the errands."
+
+
+def test_judge_scores_are_written_into_the_same_report(tmp_path, monkeypatch):
+    def score(run, cases, client):
+        for item in run.results:
+            item.judge_score = 4
+
+    code, files = _judge_cli(tmp_path, monkeypatch, score)
+    assert code == 0
+    assert len(files) == 1
+    saved = json.loads(files[0].read_text())
+    assert saved["results"][0]["judge_score"] == 4
+    assert saved["metrics"]["advice_quality_mean"] == 4

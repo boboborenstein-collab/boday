@@ -33,9 +33,11 @@ def write_report(
     out_dir: Path,
     *,
     calibration: dict | None = None,
+    stem: str | None = None,
 ) -> tuple[Path, Path]:
+    """Write the report. Pass `stem` to overwrite a report written earlier in this run."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = _available_stem(out_dir, run)
+    stem = stem or _available_stem(out_dir, run)
     json_path = out_dir / f"{stem}.json"
     md_path = out_dir / f"{stem}.md"
     payload = suite_payload(run)

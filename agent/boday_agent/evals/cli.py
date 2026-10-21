@@ -167,11 +167,20 @@ def _run(args: argparse.Namespace) -> int:
     except CassetteMismatch as exc:
         print(exc, file=sys.stderr)
         return 1
+    # Write the suite first so a judge failure never loses a paid run.
+    calibration = load_calibration()
+    json_path, md_path = write_report(run, compute_metrics(run), out, calibration=calibration)
+    judge_failed = False
     if args.judge:
-        score_advice(run, selected, default_client())
-    json_path, md_path = write_report(
-        run, compute_metrics(run), out, calibration=load_calibration()
-    )
+        try:
+            score_advice(run, selected, default_client())
+        except Exception as exc:  # noqa: BLE001 - keep the written suite report
+            print(f"judge failed ({exc}); report kept without judge scores", file=sys.stderr)
+            judge_failed = True
+        else:
+            write_report(
+                run, compute_metrics(run), out, calibration=calibration, stem=json_path.stem
+            )
     print(json_path)
     print(md_path)
     if args.fail_on_regression:
@@ -185,7 +194,7 @@ def _run(args: argparse.Namespace) -> int:
             for problem in problems:
                 print("  " + problem, file=sys.stderr)
             return 1
-    return 0
+    return 1 if judge_failed else 0
 
 
 def _calibrate(args: argparse.Namespace) -> int:
