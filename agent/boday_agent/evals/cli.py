@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from boday_agent.cli import _headers, make_provider
+from boday_agent.evals.cassettes import CASSETTES_DIR, CassetteMismatch, regressions_against
 from boday_agent.evals.judge import (
     default_client,
     export_ratings,
@@ -81,21 +82,40 @@ def _filter_cases(cases, args: argparse.Namespace):
     return cases
 
 
+def _read_case_file(path: Path) -> list[str]:
+    ids = []
+    for line in path.read_text().splitlines():
+        item = line.split("#", 1)[0].strip()
+        if item:
+            ids.append(item)
+    return ids
+
+
 def _run(args: argparse.Namespace) -> int:
-    if not args.provider:
+    if args.record and args.replay:
+        print("pass only one of --record or --replay", file=sys.stderr)
+        return 2
+    if not args.replay and not args.provider:
         print("--provider is required", file=sys.stderr)
         return 2
-    if args.provider in ("openai", "auto") and not args.base_url:
+    if not args.replay and args.provider in ("openai", "auto") and not args.base_url:
         print("--base-url is required for provider " + args.provider, file=sys.stderr)
         return 2
-    if args.provider in ("openai", "auto") and not args.model:
+    if not args.replay and args.provider in ("openai", "auto") and not args.model:
         print("--model is required for provider " + args.provider, file=sys.stderr)
         return 2
-    try:
-        _headers(args.header or [])
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return 2
+    if not args.replay:
+        try:
+            _headers(args.header or [])
+        except ValueError as exc:
+            print(exc, file=sys.stderr)
+            return 2
+    if args.case_file:
+        file = Path(args.case_file)
+        if not file.is_file():
+            print(f"case file not found: {file}", file=sys.stderr)
+            return 2
+        args.case = [*(args.case or []), *_read_case_file(file)]
     try:
         cases = load_cases(CASES_DIR)
     except ValueError as exc:
@@ -110,18 +130,27 @@ def _run(args: argparse.Namespace) -> int:
     out = Path(args.out) if args.out else RESULTS_DIR
 
     def factory():
-        # A fresh client per trial. Construction waits until the trial runs.
+        # Replay never calls this. A fresh client per live or recorded trial.
+        if args.replay:
+            raise RuntimeError("replay does not construct a provider")
         provider, _reason = make_provider(_provider_args(args))
         return provider
 
-    run = run_suite(
-        selected,
-        factory,
-        traces_dir=out / "traces",
-        trials=args.trials,
-        concurrency=args.concurrency,
-        selection_reason="explicit",
-    )
+    mode = "replay" if args.replay else "record" if args.record else "live"
+    try:
+        run = run_suite(
+            selected,
+            factory,
+            traces_dir=out / "traces",
+            trials=args.trials,
+            concurrency=args.concurrency,
+            selection_reason="explicit",
+            cassette_dir=CASSETTES_DIR,
+            cassette_mode=mode,
+        )
+    except CassetteMismatch as exc:
+        print(exc, file=sys.stderr)
+        return 1
     if args.judge:
         score_advice(run, selected, default_client())
     json_path, md_path = write_report(
@@ -129,6 +158,15 @@ def _run(args: argparse.Namespace) -> int:
     )
     print(json_path)
     print(md_path)
+    if args.fail_on_regression:
+        baseline = Path(args.fail_on_regression)
+        if not baseline.is_file():
+            print(f"baseline not found: {baseline}", file=sys.stderr)
+            return 1
+        bad = regressions_against(baseline, run.results)
+        if bad:
+            print("regressions: " + ", ".join(bad), file=sys.stderr)
+            return 1
     return 0
 
 
@@ -174,6 +212,10 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--concurrency", type=int, default=4)
     run.add_argument("--out", default=None)
     run.add_argument("--judge", action="store_true", help="Score advice answers")
+    run.add_argument("--record", action="store_true", help="Write a cassette per trial")
+    run.add_argument("--replay", action="store_true", help="Replay cassettes; no model calls")
+    run.add_argument("--case-file", default=None, help="Text file of case ids, one per line")
+    run.add_argument("--fail-on-regression", default=None, metavar="BASELINE.json")
     report = sub.add_parser("report", help="Compare two result JSON files")
     report.add_argument("--compare", nargs=2, metavar=("A", "B"), required=True)
     calibrate = sub.add_parser("calibrate", help="Export or import owner ratings of the judge")

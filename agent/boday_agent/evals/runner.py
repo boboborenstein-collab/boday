@@ -11,6 +11,13 @@ from pathlib import Path
 from typing import Any
 
 import boday_agent.tools  # noqa: F401  (registers tools for the loop)
+from boday_agent.evals.cassettes import (
+    CASSETTES_DIR,
+    CassetteMismatch,
+    RecordingProvider,
+    ReplayProvider,
+    cassette_path,
+)
 from boday_agent.evals.grader import Grade, RunOutcome, grade
 from boday_agent.evals.loader import build_snapshot, load_fixture
 from boday_agent.evals.schema import AssistantTurnSpec, EvalCase, UserTurn
@@ -63,16 +70,22 @@ def run_suite(
     trials: int = 3,
     concurrency: int = 4,
     selection_reason: str = "explicit",
+    cassette_dir: Path | None = None,
+    cassette_mode: str = "live",
 ) -> SuiteRun:
     """One fresh provider and snapshot per (case, trial). Results sorted by case, trial."""
+    if cassette_mode not in {"live", "record", "replay"}:
+        raise ValueError(f"unknown cassette mode {cassette_mode!r}")
+    directory = cassette_dir or CASSETTES_DIR
     jobs = [(case, trial) for case in cases for trial in range(1, trials + 1)]
     describes: dict[tuple[str, int], tuple[dict, str]] = {}
     lock = threading.Lock()
     sink = FileSink(traces_dir)
 
     def one(case: EvalCase, trial: int) -> TrialResult:
+        provider = None
         try:
-            provider = provider_factory()
+            provider = _open_provider(provider_factory, cassette_mode, directory, case, trial)
             described = provider.describe()
             model = str(getattr(provider, "model", "") or described.get("model", ""))
             with lock:
@@ -93,8 +106,13 @@ def run_suite(
             path = sink.write(result.trace)
             totals = result.trace.totals
             return _from_result(case, trial, result, str(path), totals)
+        except CassetteMismatch:
+            raise
         except Exception as exc:  # noqa: BLE001 - one trial must not stop the suite
             return _crashed(case, trial, exc)
+        finally:
+            if cassette_mode == "record" and provider is not None:
+                provider.close()
 
     results: list[TrialResult] = []
     workers = max(1, concurrency)
@@ -104,6 +122,15 @@ def run_suite(
             results.append(future.result())
     results.sort(key=lambda item: (item.case_id, item.trial))
     return SuiteRun(stamp=_stamp(cases, trials, describes), results=results)
+
+
+def _open_provider(factory, mode: str, directory: Path, case: EvalCase, trial: int):
+    if mode == "replay":
+        return ReplayProvider(cassette_path(directory, case.id, trial))
+    provider = factory()
+    if mode == "record":
+        return RecordingProvider(provider, cassette_path(directory, case.id, trial))
+    return provider
 
 
 def _from_result(case: EvalCase, trial: int, result, trace_path: str, totals: dict) -> TrialResult:
