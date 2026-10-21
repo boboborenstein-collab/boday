@@ -25,6 +25,20 @@ auto does not send that key to the local URL. `--now` replaces the snapshot
 clock and keeps its timezone. `--header "Name: value"` is sent with the
 OpenAI-compatible request (for example Cloudflare Access).
 
+## First run
+
+2026-10-21, `claude-haiku-5-5`, the command above against
+`examples/demo_snapshot.json`. Trace: `examples/traces/first-run-haiku.json`.
+
+- Outcome: `proposed`, one change: `update` `dentist`, patch
+  `{"scheduledDate": "2026-10-21"}` (from 2026-10-22), with a `TIME_CLASH`
+  warning against Standup at 09:00, which the reply also mentions.
+- Path: `search_tasks("dentist")` + `resolve_date("tomorrow")`, then
+  `propose_update_task`, then the final answer: 3 model calls, 3 tool calls,
+  0 tool errors.
+- Tokens: 1,728 input, 282 output, 12,042 cache read, 6,021 cache write.
+- Cost: $0.0012. Latency: 2.8 s.
+
 ## Tool contract
 
 Exactly 9 tools, called through `execute(ctx, name, args)`; schemas come from `tool_schemas()`.
