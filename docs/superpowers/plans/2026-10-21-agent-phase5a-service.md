@@ -1273,7 +1273,7 @@ def test_image_and_runbook_match_the_spec():
   7. Local run without deploy: `uv run uvicorn --factory boday_agent.server.app:app_from_env --reload`. With `AGENT_TRACES_DSN` empty it uses `MemorySink`. `create_app` raises at startup unless `SUPABASE_JWT_SECRET` or `SUPABASE_JWKS_URL` is set. Without `AGENT_ENCRYPTION_KEY`, `/encrypt` returns 503 and saved keys cannot be read.
 - [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS. Do not run `docker build` and do not run `gcloud`.
 - [ ] **Step 5: Owner step — deploy.** Leave unchecked. The owner runs the SQL, sets the secrets, and deploys from `DEPLOY.md`.
-- [ ] **Step 6: Commit, push, open the PR**
+- [x] **Step 6: Commit, push, open the PR**
 
 ```bash
 git add agent/Dockerfile agent/.dockerignore agent/DEPLOY.md agent/tests/test_server_image.py
