@@ -1165,7 +1165,7 @@ def test_other_users_ciphertext_is_rejected(caplog):
 - `POST /feedback` reads `FeedbackRequest`, builds `feedback_event` with `datetime.now(UTC)`, calls `sink.append_feedback`. `True` → `{"ok": true}`. `False` → 404 `NOT_FOUND`.
 - `POST /agent/test` runs `run_settings_error` and then `probe_connection`. `ProviderBuildError` → 400 with that code. A returned dict → HTTP 200 even when `ok` is false.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def _trace(run_id):
@@ -1197,10 +1197,10 @@ def test_agent_test_reports_the_mac_without_a_trace(monkeypatch):
     assert forbidden.status_code == 403
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_app.py::test_feedback_appends_for_the_owner_only tests/test_server_app.py::test_agent_test_reports_the_mac_without_a_trace -q` → FAIL.
-- [ ] **Step 3: Implement** the two routes. `datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")` is the `at` value (injectable clock on `create_app` so the test can pin it; default the real clock). The feedback test compares `event` and `taskIds` and asserts `at` matches `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: feedback and test-connection routes"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_app.py::test_feedback_appends_for_the_owner_only tests/test_server_app.py::test_agent_test_reports_the_mac_without_a_trace -q` → FAIL.
+- [x] **Step 3: Implement** the two routes. `datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")` is the `at` value (injectable clock on `create_app` so the test can pin it; default the real clock). The feedback test compares `event` and `taskIds` and asserts `at` matches `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: feedback and test-connection routes"`.
 
 ---
 
