@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useStore } from '../store/useStore'
+import { agentEntry } from '../lib/agentChat'
 import {
   CalendarIcon,
   ChartIcon,
@@ -10,6 +11,7 @@ import {
   PlusIcon,
   SearchIcon,
   SettingsIcon,
+  SparklesIcon,
 } from './icons'
 
 const NAV = [
@@ -54,7 +56,21 @@ function NavItem({
 export function Layout({ children }: { children: ReactNode }) {
   const openEditor = useStore((s) => s.openEditor)
   const openCommand = useStore((s) => s.openCommand)
+  const openAgent = useStore((s) => s.openAgent)
+  const [online, setOnline] = useState(() => navigator.onLine)
   const { pathname } = useLocation()
+  const entry = agentEntry({ online })
+
+  useEffect(() => {
+    const up = () => setOnline(true)
+    const down = () => setOnline(false)
+    window.addEventListener('online', up)
+    window.addEventListener('offline', down)
+    return () => {
+      window.removeEventListener('online', up)
+      window.removeEventListener('offline', down)
+    }
+  }, [])
 
   return (
     <div className="mx-auto flex min-h-full max-w-2xl flex-col">
@@ -66,17 +82,31 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
           <span className="text-lg font-bold tracking-tight text-gradient">BoDay</span>
         </div>
-        <button
-          onClick={openCommand}
-          aria-label="Search and commands"
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted backdrop-blur-sm transition-colors hover:text-text"
-        >
-          <SearchIcon className="size-4" />
-          <span className="hidden sm:inline">Search</span>
-          <kbd className="hidden rounded bg-surface-3 px-1.5 py-0.5 text-[10px] font-medium text-faint sm:inline">
-            ⌘K
-          </kbd>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => openAgent()}
+            disabled={entry.disabled}
+            aria-label="BoDay Agent"
+            title={entry.hint ?? undefined}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted backdrop-blur-sm transition-colors hover:text-text disabled:opacity-50"
+          >
+            <SparklesIcon className="size-4" />
+            <span className="hidden sm:inline">BoDay Agent</span>
+            {entry.disabled && entry.hint && <span>{entry.hint}</span>}
+          </button>
+          <button
+            onClick={openCommand}
+            aria-label="Search and commands"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted backdrop-blur-sm transition-colors hover:text-text"
+          >
+            <SearchIcon className="size-4" />
+            <span className="hidden sm:inline">Search</span>
+            <kbd className="hidden rounded bg-surface-3 px-1.5 py-0.5 text-[10px] font-medium text-faint sm:inline">
+              ⌘K
+            </kbd>
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 px-4 pb-28 pt-3">{children}</main>

@@ -686,7 +686,7 @@ check('trace error hidden', traceLoadMessage(true) === "Traces aren't available 
 - `CommandPalette` keeps the NLP `Create: "<query>"` row and its `BoDay AI` group exactly as they are. When `agentPaletteItem` is non-null it is the only row of a new group labelled `BoDay Agent`, placed right after the existing `BoDay AI` group. Insert it into the `all` array right after `aiAction` too, so arrow keys and Enter follow the rendered order. A disabled row does not call `openAgent`. An enabled row calls `close()` and `openAgent(query)`.
 - `ToastContainer` passes `event.detail` through `normalizeToast` and, when `actionLabel` is set, renders a button with that label that runs `detail.onAction` and then dismisses the toast. Existing string events still render and still dismiss at 5 seconds.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Import `diffModel` from `../src/lib/agentChat.ts`. Reuse the `update` and `dentist` values from the Task 3 tests in this same file. `readFileSync` comes from `node:fs`.
 
@@ -712,10 +712,10 @@ const diff = readFileSync('src/components/AgentDiffCard.tsx', 'utf8')
 check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Deletes', 'Approve', 'Reject', 'Undo'].every((s) => diff.includes(s)))
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** the components. Match the header button classes already on Search (`rounded-full`, `border-border`, `text-xs`). Use `motion` the way `CommandPalette` does for the scrim. Wire `online` / `offline` window events to the `online` flag; start from `navigator.onLine`. `serviceConfigured` is `agentBaseUrl(import.meta.env) !== null`. `signedIn` is true only when `isSupabaseConfigured()` and `getSession()` returns a session with a user. `hasModel` is `hasUsableModel(email, prefs)`. When `panelMessage` returns a string, show that string and do not call the client. New chat clears the reducer and `chatKey(userId)` and does not call undo. The snapshot passed to `client.run` comes from `buildAgentSnapshot` with the store's tasks and completions, the awaited envelope's `cache?.windows ?? []`, `new Date()`, and `Intl.DateTimeFormat().resolvedOptions().timeZone`. Imports in `scripts/test-agent.ts` use the `.ts` suffix, same as `scripts/test-logic.ts`.
-- [ ] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: BoDay Agent panel, diff card, and palette entry"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** the components. Match the header button classes already on Search (`rounded-full`, `border-border`, `text-xs`). Use `motion` the way `CommandPalette` does for the scrim. Wire `online` / `offline` window events to the `online` flag; start from `navigator.onLine`. `serviceConfigured` is `agentBaseUrl(import.meta.env) !== null`. `signedIn` is true only when `isSupabaseConfigured()` and `getSession()` returns a session with a user. `hasModel` is `hasUsableModel(email, prefs)`. When `panelMessage` returns a string, show that string and do not call the client. New chat clears the reducer and `chatKey(userId)` and does not call undo. The snapshot passed to `client.run` comes from `buildAgentSnapshot` with the store's tasks and completions, the awaited envelope's `cache?.windows ?? []`, `new Date()`, and `Intl.DateTimeFormat().resolvedOptions().timeZone`. Imports in `scripts/test-agent.ts` use the `.ts` suffix, same as `scripts/test-logic.ts`.
+- [x] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: BoDay Agent panel, diff card, and palette entry"`.
 
 ---
 

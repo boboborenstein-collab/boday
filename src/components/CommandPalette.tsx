@@ -10,16 +10,22 @@ import {
   PlusIcon,
   SearchIcon,
   SettingsIcon,
+  SparklesIcon,
   SunIcon,
 } from './icons'
 import { priorityMeta } from '../lib/priority'
 import { parseNaturalLanguage } from '../lib/nlp'
+import { agentPaletteItem } from '../lib/agentChat'
+import { hasUsableModel } from '../lib/agentSettings'
+import { loadUserPrefsEnvelope } from '../lib/userPrefs'
+import { getSupabase, isSupabaseConfigured } from '../lib/supabaseClient'
 
 interface Cmd {
   id: string
   label: string
   hint?: string
   icon: React.ReactNode
+  disabled?: boolean
   run: () => void
 }
 
@@ -27,6 +33,7 @@ export function CommandPalette() {
   const open = useStore((s) => s.commandOpen)
   const openCmd = useStore((s) => s.openCommand)
   const close = useStore((s) => s.closeCommand)
+  const openAgent = useStore((s) => s.openAgent)
   const openEditor = useStore((s) => s.openEditor)
   const addTask = useStore((s) => s.addTask)
   const tasks = useStore((s) => s.tasks)
@@ -36,7 +43,37 @@ export function CommandPalette() {
 
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
+  const [online, setOnline] = useState(() => navigator.onLine)
+  const [modelReady, setModelReady] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const up = () => setOnline(true)
+    const down = () => setOnline(false)
+    window.addEventListener('online', up)
+    window.addEventListener('offline', down)
+    return () => {
+      window.removeEventListener('online', up)
+      window.removeEventListener('offline', down)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    ;(async () => {
+      let email: string | null = null
+      if (isSupabaseConfigured()) {
+        const { data } = await getSupabase().auth.getSession()
+        email = data.session?.user.email ?? null
+      }
+      const env = await loadUserPrefsEnvelope()
+      if (!cancelled) setModelReady(hasUsableModel(email, env.ai ?? null))
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [open])
 
   // Global ⌘K / Ctrl+K toggle.
   useEffect(() => {
@@ -123,7 +160,26 @@ export function CommandPalette() {
     }
   }, [q, query, addTask, close])
 
-  const all = useMemo(() => [...(aiAction ? [aiAction] : []), ...filteredActions, ...taskResults], [aiAction, filteredActions, taskResults])
+  const agentChoice = agentPaletteItem(query, online, modelReady)
+  const agentCmd: Cmd | null = agentChoice
+    ? {
+        id: 'boday-agent',
+        label: agentChoice.label,
+        hint: agentChoice.hint,
+        disabled: agentChoice.disabled,
+        icon: <SparklesIcon className="size-4" />,
+        run: () => {
+          if (agentChoice.disabled) return
+          close()
+          openAgent(query)
+        },
+      }
+    : null
+
+  const all = useMemo(
+    () => [...(aiAction ? [aiAction] : []), ...(agentCmd ? [agentCmd] : []), ...filteredActions, ...taskResults],
+    [aiAction, agentCmd, filteredActions, taskResults],
+  )
 
   useEffect(() => {
     setActive((a) => Math.min(a, Math.max(0, all.length - 1)))
@@ -187,6 +243,15 @@ export function CommandPalette() {
                       <Item cmd={aiAction} active={0 === active} onHover={() => setActive(0)} />
                     </Group>
                   )}
+                  {agentCmd && (
+                    <Group label="BoDay Agent">
+                      <Item
+                        cmd={agentCmd}
+                        active={all.indexOf(agentCmd) === active}
+                        onHover={() => setActive(all.indexOf(agentCmd))}
+                      />
+                    </Group>
+                  )}
                   {filteredActions.length > 0 && (
                     <Group label="Actions">
                       {filteredActions.map((c) => {
@@ -229,7 +294,8 @@ function Item({ cmd, active, onHover }: { cmd: Cmd; active: boolean; onHover: ()
     <button
       onMouseEnter={onHover}
       onClick={cmd.run}
-      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+      disabled={cmd.disabled}
+      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors disabled:opacity-50 ${
         active ? 'bg-accent-soft text-text' : 'text-muted'
       }`}
     >

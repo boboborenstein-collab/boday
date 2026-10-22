@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { Layout } from './components/Layout'
 import { TaskEditor } from './components/TaskEditor'
 import { CommandPalette } from './components/CommandPalette'
+import { AgentChat } from './components/AgentChat'
 import { ThemeController } from './components/ThemeController'
 import { TodayView } from './views/TodayView'
 import { TasksView } from './views/TasksView'
@@ -81,6 +82,7 @@ function SignedInApp() {
       </Layout>
       <TaskEditor />
       <CommandPalette />
+      <AgentChat />
       <ToastContainer />
       <QuietOverlay />
     </BrowserRouter>

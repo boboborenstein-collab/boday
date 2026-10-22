@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { normalizeToast } from '../lib/agentChat'
 
 interface Toast {
   id: number
   message: string
+  actionLabel: string | null
+  onAction?: () => void
 }
 
 let toastId = 0
@@ -13,14 +16,17 @@ export function ToastContainer() {
 
   useEffect(() => {
     const handleToast = (e: Event) => {
-      const customEvent = e as CustomEvent<string>
+      const detail = (e as CustomEvent<unknown>).detail
+      if (typeof detail !== 'string' && (!detail || typeof detail !== 'object' || !('message' in detail))) return
+      const norm = normalizeToast(detail as string | { message: string; actionLabel: string | null; onAction?: () => void })
+      const rawAction = typeof detail === 'object' && detail && 'onAction' in detail ? detail.onAction : undefined
+      const onAction: (() => void) | undefined = typeof rawAction === 'function' ? (rawAction as () => void) : undefined
       const id = ++toastId
-      setToasts((prev) => [...prev, { id, message: customEvent.detail }])
-      
-      // Auto-dismiss after 5 seconds
+      setToasts((prev) => [...prev, { id, message: norm.message, actionLabel: norm.actionLabel, onAction }])
+
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id))
-      }, 5000)
+      }, norm.durationMs)
     }
 
     window.addEventListener('boday-toast', handleToast)
@@ -47,6 +53,18 @@ export function ToastContainer() {
               </svg>
             </div>
             <p className="text-sm font-medium text-text">{t.message}</p>
+            {t.actionLabel && (
+              <button
+                type="button"
+                onClick={() => {
+                  t.onAction?.()
+                  setToasts((prev) => prev.filter((x) => x.id !== t.id))
+                }}
+                className="text-xs font-semibold text-accent"
+              >
+                {t.actionLabel}
+              </button>
+            )}
             <button 
               onClick={() => setToasts((prev) => prev.filter((x) => x.id !== t.id))}
               className="ml-2 text-muted hover:text-text"

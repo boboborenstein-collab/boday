@@ -14,11 +14,13 @@ import {
   withRecurringStatus,
 } from '../src/lib/agentApply.ts'
 import { useStore } from '../src/store/useStore.ts'
+import { readFileSync } from 'node:fs'
 import {
   agentEntry,
   agentPaletteItem,
   canSend,
   chatKey,
+  diffModel,
   loadChat,
   normalizeToast,
   panelMessage,
@@ -563,6 +565,33 @@ check('trace error hidden', traceLoadMessage(true) === "Traces aren't available 
 check('trace load ok', traceLoadMessage(false) === null)
 const autoClears = nextAiPrefs(saved, { provider: 'auto', model: 'claude-haiku-5-5', baseUrl: '', plaintext: 'sk-ant-example', ciphertextFromEncrypt: 'should-not-keep' })
 check('auto stores no key', autoClears.keyCiphertext === null && JSON.stringify(autoClears).includes('sk-ant-example') === false)
+
+const card = diffModel(
+  [update, { op: 'delete', taskId: 'gym', reason: 'user asked', beforeRaw: { title: 'Gym' }, beforeCompletionsRaw: [], warnings: [{ code: 'EXTERNAL_TASK', message: 'Shared by someone else.' }] }],
+  ['dentist'],
+  [dentist],
+)
+check('update line', card.updates[0].lines[0] === 'scheduledDate: 2026-10-22 → 2026-10-21')
+check('unchecked delete', card.deletes[0].checked === false && card.deletes[0].warnings[0] === 'Shared by someone else.')
+check('delete title from raw', card.deletes[0].title === 'Gym' && card.deletes[0].lines[0] === 'user asked')
+const statusCard = diffModel(
+  [{ op: 'set_status', taskId: 'gym', date: '2026-10-23', before: { status: 'open' }, after: { status: 'skipped' }, warnings: [] }],
+  ['gym'],
+  [],
+)
+check('status is an update', statusCard.updates[0].lines[0] === 'status: open → skipped' && statusCard.updates[0].lines[1] === 'date: 2026-10-23' && statusCard.updates[0].title === 'gym')
+
+const layout = readFileSync('src/components/Layout.tsx', 'utf8')
+check('entry uses the helper', layout.includes('agentEntry') && layout.includes('openAgent') && layout.includes('BoDay Agent'))
+const palette = readFileSync('src/components/CommandPalette.tsx', 'utf8')
+check('palette uses the helper', palette.includes('agentPaletteItem') && palette.includes('label="BoDay Agent"'))
+check('nlp create stays', palette.includes('Create:') && palette.includes('label="BoDay AI"'))
+const today = readFileSync('src/views/TodayView.tsx', 'utf8')
+check('plan-my-day button untouched', today.includes('Ask BoDay'))
+const chat = readFileSync('src/components/AgentChat.tsx', 'utf8')
+check('chat uses the gates', chat.includes('canSend') && chat.includes('hasUsableModel') && chat.includes('buildAgentSnapshot') && chat.includes('approveMessage') && chat.includes('await loadUserPrefsEnvelope()') && chat.includes('access_token') && !chat.includes('fetch('))
+const diff = readFileSync('src/components/AgentDiffCard.tsx', 'utf8')
+check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Deletes', 'Approve', 'Reject', 'Undo'].every((s) => diff.includes(s)))
 
 console.log('')
 if (failures === 0) {

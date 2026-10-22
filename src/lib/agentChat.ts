@@ -234,3 +234,86 @@ export function normalizeToast(
     onAction: detail.onAction,
   }
 }
+
+export interface DiffRow {
+  taskId: string
+  title: string
+  lines: string[]
+  warnings: string[]
+  checked: boolean
+}
+
+function plain(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  return value as Record<string, unknown>
+}
+
+function show(value: unknown): string {
+  if (typeof value === 'object' && value !== null) return JSON.stringify(value)
+  return String(value)
+}
+
+function changeTitle(change: Record<string, unknown>, tasks: readonly { id: string; title?: string }[]): string {
+  const taskId = typeof change.taskId === 'string' ? change.taskId : ''
+  const task = tasks.find((item) => item.id === taskId)
+  if (task?.title) return task.title
+  const beforeRaw = plain(change.beforeRaw)
+  const after = plain(change.after)
+  if (typeof beforeRaw?.title === 'string' && beforeRaw.title) return beforeRaw.title
+  if (change.op === 'create' && typeof after?.title === 'string' && after.title) return after.title
+  return taskId
+}
+
+function warningMessages(change: Record<string, unknown>): string[] {
+  if (!Array.isArray(change.warnings)) return []
+  const messages: string[] = []
+  for (const warning of change.warnings) {
+    const row = plain(warning)
+    if (row && typeof row.message === 'string') messages.push(row.message)
+  }
+  return messages
+}
+
+export function diffModel(
+  changes: readonly unknown[],
+  selectedTaskIds: readonly string[],
+  tasks: readonly { id: string; title?: string }[],
+): { creates: DiffRow[]; updates: DiffRow[]; deletes: DiffRow[] } {
+  const selected = new Set(selectedTaskIds)
+  const creates: DiffRow[] = []
+  const updates: DiffRow[] = []
+  const deletes: DiffRow[] = []
+  for (const change of changes) {
+    const rec = plain(change)
+    if (!rec || typeof rec.taskId !== 'string') continue
+    const row: DiffRow = {
+      taskId: rec.taskId,
+      title: changeTitle(rec, tasks),
+      lines: [],
+      warnings: warningMessages(rec),
+      checked: selected.has(rec.taskId),
+    }
+    if (rec.op === 'create') {
+      const after = plain(rec.after) ?? {}
+      row.lines = Object.keys(after)
+        .filter((key) => key !== 'id')
+        .map((key) => `${key}: ${show(after[key])}`)
+      creates.push(row)
+    } else if (rec.op === 'delete') {
+      row.lines = [typeof rec.reason === 'string' ? rec.reason : '']
+      deletes.push(row)
+    } else if (rec.op === 'set_status') {
+      const before = plain(rec.before) ?? {}
+      const after = plain(rec.after) ?? {}
+      row.lines = [`status: ${show(before.status)} → ${show(after.status)}`]
+      if (typeof rec.date === 'string') row.lines.push(`date: ${rec.date}`)
+      updates.push(row)
+    } else if (rec.op === 'update') {
+      const patch = plain(rec.patch) ?? {}
+      const beforeFields = plain(rec.beforeFields) ?? {}
+      row.lines = Object.keys(patch).map((key) => `${key}: ${show(beforeFields[key])} → ${show(patch[key])}`)
+      updates.push(row)
+    }
+  }
+  return { creates, updates, deletes }
+}
