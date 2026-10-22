@@ -88,7 +88,14 @@ class CappedTransport(httpx.BaseTransport):
         self._max_bytes = max_bytes
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
+        # Count plaintext bytes. A gzip body is decoded by httpx after this
+        # transport returns, so a compressed bomb would skip the cap.
+        request.headers["accept-encoding"] = "identity"
         response = self._inner.handle_request(request)
+        encoding = (response.headers.get("content-encoding") or "identity").strip().lower()
+        if encoding not in ("", "identity"):
+            response.close()
+            raise ResponseTooLarge()
         length = _content_length(response)
         if length is not None and length > self._max_bytes:
             response.close()

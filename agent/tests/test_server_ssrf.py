@@ -1,9 +1,13 @@
+import gzip
+import json
 import socket
 import time
 
 import httpx
 import pytest
 
+from boday_agent.domain.models import Snapshot
+from boday_agent.loop import AgentRequest, run_agent
 from boday_agent.providers.base import ProviderError, UserText
 from boday_agent.providers.openai_compat import OpenAICompatProvider
 from boday_agent.server.ssrf import (
@@ -172,6 +176,70 @@ def test_response_body_is_capped():
     )
     with httpx.Client(transport=ok) as client:
         assert client.get("https://llm.example/v1/models").json() == {"data": []}
+
+
+def test_gzip_body_is_rejected_before_it_expands():
+    raw = b"x" * 200_000
+    compressed = gzip.compress(raw)
+    assert len(compressed) < 1_000
+
+    def handler(request):
+        return httpx.Response(
+            200,
+            content=compressed,
+            headers={"content-encoding": "gzip"},
+        )
+
+    capped = CappedTransport(httpx.MockTransport(handler), max_bytes=10_000)
+    with httpx.Client(transport=capped) as client:
+        with pytest.raises(ResponseTooLarge, match="response too large"):
+            client.get("https://llm.example/v1/models")
+
+
+def test_gzip_bomb_fails_the_run_closed():
+    payload = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {"content": "x" * 200_000},
+                    "finish_reason": "stop",
+                }
+            ]
+        }
+    ).encode()
+    compressed = gzip.compress(payload)
+    assert len(compressed) < 10_000
+
+    def handler(request):
+        return httpx.Response(
+            200,
+            content=compressed,
+            headers={"content-encoding": "gzip"},
+        )
+
+    provider = OpenAICompatProvider(
+        "https://llm.example/v1",
+        "m",
+        is_local=False,
+        transport=CappedTransport(httpx.MockTransport(handler), max_bytes=10_000),
+        sleep=lambda seconds: None,
+    )
+    snapshot = Snapshot.from_app(
+        {
+            "tasks": [],
+            "completions": [],
+            "quietWindows": [],
+            "now": "2026-10-21T18:00:00Z",
+            "timezone": "America/New_York",
+        }
+    )
+    result = run_agent(
+        AgentRequest(message="what is on today", snapshot=snapshot),
+        provider,
+    )
+    assert result.outcome == "failed"
+    assert result.changes == []
+    assert "x" * 100 not in result.text
 
 
 def test_backend_refuses_a_different_host():
