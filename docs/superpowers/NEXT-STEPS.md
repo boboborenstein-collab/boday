@@ -10,20 +10,37 @@ and the plan for your track.
   implementation plans" section of `CLAUDE.md` / `AGENTS.md`.
 - **Known follow-ups:** `agent/FOLLOWUPS.md`
 
-## Status (2026-10-21)
+## Status (2026-10-21, after round 1)
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Domain models, recurrence port, date resolver, 9 tools | ✅ Done — PR #1 |
-| 2 | Agent loop, providers (Claude + OpenAI-compatible + Auto), tracing, CLI, first real run | ✅ Done — PRs #2, #4 |
+| 2 | Agent loop, providers, tracing, CLI, first real run | ✅ Done — PRs #2, #4 |
 | 3A | 100 eval cases, fixtures, grader, oracle | ✅ Done — PR #3 |
-| 3B code | Eval runner, metrics + report, LLM judge, cassettes + CI replay (Tasks B1–B4) | ⏭️ **Track C** |
-| 3B baseline | Paid baseline runs + write-up (Task B5) | ⏸ Owner only, after Track C merges |
+| — | FOLLOWUPS cleanup before baseline (Track E) | ✅ Done — PR #6 |
+| 3B code | Runner, metrics + report, judge, cassettes + CI replay (Track C) | ✅ Done — PR #7 |
+| 5 plans | Service + app plans (Track D) | ✅ Done — PR #5 |
+| 5a | FastAPI service | ⏭️ **Track F** (round 2) |
+| 5b | App chat UI | ⏭️ **Track G** (round 2) |
+| 3B baseline | Task B5 paid runs + write-up | ⏭️ Owner + Claude on the Mac, in parallel with F/G |
 | 4 | Iterate on eval failures | ⏸ After the baseline |
-| 5 | Service (FastAPI, Cloud Run) + app UI (chat, diff card, apply/undo) | ⏭️ **Track D** writes the plans; built in round 2 |
-| — | FOLLOWUPS cleanup (pre-baseline items) | ⏭️ **Track E** |
 
-## Round 1 — three parallel tracks
+## Round 2 — two parallel tracks (current)
+
+| | Track F — Phase 5a service | Track G — Phase 5b app |
+|---|---|---|
+| Plan | `docs/superpowers/plans/2026-10-21-agent-phase5a-service.md` | `docs/superpowers/plans/2026-10-21-agent-phase5b-app.md` |
+| Branch | `agent/phase5a-service` | `agent/phase5b-app` |
+| Owns | the plan's File map: `agent/boday_agent/server/`, `agent/sql/`, `agent/Dockerfile`, `agent/.dockerignore`, `agent/DEPLOY.md`, `agent/tests/test_server_*.py`, `agent/tests/fixtures/api_contract_*.json`, `agent/pyproject.toml` / `uv.lock` (via `uv add`) | the plan's File map: `src/`, `scripts/agent-test-shim.ts`, `scripts/test-agent.ts`, `package.json` / `package-lock.json`, `.env.example` |
+| Must NOT touch | `src/`, `package.json`, existing `agent/boday_agent/` modules outside `server/`, `agent/evals/`, the spec, other plans | `agent/`, the spec, other plans |
+| Owner steps (skip, list in PR) | GCP billing, Cloud Run deploy, Supabase migration run, secrets, Cloudflare Access token, pg_cron delete | Production `VITE_AGENT_URL` + deploy |
+| Checks | `cd agent && uv run pytest -q && uv run ruff check . && uv run boday-eval validate` | `npm run test:agent && npm run test:logic && npm run typecheck && npm run build` (per the plan's Global Constraints) |
+
+The API contract section is byte-identical in both plans; neither track may
+change it. If a contract change looks necessary, stop and ask the owner.
+The two PRs touch disjoint files, so they merge in either order.
+
+## Round 1 — three parallel tracks (done; kept for reference)
 
 | | Track C — Phase 3B code | Track D — Phase 5 plans | Track E — Follow-ups cleanup |
 |---|---|---|---|
@@ -97,7 +114,7 @@ Do these `agent/FOLLOWUPS.md` items, with a failing test first for each:
 - Merge order: **E first** (smallest), then **C**, then **D** (docs, no
   conflicts).
 
-## Round 2 (after round 1 merges and the plans are reviewed)
+## Round 2 outline (superseded by the section above)
 
 - **Track F — phase 5a service** and **Track G — phase 5b app**, in parallel,
   from the Track D plans.
