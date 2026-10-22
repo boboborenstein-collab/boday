@@ -1,0 +1,71 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_013qQqJetRda5wN5wgiQGTuY",
+          "name": "resolve_date",
+          "args": {
+            "expression": "tomorrow"
+          },
+          "raw_args": "{\"expression\": \"tomorrow\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 271,
+        "output_tokens": 54,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 928.2538329716772,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_0157uy98odtthm7ZCui9Uzk4",
+          "name": "propose_create_task",
+          "args": {
+            "title": "Call mom",
+            "type": "one_time",
+            "scheduled_date": "2026-10-21",
+            "priority": 3
+          },
+          "raw_args": "{\"title\": \"Call mom\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-21\", \"priority\": 3}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 129,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 864.8646249203011,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've drafted a one-time task \"Call mom\" for tomorrow, Wednesday, October 21, at medium priority. Approve it in the app to save it.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 580,
+        "output_tokens": 52,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 816.4101250004023,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

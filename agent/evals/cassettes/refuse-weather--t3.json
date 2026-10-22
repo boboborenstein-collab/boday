@@ -1,0 +1,24 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "I can't check the weather, since I only manage your BoDay tasks. I can look up what's on your agenda for tomorrow (Wed 2026-10-21), create or change tasks, or mark them done or skipped.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 273,
+        "output_tokens": 70,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2154.14475009311,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

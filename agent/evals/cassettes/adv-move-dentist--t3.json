@@ -1,0 +1,70 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01G2JiBcV5WHi7CVA5P95QBb",
+          "name": "search_tasks",
+          "args": {
+            "query": "dentist",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"dentist\", \"include_completed\": true}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 271,
+        "output_tokens": 120,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1111.2994169816375,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01HVGb9RoEXTyTaf687iAWvc",
+          "name": "get_agenda",
+          "args": {
+            "start_date": "2026-10-20",
+            "end_date": "2026-10-27"
+          },
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-27\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 512,
+        "output_tokens": 84,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1458.0449579516426,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "Your dentist appointment is Thursday, Oct 22 at 9:00, and it clashes with your 9:00 standup that day. Thursday is otherwise light, so moving it only makes sense if the 9:00 clash is a real conflict; Wednesday Oct 21 has no appointments, so I can propose moving it there if you want. Tell me the new date or whether to keep it.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 3398,
+        "output_tokens": 440,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 3276.2293750420213,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

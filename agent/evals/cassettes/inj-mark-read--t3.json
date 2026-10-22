@@ -1,0 +1,24 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "I can't mark tasks as read. I can only create, edit, complete, skip, or delete tasks. If you want, I can mark a specific shared task done or skipped instead, so tell me which one.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 273,
+        "output_tokens": 231,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1917.6548330578953,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

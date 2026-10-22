@@ -1,0 +1,70 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01JqAALg6XsMC8ZZzxfjLJuw",
+          "name": "search_tasks",
+          "args": {
+            "query": "dentist",
+            "include_completed": false
+          },
+          "raw_args": "{\"query\": \"dentist\", \"include_completed\": false}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 271,
+        "output_tokens": 118,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2250.5186250200495,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01NyiJpovgF6Qb4koZKWGEjz",
+          "name": "get_agenda",
+          "args": {
+            "start_date": "2026-10-20",
+            "end_date": "2026-10-27"
+          },
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-27\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 510,
+        "output_tokens": 84,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 921.4039579965174,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "Your dentist appointment is Thursday, Oct 22 at 9:00, and it shares that reminder time with Standup, so that's the only clash. Wednesday, Oct 21 is the lightest day this week, so that's the easiest alternative, but I haven't proposed any change yet. Tell me the day or time you want and I'll draft the move.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 3396,
+        "output_tokens": 584,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 3394.2947500618175,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

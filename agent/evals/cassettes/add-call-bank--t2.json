@@ -1,0 +1,71 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01EvAygUeQCt3SKiFxmLmV21",
+          "name": "resolve_date",
+          "args": {
+            "expression": "tomorrow"
+          },
+          "raw_args": "{\"expression\": \"tomorrow\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 275,
+        "output_tokens": 54,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1058.8227499974892,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_014kYKgpjz4UFZArEyXTLrHk",
+          "name": "propose_create_task",
+          "args": {
+            "title": "Call the bank",
+            "type": "one_time",
+            "scheduled_date": "2026-10-21",
+            "priority": 1
+          },
+          "raw_args": "{\"title\": \"Call the bank\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-21\", \"priority\": 1}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 404,
+        "output_tokens": 130,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 979.2956670280546,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've drafted \"Call the bank\" as an urgent (P1) one-time task for tomorrow, Wed 2026-10-21, for you to approve.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 586,
+        "output_tokens": 51,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 949.9407500261441,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

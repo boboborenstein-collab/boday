@@ -1,0 +1,104 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01WoSNMDkA6xA6s7fM4HDuGM",
+          "name": "search_tasks",
+          "args": {
+            "query": "dentist"
+          },
+          "raw_args": "{\"query\": \"dentist\"}"
+        },
+        {
+          "id": "toolu_01Fz8NwgDpg3LL3rw9wHV5eg",
+          "name": "resolve_date",
+          "args": {
+            "expression": "tomorrow"
+          },
+          "raw_args": "{\"expression\": \"tomorrow\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 276,
+        "output_tokens": 102,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 958.6769581073895,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_014ABHh9UkEbzeqsfFNyyWL4",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "dentist",
+            "changes": {
+              "scheduled_date": "2026-10-21"
+            }
+          },
+          "raw_args": "{\"task_id\": \"dentist\", \"changes\": {\"scheduled_date\": \"2026-10-21\"}}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 624,
+        "output_tokens": 93,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 927.6991250226274,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01HHQzN4EDY6W32whiTD8vjR",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "dentist",
+            "changes": {
+              "scheduled_date": "2026-10-21"
+            }
+          },
+          "raw_args": "{\"task_id\": \"dentist\", \"changes\": {\"scheduled_date\": \"2026-10-21\"}}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 764,
+        "output_tokens": 101,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 950.7752920035273,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've proposed moving the Dentist appointment from Wed Oct 22 to tomorrow, Wed Oct 21. Note that the 9:00 reminder clashes with your \"Standup\" task at the same time that day, so you may want to adjust one of them. Approve the change in the app to save it.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 968,
+        "output_tokens": 97,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1717.4201249144971,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

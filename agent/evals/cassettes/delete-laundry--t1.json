@@ -1,0 +1,79 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01QUsoDW26b13M2ndnD3x8cA",
+          "name": "search_tasks",
+          "args": {
+            "query": "laundry",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"laundry\", \"include_completed\": true}"
+        },
+        {
+          "id": "toolu_01W364WfRWu14ArMtzkXNkUr",
+          "name": "search_tasks",
+          "args": {
+            "query": "laundrey",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"laundrey\", \"include_completed\": true}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 271,
+        "output_tokens": 148,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1040.6967080198228,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_013RkCboJUdXewq2o4JnXbXu",
+          "name": "propose_delete_task",
+          "args": {
+            "task_id": "laundry",
+            "reason": "User requested deletion of the laundry task."
+          },
+          "raw_args": "{\"task_id\": \"laundry\", \"reason\": \"User requested deletion of the laundry task.\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 703,
+        "output_tokens": 89,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 844.9476250680164,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've proposed deleting the \"Do laundry\" task (scheduled for Oct 22). Approve it in the app to make the deletion final.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 841,
+        "output_tokens": 46,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 895.9635420469567,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

@@ -1,0 +1,243 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01XV2iKaw4bo8hrgtaCa1bCj",
+          "name": "get_agenda",
+          "args": {
+            "start_date": "2026-10-21",
+            "end_date": "2026-10-22"
+          },
+          "raw_args": "{\"start_date\": \"2026-10-21\", \"end_date\": \"2026-10-22\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 274,
+        "output_tokens": 201,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1333.936957991682,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01XrgULU3jhGZj6PBjkTuVYA",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-1",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-1\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01FepH3CcAXHigYCpA4QKSTv",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-2",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-2\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01Xsg91aELZzudNQK8C1gheY",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-3",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-3\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01E4bt2c76f87Zqq2EdENkKY",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-4",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-4\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01TyTbyp2Q9iaxys6G7L9yw2",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-5",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-5\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_013KXZHAw6nioDyK4KWStAjn",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-6",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-6\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01KHpfq975vWoB6eCL4VmnYp",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-7",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-7\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_014nw9kmc9CW7HGjTzPgPAoy",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-8",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-8\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_014nh31nD7XxcMHr9AmVZ3hH",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-9",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-9\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_018iHXKNGHXkmp3Lt3AA7ooU",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-10",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-10\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01M2S9cM8eshaVYoGmgJ1Sum",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-11",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-11\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01X7JGwBEocacH18t37exRGG",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-12",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-12\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 2169,
+        "output_tokens": 1471,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 5373.072082991712,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01WQTjLPZY2ukxcuaAbtEGNa",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-11",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-11\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        },
+        {
+          "id": "toolu_01Fzz9W3op5Uja2Grz2Xiks5",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "errand-12",
+            "changes": {
+              "scheduled_date": "2026-10-22"
+            }
+          },
+          "raw_args": "{\"task_id\": \"errand-12\", \"changes\": {\"scheduled_date\": \"2026-10-22\"}}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 4832,
+        "output_tokens": 209,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1301.6474999021739,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01FUnqDXZ6EHEaGDTpUQNQbp",
+          "name": "ask_user",
+          "args": {
+            "question": "I've proposed moving the 12 one-time Wednesday errands (Errand 1\u201312) to Thursday, pending your approval. Standup, Gym and Torah study are recurring, so should I move only Wednesday's occurrence (skip Wed here and add a one-off on Thu), or leave those recurring tasks where they are?",
+            "options": [
+              "Leave recurring tasks as they are",
+              "Skip Wednesday's occurrence only",
+              "Move the whole series to Thursday"
+            ]
+          },
+          "raw_args": "{\"question\": \"I've proposed moving the 12 one-time Wednesday errands (Errand 1\\u201312) to Thursday, pending your approval. Standup, Gym and Torah study are recurring, so should I move only Wednesday's occurrence (skip Wed here and add a one-off on Thu), or leave those recurring tasks where they are?\", \"options\": [\"Leave recurring tasks as they are\", \"Skip Wednesday's occurrence only\", \"Move the whole series to Thursday\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 5201,
+        "output_tokens": 217,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1495.780666009523,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

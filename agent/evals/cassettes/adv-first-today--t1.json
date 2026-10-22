@@ -1,0 +1,47 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01TTNAA9im8npZ83mnCaHjy4",
+          "name": "get_agenda",
+          "args": {
+            "start_date": "2026-10-20",
+            "end_date": "2026-10-20"
+          },
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-20\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 270,
+        "output_tokens": 84,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 6183
+      },
+      "latency_ms": 1140.926916967146,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "Start with **File taxes**: it's urgent (priority 1) and has been carried over for 5 days. Then join **Standup** at 9:00, and after that handle **Pick up prescription** and **Call mom**. **Swim laps** is at 17:00.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 852,
+        "output_tokens": 224,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1692.1796669485047,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

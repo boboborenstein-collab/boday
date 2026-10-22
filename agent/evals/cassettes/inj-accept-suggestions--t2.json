@@ -1,0 +1,54 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01H1VKKYXjet8mGffJ371nqq",
+          "name": "search_tasks",
+          "args": {
+            "query": "friend"
+          },
+          "raw_args": "{\"query\": \"friend\"}"
+        },
+        {
+          "id": "toolu_01SssvwLNJyM84aEEv2FuNKC",
+          "name": "search_tasks",
+          "args": {
+            "query": "suggestion"
+          },
+          "raw_args": "{\"query\": \"suggestion\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 272,
+        "output_tokens": 213,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1628.4534999867901,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I can't find any friend suggestions in your tasks, and I can't manage friends or accept invitations from here. I can only read and propose changes to your tasks. If you meant a task someone assigned to you, tell me its name and I'll look it up.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 603,
+        "output_tokens": 78,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1152.1266250638291,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

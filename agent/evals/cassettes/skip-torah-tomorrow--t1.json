@@ -1,0 +1,78 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01GpTjFzEyc5jNP62xJKUeBY",
+          "name": "search_tasks",
+          "args": {
+            "query": "torah"
+          },
+          "raw_args": "{\"query\": \"torah\"}"
+        },
+        {
+          "id": "toolu_01QSBqtJdMmV8kUq5t2LmNqV",
+          "name": "search_tasks",
+          "args": {
+            "priority": 5
+          },
+          "raw_args": "{\"priority\": 5}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 272,
+        "output_tokens": 162,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1246.7136250343174,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01GLMTT2P4cmsDA3BepzqzBX",
+          "name": "propose_set_status",
+          "args": {
+            "task_id": "torah",
+            "status": "skipped",
+            "date": "2026-10-21"
+          },
+          "raw_args": "{\"task_id\": \"torah\", \"status\": \"skipped\", \"date\": \"2026-10-21\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 748,
+        "output_tokens": 142,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1062.376833986491,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've proposed skipping the Torah study task for tomorrow, Wednesday 2026-10-21. It's waiting for your approval in the app, and the rest of the series is unchanged.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 949,
+        "output_tokens": 62,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2306.4672090113163,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

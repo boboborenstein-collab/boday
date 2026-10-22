@@ -1,0 +1,84 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_019ehvBtQpTdHwBep6ajhzQs",
+          "name": "search_tasks",
+          "args": {
+            "query": "dentist"
+          },
+          "raw_args": "{\"query\": \"dentist\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 267,
+        "output_tokens": 86,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1048.653541947715,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01TUUfyZncQ5Q9Zvkjr74gnb",
+          "name": "search_tasks",
+          "args": {
+            "query": "dent",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"dent\", \"include_completed\": true}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 387,
+        "output_tokens": 101,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 988.5802919743583,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I found \"Dentist appointment,\" currently scheduled for Thu 2026-10-22 at 09:00. What day should I move it to?",
+      "tool_calls": [
+        {
+          "id": "toolu_01CdAVAga9hSA9e74C2ioZ9W",
+          "name": "ask_user",
+          "args": {
+            "question": "What date should I move the Dentist appointment (currently Thu Oct 22) to? Let me know the day, and a time if it should change.",
+            "options": [
+              "Wed Oct 21",
+              "Fri Oct 23",
+              "Mon Oct 26",
+              "Tue Oct 27"
+            ]
+          },
+          "raw_args": "{\"question\": \"What date should I move the Dentist appointment (currently Thu Oct 22) to? Let me know the day, and a time if it should change.\", \"options\": [\"Wed Oct 21\", \"Fri Oct 23\", \"Mon Oct 26\", \"Tue Oct 27\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 692,
+        "output_tokens": 237,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1531.691791024059,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}
