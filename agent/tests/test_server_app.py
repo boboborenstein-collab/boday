@@ -1,5 +1,6 @@
 import inspect
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +17,7 @@ from boday_agent.server.auth import TokenVerifier
 from boday_agent.server.contract import error_body
 from boday_agent.server.crypto import Encryptor
 from boday_agent.server.traces import MemorySink
+from boday_agent.tracing import Trace
 
 KEY = b"k" * 32
 
@@ -352,3 +354,66 @@ def test_other_users_ciphertext_is_rejected(caplog):
     )
     assert res.status_code == 400 and res.json()["error"]["code"] == "KEY_DECRYPT_FAILED"
     assert "sk-ant-example" not in caplog.text and sink.rows == {}
+
+
+def _trace(run_id):
+    return Trace(
+        run_id=run_id,
+        started_at="2026-10-21T18:00:00Z",
+        provider={},
+        selection_reason="explicit",
+        prompt_version="abc",
+        request={},
+    )
+
+
+def test_feedback_appends_for_the_owner_only():
+    sink = MemorySink()
+    sink.write(_trace("run-1"), "user-1")
+    client = _client(sink=sink)
+    res = client.post(
+        "/feedback",
+        json={"runId": "run-1", "event": "approve", "taskIds": ["dentist"]},
+        headers=_auth(),
+    )
+    assert res.status_code == 200 and res.json() == {"ok": True}
+    saved = sink.rows["run-1"]["data"]["feedback"][0]
+    assert saved["event"] == "approve"
+    assert saved["taskIds"] == ["dentist"]
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", saved["at"])
+    other = client.post(
+        "/feedback",
+        json={"runId": "run-1", "event": "undo", "taskIds": ["dentist"]},
+        headers=_auth(sub="user-2", email="friend@example.com"),
+    )
+    assert other.status_code == 404 and other.json()["error"]["message"] == "Trace not found."
+    assert [item["event"] for item in sink.rows["run-1"]["data"]["feedback"]] == ["approve"]
+    missing = client.post(
+        "/feedback",
+        json={"runId": "nope", "event": "reject", "taskIds": []},
+        headers=_auth(),
+    )
+    assert missing.status_code == 404
+
+
+def test_agent_test_reports_the_mac_without_a_trace(monkeypatch):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    monkeypatch.setattr(
+        app_module,
+        "probe_connection",
+        lambda *a, **k: {
+            "ok": False,
+            "provider": "anthropic",
+            "model": "claude-haiku-5-5",
+            "detail": "auto: local unreachable (not configured)",
+        },
+    )
+    body = {
+        "settings": {"provider": "auto", "model": None, "baseUrl": None, "keyCiphertext": None}
+    }
+    res = client.post("/agent/test", json=body, headers=_auth())
+    assert res.status_code == 200 and res.json()["ok"] is False
+    assert sink.rows == {}
+    forbidden = client.post("/agent/test", json=body, headers=_auth(email="friend@example.com"))
+    assert forbidden.status_code == 403

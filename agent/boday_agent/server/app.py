@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -14,11 +15,18 @@ from boday_agent.domain.models import Snapshot
 from boday_agent.loop import AgentRequest, run_agent
 from boday_agent.prompt import HistoryTurn
 from boday_agent.server.auth import AuthError, TokenVerifier, cached_jwks, is_owner
-from boday_agent.server.contract import EncryptRequest, RunRequest, error_body, run_settings_error
+from boday_agent.server.contract import (
+    EncryptRequest,
+    FeedbackRequest,
+    RunRequest,
+    RunSettings,
+    error_body,
+    run_settings_error,
+)
 from boday_agent.server.crypto import Encryptor, encryptor_from_b64
-from boday_agent.server.providers import ProviderBuildError, build_provider
+from boday_agent.server.providers import ProviderBuildError, build_provider, probe_connection
 from boday_agent.server.ssrf import default_resolve
-from boday_agent.server.traces import MemorySink, PostgresSink, postgres_connect
+from boday_agent.server.traces import MemorySink, PostgresSink, feedback_event, postgres_connect
 
 _log = logging.getLogger("boday_agent.server")
 _UNSET = object()
@@ -67,6 +75,10 @@ class ServerConfig(BaseModel):
         )
 
 
+class _AgentTestBody(BaseModel):
+    settings: RunSettings
+
+
 def create_app(
     config: ServerConfig,
     *,
@@ -74,6 +86,7 @@ def create_app(
     verifier: TokenVerifier | None = None,
     encryptor=_UNSET,
     resolve=None,
+    now=None,
 ) -> FastAPI:
     if sink is None:
         sink = (
@@ -102,6 +115,7 @@ def create_app(
     app.state.encryptor = encryptor
     app.state.config = config
     app.state.resolve = resolve
+    app.state.now = now or (lambda: datetime.now(UTC))
 
     @app.exception_handler(RequestValidationError)
     def invalid_request(request: Request, exc: RequestValidationError) -> JSONResponse:
@@ -197,6 +211,49 @@ def create_app(
             "options": result.options,
             "parseWarnings": list(result.trace.parse_warnings),
         }
+
+    @app.post("/feedback")
+    def feedback(request: Request, body: FeedbackRequest):
+        user = _authorize(request)
+        if isinstance(user, JSONResponse):
+            return user
+        event = feedback_event(body.event, body.task_ids, now=request.app.state.now())
+        wrote = request.app.state.sink.append_feedback(body.run_id, user.id, event)
+        if not wrote:
+            return JSONResponse(
+                status_code=404,
+                content=error_body("NOT_FOUND", "Trace not found."),
+            )
+        return {"ok": True}
+
+    @app.post("/agent/test")
+    def agent_test(request: Request, body: _AgentTestBody):
+        user = _authorize(request)
+        if isinstance(user, JSONResponse):
+            return user
+        config = request.app.state.config
+        problem = run_settings_error(
+            body.settings,
+            is_owner=is_owner(user, config.admin_email),
+        )
+        if problem is not None:
+            status, code, message = problem
+            return JSONResponse(status_code=status, content=error_body(code, message))
+        try:
+            result = probe_connection(
+                body.settings,
+                user_id=user.id,
+                encryptor=request.app.state.encryptor,
+                anthropic_api_key=config.anthropic_api_key,
+                local_base_url=config.local_base_url,
+                local_model=config.local_model,
+                cf_access_client_id=config.cf_access_client_id,
+                cf_access_client_secret=config.cf_access_client_secret,
+                resolve=request.app.state.resolve,
+            )
+        except ProviderBuildError as exc:
+            return JSONResponse(status_code=400, content=error_body(exc.code, exc.message))
+        return result
 
     app.add_middleware(ErrorMiddleware)
     app.add_middleware(BodyLimitMiddleware, max_bytes=config.max_body_bytes)
