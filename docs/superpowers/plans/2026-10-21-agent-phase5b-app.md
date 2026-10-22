@@ -423,7 +423,7 @@ check('no secrets', JSON.stringify(snap).includes('sk-') === false)
   - One-time, `before.status` `done`: set `completed: true`. If `beforeCompletionRaw` has the key `completedAt`, set the task's `completedAt` to that value exactly (it may be `null`); if it is `{}`, remove the `completedAt` key. Do not use `nowIso`.
 - Store, same file as the other actions, not persisted: `setRecurringStatus(taskId, date, status)`, `setOneTimeStatus(id, completed)`, `applyAgentProposal(changes, selectedTaskIds, opts): ApplyResult`, `undoAgentProposal(changes, appliedTaskIds, opts): ApplyResult`, `agentOpen: boolean`, `agentSeed: string | null`, `openAgent(seed?: string)`, `closeAgent()`. The proposal actions call the pure functions and `set` only when `ok` is true. `partialize` is unchanged.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Import `useStore` from `../src/store/useStore.ts` after the shim import. The default persist storage writes synchronously, so read `localStorage` on the next line.
 
@@ -504,10 +504,10 @@ check('raw restored', restored.ok && restored.tasks[0].someFutureField.x === 1 &
 - `openAgent('hello')` then `JSON.parse(localStorage.getItem('cadence-v1')).state.agentOpen === undefined`, and the key `cadence-v1` exists.
 - `setOneTimeStatus('dentist', true)` twice keeps the first `completedAt`.
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** the pure helpers and the store actions. Apply builds the next arrays itself; it does not call `addTask` or `deleteTask`. One `set` inside `applyAgentProposal` / `undoAgentProposal` is what `src/lib/sync.ts` already subscribes to.
-- [ ] **Step 4: Run** — `npm run test:agent && npm run test:logic` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: atomic apply and undo for agent proposals"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** the pure helpers and the store actions. Apply builds the next arrays itself; it does not call `addTask` or `deleteTask`. One `set` inside `applyAgentProposal` / `undoAgentProposal` is what `src/lib/sync.ts` already subscribes to.
+- [x] **Step 4: Run** — `npm run test:agent && npm run test:logic` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: atomic apply and undo for agent proposals"`.
 
 ---
 

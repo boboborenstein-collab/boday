@@ -12,6 +12,13 @@ import type {
 import { occursOn } from '../lib/recurrence'
 import { addDays, format } from 'date-fns'
 import { fromDateStr, todayStr } from '../lib/date'
+import {
+  applyProposal,
+  undoProposal,
+  withOneTimeStatus,
+  withRecurringStatus,
+} from '../lib/agentApply'
+import type { ApplyOpts, ApplyResult } from '../lib/agentApply'
 
 /** A task being created — id and createdAt are assigned by the store. */
 export type TaskDraft =
@@ -57,6 +64,24 @@ interface BoDayState {
   toggleRecurringCompletion: (taskId: string, dateStr: string) => void
   /** Skip a recurring occurrence: silences today's reminders, counts as missed. */
   toggleRecurringSkip: (taskId: string, dateStr: string) => void
+  /** Idempotent recurring status. `none` removes that date's row. */
+  setRecurringStatus: (taskId: string, date: string, status: 'done' | 'skipped' | 'none') => void
+  /** Idempotent one-time completion. A second call keeps the first completedAt. */
+  setOneTimeStatus: (id: string, completed: boolean) => void
+  applyAgentProposal: (
+    changes: readonly Record<string, unknown>[],
+    selectedTaskIds: readonly string[],
+    opts: ApplyOpts,
+  ) => ApplyResult<Task, TaskCompletion>
+  undoAgentProposal: (
+    changes: readonly Record<string, unknown>[],
+    appliedTaskIds: readonly string[],
+    opts: ApplyOpts,
+  ) => ApplyResult<Task, TaskCompletion>
+  agentOpen: boolean
+  agentSeed: string | null
+  openAgent: (seed?: string) => void
+  closeAgent: () => void
   /** Move a one-time task to another date (default: tomorrow). */
   deferOneTimeTask: (id: string, toDate?: string) => void
   /** Skip all recurring occurrences today (optional: keep Torah / P5). */
@@ -90,6 +115,11 @@ export const useStore = create<BoDayState>()(
       commandOpen: false,
       openCommand: () => set({ commandOpen: true }),
       closeCommand: () => set({ commandOpen: false }),
+
+      agentOpen: false,
+      agentSeed: null,
+      openAgent: (seed) => set({ agentOpen: true, agentSeed: seed ?? null }),
+      closeAgent: () => set({ agentOpen: false, agentSeed: null }),
 
       updateSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
@@ -157,6 +187,55 @@ export const useStore = create<BoDayState>()(
             ],
           }
         }),
+
+      setRecurringStatus: (taskId, date, status) =>
+        set((s) => ({
+          completions: withRecurringStatus(s.completions, taskId, date, status, {
+            nowIso: new Date().toISOString(),
+            newId: uuid,
+          }),
+        })),
+
+      setOneTimeStatus: (id, completed) =>
+        set((s) => ({
+          tasks: withOneTimeStatus(s.tasks, id, completed, new Date().toISOString()),
+        })),
+
+      applyAgentProposal: (changes, selectedTaskIds, opts) => {
+        let result: ApplyResult<Task, TaskCompletion> = {
+          ok: false,
+          message: "This proposal can't be applied. Nothing was applied.",
+        }
+        set((s) => {
+          result = applyProposal(
+            { tasks: s.tasks, completions: s.completions },
+            changes,
+            selectedTaskIds,
+            opts,
+          )
+          if (!result.ok) return {}
+          return { tasks: result.tasks, completions: result.completions }
+        })
+        return result
+      },
+
+      undoAgentProposal: (changes, appliedTaskIds, opts) => {
+        let result: ApplyResult<Task, TaskCompletion> = {
+          ok: false,
+          message: "This proposal can't be applied. Nothing was applied.",
+        }
+        set((s) => {
+          result = undoProposal(
+            { tasks: s.tasks, completions: s.completions },
+            changes,
+            appliedTaskIds,
+            opts,
+          )
+          if (!result.ok) return {}
+          return { tasks: result.tasks, completions: result.completions }
+        })
+        return result
+      },
 
       toggleRecurringSkip: (taskId, dateStr) =>
         set((s) => {

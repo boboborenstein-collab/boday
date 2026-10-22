@@ -30,6 +30,17 @@ Object.defineProperty(globalThis, 'localStorage', {
   writable: true,
 })
 
+// Zustand persist reads window.localStorage. Node has neither until the shim
+// installs them; alias window to the global so the write is synchronous.
+const rootForWindow = globalThis as typeof globalThis & { window?: typeof globalThis }
+if (!rootForWindow.window) {
+  Object.defineProperty(globalThis, 'window', {
+    value: globalThis,
+    configurable: true,
+    writable: true,
+  })
+}
+
 const root = globalThis as typeof globalThis & { global?: typeof globalThis }
 if (!root.global) root.global = globalThis
 if (root.global !== globalThis) {

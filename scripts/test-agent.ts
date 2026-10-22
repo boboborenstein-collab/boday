@@ -6,6 +6,14 @@ import { agentBaseUrl, createAgentClient } from '../src/lib/agentClient.ts'
 import { parseErrorBody, parseRunResponse } from '../src/lib/agentContract.ts'
 import type { AgentError } from '../src/lib/agentContract.ts'
 import { buildAgentSnapshot } from '../src/lib/agentSnapshot.ts'
+import {
+  applyProposal,
+  fieldValue,
+  sameValue,
+  undoProposal,
+  withRecurringStatus,
+} from '../src/lib/agentApply.ts'
+import { useStore } from '../src/store/useStore.ts'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = '') {
@@ -169,6 +177,248 @@ check('same task array', snap.tasks === snapTasks)
 check('same completion array', snap.completions === snapCompletions)
 check('same quiet windows', snap.quietWindows === snapWindows)
 check('no secrets', JSON.stringify(snap).includes('sk-') === false)
+
+const OPTS = { nowIso: '2026-10-21T18:00:00.000Z', newId: () => 'new-id' }
+const STALE = 'This proposal is out of date. Nothing was applied.'
+const CANT = "This proposal can't be applied. Nothing was applied."
+
+check('object key order', sameValue({ b: 1, a: { d: 2, c: 3 } }, { a: { c: 3, d: 2 }, b: 1 }))
+check('missing matches null', fieldValue({}, 'endDate') === null && sameValue(fieldValue({}, 'endDate'), null))
+check('present does not match null', sameValue(fieldValue({ endDate: '2026-12-31' }, 'endDate'), null) === false)
+
+const dentist = {
+  id: 'dentist', type: 'one_time', title: 'Dentist', priority: 2,
+  scheduledDate: '2026-10-22', completed: false, createdAt: '2026-09-01T12:00:00Z',
+  someFutureField: { x: 1 },
+}
+const update = {
+  op: 'update', taskId: 'dentist',
+  patch: { scheduledDate: '2026-10-21' },
+  beforeFields: { scheduledDate: '2026-10-22' },
+  warnings: [],
+}
+const state = { tasks: [dentist], completions: [] as Record<string, unknown>[] }
+const applied = applyProposal(state, [update], ['dentist'], OPTS)
+check('future field after apply', applied.ok && applied.tasks[0].someFutureField.x === 1)
+check('date patched', applied.ok && applied.tasks[0].scheduledDate === '2026-10-21')
+check('apply leaves the input task', dentist.scheduledDate === '2026-10-22')
+const undone = undoProposal(
+  { tasks: applied.tasks, completions: applied.completions }, [update], ['dentist'], OPTS,
+)
+check('future field after undo', undone.ok && undone.tasks[0].someFutureField.x === 1)
+check('date restored', undone.ok && undone.tasks[0].scheduledDate === '2026-10-22')
+
+const fresh = { ...update, taskId: 'other', patch: { priority: 1 }, beforeFields: { priority: 3 } }
+const other = { id: 'other', type: 'one_time', title: 'Other', priority: 3, scheduledDate: '2026-10-20', completed: false, createdAt: '2026-09-01T12:00:00Z' }
+const staleBatchTasks = [dentist, other]
+const stale = applyProposal(
+  { tasks: staleBatchTasks, completions: [] },
+  [update, { ...fresh, beforeFields: { priority: 9 } }],
+  ['dentist', 'other'],
+  OPTS,
+)
+check('one stale blocks the batch', stale.ok === false && stale.message === STALE)
+check('stale batch writes nothing', dentist.scheduledDate === '2026-10-22' && other.priority === 3)
+
+const partial = applyProposal(
+  { tasks: [dentist, other], completions: [] },
+  [update, fresh],
+  ['dentist'],
+  OPTS,
+)
+check('unchecked task untouched', partial.ok && partial.tasks.find((t) => t.id === 'other').priority === 3)
+check('unchecked update keeps future field', partial.ok && partial.tasks.find((t) => t.id === 'dentist').someFutureField.x === 1)
+
+const gym = { id: 'gym', type: 'recurring', title: 'Gym', someFutureField: { x: 1 } }
+const c1 = { id: 'c1', taskId: 'gym', completionDate: '2026-10-19', completedAt: '2026-10-19T11:00:00Z', extra: true }
+const c2 = { id: 'c2', taskId: 'gym', completionDate: '2026-10-17', completedAt: '2026-10-17T11:00:00Z' }
+const del = {
+  op: 'delete', taskId: 'gym', reason: 'user asked',
+  beforeRaw: gym, beforeCompletionsRaw: [c1], warnings: [],
+}
+const deleted = applyProposal({ tasks: [gym], completions: [c1, c2] }, [del], ['gym'], OPTS)
+check('only listed completion removed', deleted.ok && deleted.completions.map((c) => c.id).join() === 'c2')
+check('task removed', deleted.ok && deleted.tasks.length === 0)
+const restored = undoProposal({ tasks: deleted.tasks, completions: deleted.completions }, [del], ['gym'], OPTS)
+check('raw restored', restored.ok && restored.tasks[0].someFutureField.x === 1 && restored.completions.find((c) => c.id === 'c1').extra === true)
+check('restored completion matches raw', restored.ok && JSON.stringify(restored.completions.find((c) => c.id === 'c1')) === JSON.stringify(c1))
+
+const nullEnd = {
+  op: 'update', taskId: 'dentist',
+  patch: { endDate: '2026-11-01' },
+  beforeFields: { endDate: null },
+  warnings: [],
+}
+const appliedNull = applyProposal({ tasks: [dentist], completions: [] }, [nullEnd], ['dentist'], OPTS)
+check('missing endDate matches null', appliedNull.ok && appliedNull.tasks[0].endDate === '2026-11-01')
+const undoneNull = undoProposal({ tasks: appliedNull.tasks, completions: appliedNull.completions }, [nullEnd], ['dentist'], OPTS)
+check('undo writes null endDate', undoneNull.ok && undoneNull.tasks[0].endDate === null && undoneNull.tasks[0].someFutureField.x === 1)
+const dated = { ...dentist, endDate: '2026-12-31' }
+const staleEnd = applyProposal({ tasks: [dated], completions: [] }, [nullEnd], ['dentist'], OPTS)
+check('real endDate does not match null', staleEnd.ok === false && staleEnd.message === STALE && dated.endDate === '2026-12-31')
+
+let newIdCalls = 0
+const counting = {
+  nowIso: '2026-10-21T18:00:00.000Z',
+  newId: () => {
+    newIdCalls += 1
+    return 'row-1'
+  },
+}
+const doneOnce = withRecurringStatus([], 'gym', '2026-10-23', 'done', counting)
+const doneTwice = withRecurringStatus(doneOnce, 'gym', '2026-10-23', 'done', counting)
+check(
+  'second done keeps the row',
+  newIdCalls === 1 && doneTwice.length === 1 && doneTwice[0].id === 'row-1' && doneTwice[0].completedAt === doneOnce[0].completedAt && doneTwice[0].completedAt === OPTS.nowIso,
+)
+
+const skip = {
+  op: 'set_status', taskId: 'gym', date: '2026-10-23',
+  before: { status: 'open' }, after: { status: 'skipped' },
+  beforeCompletionRaw: null, warnings: [],
+}
+const skipped = applyProposal({ tasks: [gym], completions: [] }, [skip], ['gym'], OPTS)
+check(
+  'open to skipped adds one row',
+  skipped.ok && skipped.completions.length === 1 && skipped.completions[0].skipped === true && skipped.completions[0].completionDate === '2026-10-23',
+)
+const unskipped = undoProposal({ tasks: skipped.tasks, completions: skipped.completions }, [skip], ['gym'], OPTS)
+check('undo skip removes the row', unskipped.ok && unskipped.completions.length === 0)
+
+let undoNewIds = 0
+const noMint = {
+  nowIso: OPTS.nowIso,
+  newId: () => {
+    undoNewIds += 1
+    return 'minted'
+  },
+}
+const undoneRec = {
+  op: 'set_status', taskId: 'gym', date: '2026-10-19',
+  before: { status: 'done' }, after: { status: 'open' },
+  beforeCompletionRaw: c1, warnings: [],
+}
+const removed = applyProposal({ tasks: [gym], completions: [c1] }, [undoneRec], ['gym'], noMint)
+check('recurring undone removes c1', removed.ok && removed.completions.length === 0 && undoNewIds === 0)
+const putBack = undoProposal({ tasks: removed.tasks, completions: removed.completions }, [undoneRec], ['gym'], noMint)
+const putRow = putBack.ok ? putBack.completions.find((c) => c.id === 'c1') : undefined
+check('undo puts c1 back', putBack.ok && JSON.stringify(putRow) === JSON.stringify(c1) && undoNewIds === 0)
+
+const nullRaw = { ...undoneRec, beforeCompletionRaw: null }
+const nullRawState = { tasks: [gym], completions: [c1, c2] }
+const nullRawApply = applyProposal(nullRawState, [nullRaw], ['gym'], OPTS)
+check('null completion raw is rejected', nullRawApply.ok === false && nullRawApply.message === CANT)
+check('null completion raw writes nothing', nullRawState.completions.map((c) => c.id).join() === 'c1,c2' && nullRawState.tasks.length === 1)
+
+const c3 = { id: 'c3', taskId: 'gym', completionDate: '2026-10-19', completedAt: '2026-10-19T12:00:00Z', extra: 'keep' }
+const toSkip = {
+  op: 'set_status', taskId: 'gym', date: '2026-10-19',
+  before: { status: 'done' }, after: { status: 'skipped' },
+  beforeCompletionRaw: c1, warnings: [],
+}
+const marked = applyProposal({ tasks: [gym], completions: [c1, c3] }, [toSkip], ['gym'], OPTS)
+const markedC1 = marked.ok ? marked.completions.find((c) => c.id === 'c1') : undefined
+const markedC3 = marked.ok ? marked.completions.find((c) => c.id === 'c3') : undefined
+check(
+  'done to skipped touches only c1',
+  marked.ok && markedC1?.skipped === true && markedC1.id === 'c1' && markedC1.completedAt === '2026-10-19T11:00:00Z' && markedC3?.extra === 'keep' && markedC3.skipped !== true,
+)
+const unmarked = undoProposal({ tasks: marked.tasks, completions: marked.completions }, [toSkip], ['gym'], OPTS)
+const unmarkedC1 = unmarked.ok ? unmarked.completions.find((c) => c.id === 'c1') : undefined
+check('undo done-to-skipped restores c1', unmarked.ok && JSON.stringify(unmarkedC1) === JSON.stringify(c1) && unmarkedC1 !== undefined && !('skipped' in unmarkedC1))
+
+const doneDentist = { ...dentist, completed: true, completedAt: '2026-10-20T15:00:00Z' }
+const oneUndo = {
+  op: 'set_status', taskId: 'dentist', date: null,
+  before: { status: 'done' }, after: { status: 'open' },
+  beforeCompletionRaw: { completedAt: '2026-10-20T15:00:00Z' },
+  warnings: [],
+}
+const opened = applyProposal({ tasks: [doneDentist], completions: [] }, [oneUndo], ['dentist'], OPTS)
+check('one-time undone clears completedAt', opened.ok && opened.tasks[0].completed === false && opened.tasks[0].completedAt === null)
+const reclosed = undoProposal({ tasks: opened.tasks, completions: opened.completions }, [oneUndo], ['dentist'], OPTS)
+check(
+  'one-time undo restores the old completedAt',
+  reclosed.ok && reclosed.tasks[0].completed === true && reclosed.tasks[0].completedAt === '2026-10-20T15:00:00Z',
+)
+
+const bare = { ...dentist, completed: true }
+delete bare.completedAt
+const bareUndo = { ...oneUndo, beforeCompletionRaw: {} }
+const openedBare = applyProposal({ tasks: [bare], completions: [] }, [bareUndo], ['dentist'], OPTS)
+const restoredBare = undoProposal(
+  { tasks: openedBare.ok ? openedBare.tasks : [], completions: openedBare.ok ? openedBare.completions : [] },
+  [bareUndo],
+  ['dentist'],
+  OPTS,
+)
+check(
+  'undo drops a completedAt key that was never there',
+  openedBare.ok && restoredBare.ok && restoredBare.tasks[0].completed === true && !('completedAt' in restoredBare.tasks[0]),
+)
+
+const dupApply = applyProposal({ tasks: [dentist], completions: [] }, [update, { ...update }], ['dentist'], OPTS)
+const dupUndo = undoProposal({ tasks: [dentist], completions: [] }, [update, { ...update }], ['dentist'], OPTS)
+check('repeated task id cannot apply', dupApply.ok === false && dupApply.message === CANT && dentist.scheduledDate === '2026-10-22')
+check('repeated task id cannot undo', dupUndo.ok === false && dupUndo.message === CANT)
+
+const editedGym = { ...gym, title: 'Gym (edited)' }
+const editedState = { tasks: [editedGym], completions: [c1, c2] }
+const editedDel = applyProposal(editedState, [del], ['gym'], OPTS)
+check('edited delete is stale', editedDel.ok === false && editedDel.message === STALE)
+check('edited delete leaves completions', editedState.completions.map((c) => c.id).join() === 'c1,c2' && editedState.tasks[0].title === 'Gym (edited)')
+
+const nullDateState = { tasks: [gym], completions: [] as typeof c1[] }
+const nullDate = applyProposal(
+  nullDateState,
+  [{ ...skip, date: null, after: { status: 'done' } }],
+  ['gym'],
+  OPTS,
+)
+check('null date cannot apply', nullDate.ok === false && nullDate.message === CANT && nullDateState.completions.length === 0 && nullDateState.tasks.length === 1)
+
+const createdAfter = {
+  id: 'new-1', type: 'one_time', title: 'Call mom', priority: 3,
+  scheduledDate: '2026-10-21', completed: false, createdAt: '2026-10-21T18:00:00Z',
+}
+let createMints = 0
+const createOpts = {
+  nowIso: OPTS.nowIso,
+  newId: () => {
+    createMints += 1
+    return 'store-minted'
+  },
+}
+const create = { op: 'create', taskId: 'new-1', after: createdAfter, warnings: [] }
+const created = applyProposal({ tasks: [], completions: [] }, [create], ['new-1'], createOpts)
+check('create keeps after.id', created.ok && created.tasks[0].id === 'new-1' && created.tasks[0].title === 'Call mom' && createMints === 0)
+const uncreated = undoProposal({ tasks: created.tasks, completions: created.completions }, [create], ['new-1'], createOpts)
+check('undo create removes the task', uncreated.ok && uncreated.tasks.length === 0 && createMints === 0)
+
+useStore.setState({ tasks: [gym], completions: [c1, c2] })
+const storeDeleted = useStore.getState().applyAgentProposal([del], ['gym'], OPTS)
+check(
+  'store delete keeps c2',
+  storeDeleted.ok && useStore.getState().completions.map((c) => c.id).join() === 'c2',
+)
+useStore.getState().openAgent('hello')
+const persisted = JSON.parse(localStorage.getItem('cadence-v1') ?? 'null')
+check(
+  'agent open is not persisted',
+  persisted?.state?.agentOpen === undefined && localStorage.getItem('cadence-v1') !== null,
+)
+useStore.setState({
+  tasks: [{
+    id: 'dentist', type: 'one_time', title: 'Dentist', priority: 2,
+    scheduledDate: '2026-10-22', completed: false, createdAt: '2026-09-01T12:00:00Z',
+  }],
+  completions: [],
+})
+useStore.getState().setOneTimeStatus('dentist', true)
+const firstAt = useStore.getState().tasks.find((t) => t.id === 'dentist')?.completedAt
+useStore.getState().setOneTimeStatus('dentist', true)
+const secondAt = useStore.getState().tasks.find((t) => t.id === 'dentist')?.completedAt
+check('second setOneTimeStatus keeps completedAt', typeof firstAt === 'string' && firstAt === secondAt)
 
 console.log('')
 if (failures === 0) {
