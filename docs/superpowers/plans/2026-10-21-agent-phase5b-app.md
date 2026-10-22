@@ -739,7 +739,7 @@ check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Del
 VITE_AGENT_URL=
 ```
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const settings = readFileSync('src/components/AgentSettings.tsx', 'utf8')
@@ -752,10 +752,10 @@ const env = readFileSync('.env.example', 'utf8')
 check('env example', env.includes('VITE_AGENT_URL=') && env.includes('VITE_SUPABASE_URL='))
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement.** Section markup matches `ShabbatSettings` (`text-xs font-semibold uppercase tracking-wide text-faint`). Do not put the API key in `localStorage` or in the chat state.
-- [ ] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: Settings AI section and trace list"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement.** Section markup matches `ShabbatSettings` (`text-xs font-semibold uppercase tracking-wide text-faint`). Do not put the API key in `localStorage` or in the chat state.
+- [x] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: Settings AI section and trace list"`.
 
 ---
 

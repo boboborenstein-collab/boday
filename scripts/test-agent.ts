@@ -593,6 +593,15 @@ check('chat uses the gates', chat.includes('canSend') && chat.includes('hasUsabl
 const diff = readFileSync('src/components/AgentDiffCard.tsx', 'utf8')
 check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Deletes', 'Approve', 'Reject', 'Undo'].every((s) => diff.includes(s)))
 
+const settings = readFileSync('src/components/AgentSettings.tsx', 'utf8')
+check('settings copy', settings.includes('Test connection') && settings.includes('keyFieldPlaceholder') && settings.includes('macStatus'))
+const view = readFileSync('src/views/SettingsView.tsx', 'utf8')
+check('settings mounts the section', view.includes('AgentSettings'))
+const traces = readFileSync('src/components/TraceViewer.tsx', 'utf8')
+check('traces table', traces.includes('agent_traces') && traces.includes('traceSummary') && traces.includes('traceLoadMessage'))
+const envExample = readFileSync('.env.example', 'utf8')
+check('env example', envExample.includes('VITE_AGENT_URL=') && envExample.includes('VITE_SUPABASE_URL='))
+
 console.log('')
 if (failures === 0) {
   console.log('✅ ALL AGENT ASSERTIONS PASSED\n')

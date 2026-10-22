@@ -9,6 +9,7 @@ import { isPushConfigured, subscribeToPush, unsubscribeFromPush } from '../lib/p
 import { getSupabase } from '../lib/supabaseClient'
 import { ADMIN_EMAIL, createInvite, listInvites, type Invite } from '../lib/invites'
 import { ShabbatSettings } from '../components/ShabbatSettings'
+import { AgentSettings } from '../components/AgentSettings'
 import {
   DownloadIcon,
   MoonIcon,
@@ -210,6 +211,8 @@ export function SettingsView() {
       </Section>
 
       <ShabbatSettings />
+
+      <AgentSettings email={accountEmail} />
 
       {isSyncConfigured() && calUrl && (
         <Section title="Apple Calendar">
