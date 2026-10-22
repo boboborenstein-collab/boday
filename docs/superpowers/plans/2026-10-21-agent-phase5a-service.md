@@ -946,7 +946,7 @@ def test_postgres_connect_disables_prepared_statements(monkeypatch):
 - CORS: `allow_origins=config.allowed_origins`, methods `GET`, `POST`, `OPTIONS`, headers `Authorization` and `Content-Type`, `allow_credentials=False`. An origin that is not on the list gets no `access-control-allow-origin` header.
 - Logs (logger name `boday_agent.server`): method, path, status, user id. Never the body, the headers, the ciphertext, or an exception message.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_health_requires_a_jwt():
@@ -1014,10 +1014,10 @@ def test_encrypt_without_a_key_is_503():
 
 `_config(**overrides)` builds `ServerConfig` with `jwt_secret="test-secret"`, `admin_email="bobo.borenstein@gmail.com"`, `allowed_origins=["http://localhost:5173"]`, and `max_body_bytes=4_194_304`. `_client(**overrides)` passes `_config(...)`, a `MemorySink` unless `sink` is given, an `Encryptor(KEY)` unless overridden (`encryptor=None` means no key), `resolve=lambda h: ["8.8.8.8"]`, and a `TokenVerifier` over that secret, then wraps the app in `TestClient`. `_auth(sub="user-1", email="bobo.borenstein@gmail.com")` is the HS256 bearer helper from Task 3. `app_module` is `boday_agent.server.app` imported as a module. `KEY` is `b"k" * 32`. `test_every_route_handler_is_sync` also covers the Task 8 and Task 9 routes once they exist; it passes with the two routes of this task.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL.
-- [ ] **Step 3: Implement.** `uv add fastapi uvicorn`. Middleware as in Interfaces. The CORS middleware answers `OPTIONS` before auth, so a preflight with no `Authorization` header still returns 200 for an allowed origin. Register an exception handler for `RequestValidationError` that returns 400 `INVALID_REQUEST`. `app.py` imports `Encryptor` by name (the monkeypatch in the 500 test patches `app_module.Encryptor.encrypt`). `POST /encrypt` uses the caller from `verifier.verify`. No `/agent/run` yet.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: FastAPI shell, health, and encrypt"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL.
+- [x] **Step 3: Implement.** `uv add fastapi uvicorn`. Middleware as in Interfaces. The CORS middleware answers `OPTIONS` before auth, so a preflight with no `Authorization` header still returns 200 for an allowed origin. Register an exception handler for `RequestValidationError` that returns 400 `INVALID_REQUEST`. `app.py` imports `Encryptor` by name (the monkeypatch in the 500 test patches `app_module.Encryptor.encrypt`). `POST /encrypt` uses the caller from `verifier.verify`. No `/agent/run` yet.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: FastAPI shell, health, and encrypt"`.
 
 ---
 
