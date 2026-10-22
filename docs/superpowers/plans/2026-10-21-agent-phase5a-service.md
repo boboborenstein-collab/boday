@@ -176,12 +176,15 @@ Response, HTTP 200:
 {"op": "update", "taskId": "dentist", "patch": {"scheduledDate": "2026-10-21"}, "beforeFields": {"scheduledDate": "2026-10-22"}, "warnings": [{"code": "TIME_CLASH", "message": "Overlaps Standup at 09:00."}]}
 {"op": "set_status", "taskId": "gym", "date": "2026-10-23", "before": {"status": "open"}, "after": {"status": "skipped"}, "beforeCompletionRaw": null, "warnings": []}
 {"op": "set_status", "taskId": "gym", "date": "2026-10-19", "before": {"status": "done"}, "after": {"status": "open"}, "beforeCompletionRaw": {"id": "c-gym-1019", "taskId": "gym", "completionDate": "2026-10-19", "completedAt": "2026-10-19T11:00:00Z"}, "warnings": []}
-{"op": "set_status", "taskId": "dentist", "date": "2026-10-21", "before": {"status": "done"}, "after": {"status": "open"}, "beforeCompletionRaw": {"completedAt": "2026-10-20T15:00:00Z"}, "warnings": []}
+{"op": "set_status", "taskId": "dentist", "date": null, "before": {"status": "done"}, "after": {"status": "open"}, "beforeCompletionRaw": {"completedAt": "2026-10-20T15:00:00Z"}, "warnings": []}
 {"op": "delete", "taskId": "gym", "reason": "user asked", "beforeRaw": {"id": "gym", "someFutureField": {"x": 1}}, "beforeCompletionsRaw": [{"id": "c-gym-1019", "taskId": "gym"}], "warnings": [{"code": "EXTERNAL_TASK", "message": "Shared by someone else."}]}
 ```
 
-- Status values are `open`, `done`, and `skipped`. An "undone" request is a change whose `after.status` is `open`.
-- `beforeCompletionRaw` follows `agent/README.md` "Payload contract" exactly. On a change whose `after.status` is `open` (an undone), it is what undo restores: for a recurring occurrence, the completion row exactly as received (it has a string `id`); for a one-time task, `{"completedAt": <raw value>}`, where the value is `null` when the raw task stored null and the object is `{}` when the task had no `completedAt` key. Every other status change has `beforeCompletionRaw: null`.
+- Status values are `open`, `done`, and `skipped`. An "undone" request arrives as `after.status` `open`. `date` is the occurrence date for a recurring task and `null` for a one-time task.
+- `beforeCompletionRaw` follows `agent/README.md` "Payload contract" exactly. It is what undo restores:
+  - `null` when `before.status` is `open` (open → done, open → skipped). Nothing existed before; undo removes what apply created.
+  - Recurring task, `before.status` `done` or `skipped` (undone, done → skipped, skipped → done): the completion row for that task and `date`, exactly as received (it has a string `id`; unknown keys kept). Apply changes or deletes only the row with that `id`; undo writes this row back verbatim. If the snapshot had several rows for one task and date, only the first is carried and only it may be touched.
+  - One-time task, `before.status` `done` (only undone is possible; one-time tasks cannot be skipped): `{"completedAt": <raw value>}` when the task had that key (the value may be `null`), or `{}` when it did not. Undo sets `completed` back to `true` and restores `completedAt` exactly: the value, or no key for `{}`.
 - Each change in one response has a distinct `taskId`. The service allows one change per task per proposal (`CONFLICTING_CHANGE`). The app treats a response that repeats a `taskId` as a proposal it cannot apply.
 - `beforeFields` uses null both when the raw key held null and when the key was absent. The app's stale check treats a missing key as null, and undo writes `null` back rather than deleting the key.
 - `question` is a string or null. `options` is an array of strings, empty when there are none.
