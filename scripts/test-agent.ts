@@ -14,6 +14,19 @@ import {
   withRecurringStatus,
 } from '../src/lib/agentApply.ts'
 import { useStore } from '../src/store/useStore.ts'
+import {
+  agentEntry,
+  agentPaletteItem,
+  canSend,
+  chatKey,
+  loadChat,
+  normalizeToast,
+  panelMessage,
+  reduce,
+  saveChat,
+  toHistory,
+} from '../src/lib/agentChat.ts'
+import { approveMessage, rejectMessage, undoMessage } from '../src/lib/agentActions.ts'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = '') {
@@ -419,6 +432,94 @@ const firstAt = useStore.getState().tasks.find((t) => t.id === 'dentist')?.compl
 useStore.getState().setOneTimeStatus('dentist', true)
 const secondAt = useStore.getState().tasks.find((t) => t.id === 'dentist')?.completedAt
 check('second setOneTimeStatus keeps completedAt', typeof firstAt === 'string' && firstAt === secondAt)
+
+let chatState: { messages: Record<string, unknown>[]; sending: boolean } = { messages: [], sending: false }
+chatState = reduce(chatState, { type: 'send', id: 'u1', text: 'move dentist' })
+chatState = reduce(chatState, { type: 'send', id: 'u2', text: 'again' })
+check('one send at a time', chatState.messages.length === 1 && chatState.sending)
+chatState = reduce(chatState, {
+  type: 'assistant', id: 'a1',
+  response: { ...contractResponse, outcome: 'proposed', changes: [update] },
+})
+check('all checked', (chatState.messages[1].selectedTaskIds as string[]).join() === 'dentist')
+chatState = reduce(chatState, { type: 'toggle', messageId: 'a1', taskId: 'dentist' })
+chatState = reduce(chatState, { type: 'resolve', messageId: 'a1', status: 'applied' })
+check('applied keeps the change', (chatState.messages[1].changes as unknown[]).length === 1 && chatState.messages[1].proposalStatus === 'applied')
+const hist = toHistory([...chatState.messages, { id: 'u3', role: 'user', text: 'undo that' }])
+check('trailing user is not history', hist.length === 2 && hist[1].proposalStatus === 'applied')
+const longHist = toHistory([
+  { id: 'u9', role: 'user', text: 'x' },
+  { id: 'a9', role: 'assistant', text: 'y'.repeat(5000), outcome: 'answered' },
+  { id: 'u10', role: 'user', text: 'next' },
+])
+check('history text cut to 4000', longHist[1].text.length === 4000)
+const failedHist = toHistory([
+  { id: 'u', role: 'user', text: 'hi' },
+  { id: 'a', role: 'assistant', text: 'no', outcome: 'failed', changes: [{ op: 'delete', taskId: 'x' }], proposalStatus: 'pending' },
+])
+check('failed history drops the proposal', failedHist[1].proposal === null && failedHist[1].proposalStatus === null)
+check('palette copy', agentPaletteItem('move dentist', false, true)?.label === 'BoDay Agent: move dentist')
+check('palette offline', agentPaletteItem('move dentist', false, true)?.disabled === true && agentPaletteItem('move dentist', false, true)?.hint === 'needs internet')
+check('palette keeps the typed case', agentPaletteItem('Move It', true, true)?.label === 'BoDay Agent: Move It')
+check('palette needs a model', agentPaletteItem('Move It', true, false)?.disabled === true && agentPaletteItem('Move It', true, false)?.hint === 'Connect a model')
+check('palette can ask', agentPaletteItem('Move It', true, true)?.disabled === false && agentPaletteItem('Move It', true, true)?.hint === 'Ask')
+check('empty query', agentPaletteItem('  ', true, true) === null)
+check('chat key per user', chatKey('user-1') === 'boday-agent-chat-v1:user-1' && chatKey('user-1') !== chatKey('user-2'))
+check('chat key is not cadence-v1', chatKey('user-1') !== 'cadence-v1')
+check('offline wins the panel', panelMessage({ online: false, serviceConfigured: false, signedIn: false, hasModel: false }) === 'needs internet')
+check('missing build', panelMessage({ online: true, serviceConfigured: false, signedIn: false, hasModel: false }) === "BoDay AI isn't configured on this build.")
+check('sign in', panelMessage({ online: true, serviceConfigured: true, signedIn: false, hasModel: true }) === 'Sign in required.')
+check('connect a model', panelMessage({ online: true, serviceConfigured: true, signedIn: true, hasModel: false }) === 'Connect a model to enable BoDay AI.')
+check('panel ready', panelMessage({ online: true, serviceConfigured: true, signedIn: true, hasModel: true }) === null)
+check('canSend offline', canSend({ online: false, serviceConfigured: true, hasModel: true, sending: false, text: 'hi' }) === false)
+check('canSend blank', canSend({ online: true, serviceConfigured: true, hasModel: true, sending: false, text: '  ' }) === false)
+check('canSend ready', canSend({ online: true, serviceConfigured: true, hasModel: true, sending: false, text: 'hi' }) === true)
+check('entry offline', agentEntry({ online: false }).disabled === true && agentEntry({ online: false }).hint === 'needs internet')
+check('entry online', agentEntry({ online: true }).disabled === false && agentEntry({ online: true }).hint === null)
+check('toast undo lasts longer', normalizeToast({ message: 'Applied.', actionLabel: 'Undo' }).durationMs === 8000)
+check('string toast unchanged', normalizeToast('Saved').durationMs === 5000 && normalizeToast('Saved').actionLabel === null)
+
+const cadenceBefore = localStorage.getItem('cadence-v1')
+const storedChat = reduce({ messages: [], sending: false }, { type: 'send', id: 's1', text: 'hello' })
+saveChat(localStorage, 'user-1', { ...storedChat, sending: false })
+check('chat round trip', loadChat(localStorage, 'user-1').messages.length === 1 && loadChat(localStorage, 'user-1').messages[0].text === 'hello')
+check('other user chat is empty', loadChat(localStorage, 'user-2').messages.length === 0)
+check('chat save leaves cadence-v1', localStorage.getItem('cadence-v1') === cadenceBefore)
+localStorage.setItem(chatKey('user-1'), '{')
+check('corrupt chat is empty', loadChat(localStorage, 'user-1').messages.length === 0 && loadChat(localStorage, 'user-1').sending === false)
+saveChat(localStorage, 'user-1', storedChat)
+const cleared = reduce(loadChat(localStorage, 'user-1'), { type: 'new' })
+saveChat(localStorage, 'user-1', cleared)
+check('new chat removes the key', localStorage.getItem('boday-agent-chat-v1:user-1') === null)
+
+const log: string[] = []
+let flow: { messages: Record<string, unknown>[]; sending: boolean } = { messages: [], sending: false }
+const deps = {
+  apply: () => ({ ok: true as const, tasks: [], completions: [] }),
+  undo: () => ({ ok: true as const, tasks: [], completions: [] }),
+  feedback: (body: { event: string }) => { log.push(`feedback:${body.event}`); return Promise.reject(new Error('offline')) },
+  dispatch: (e: { type: string }) => { flow = reduce(flow, e) },
+  toast: (d: string | { message: string }) => log.push(`toast:${typeof d === 'string' ? d : d.message}`),
+}
+flow = reduce(flow, { type: 'send', id: 'u1', text: 'move dentist' })
+flow = reduce(flow, { type: 'assistant', id: 'a1', response: { ...contractResponse, outcome: 'proposed', changes: [update] } })
+approveMessage(deps, flow.messages[1])
+await new Promise((r) => setTimeout(r, 0))
+check('applied even though feedback failed', flow.messages[1].proposalStatus === 'applied')
+check('approve feedback sent', log.includes('feedback:approve') && log.includes('toast:Applied.'))
+undoMessage(deps, flow.messages[1])
+check('undo marks undone', flow.messages[1].proposalStatus === 'undone' && log.includes('feedback:undo'))
+const beforeUndo = log.length
+undoMessage(deps, flow.messages[1])
+check('second undo is a no-op', log.length === beforeUndo)
+const refused = { ...deps, apply: () => ({ ok: false as const, message: 'This proposal is out of date. Nothing was applied.' }) }
+flow = reduce(flow, { type: 'send', id: 'u2', text: 'again' })
+flow = reduce(flow, { type: 'assistant', id: 'a2', response: { ...contractResponse, outcome: 'proposed', changes: [update] } })
+approveMessage(refused, flow.messages[3])
+check('stale approve stays pending', flow.messages[3].proposalStatus === 'pending' && log.at(-1) === 'toast:This proposal is out of date. Nothing was applied.')
+const pending = flow.messages[3]
+rejectMessage(deps, pending)
+check('reject leaves the task status rejected', flow.messages[3].proposalStatus === 'rejected' && log.includes('feedback:reject'))
 
 console.log('')
 if (failures === 0) {

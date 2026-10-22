@@ -1,0 +1,236 @@
+import type { RunResponse } from './agentContract'
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  text: string
+  outcome?: string | null
+  changes?: unknown[]
+  question?: string | null
+  options?: string[]
+  traceId?: string
+  parseWarnings?: string[]
+  proposalStatus?: 'pending' | 'applied' | 'rejected' | 'undone' | null
+  selectedTaskIds?: string[]
+  appliedTaskIds?: string[]
+}
+
+export interface ChatState {
+  messages: ChatMessage[]
+  sending: boolean
+}
+
+export type ChatEvent =
+  | { type: 'send'; id: string; text: string }
+  | { type: 'assistant'; id: string; response: RunResponse }
+  | { type: 'fail'; id: string; text: string }
+  | { type: 'toggle'; messageId: string; taskId: string }
+  | { type: 'resolve'; messageId: string; status: 'applied' | 'rejected' | 'undone' }
+  | { type: 'new' }
+
+export interface HistoryTurn {
+  role: 'user' | 'assistant'
+  text: string
+  proposal: unknown[] | null
+  proposalStatus: ChatMessage['proposalStatus'] | null
+}
+
+const EMPTY: ChatState = { messages: [], sending: false }
+
+function taskIdsOf(changes: unknown[]): string[] {
+  const ids: string[] = []
+  for (const change of changes) {
+    if (change && typeof change === 'object' && 'taskId' in change) {
+      const id = (change as { taskId?: unknown }).taskId
+      if (typeof id === 'string') ids.push(id)
+    }
+  }
+  return ids
+}
+
+export function reduce(state: ChatState, event: ChatEvent): ChatState {
+  if (event.type === 'send') {
+    if (state.sending) return state
+    return {
+      messages: [...state.messages, { id: event.id, role: 'user', text: event.text }],
+      sending: true,
+    }
+  }
+  if (event.type === 'assistant') {
+    const { response } = event
+    return {
+      messages: [
+        ...state.messages,
+        {
+          id: event.id,
+          role: 'assistant',
+          text: response.text,
+          outcome: response.outcome,
+          changes: response.changes,
+          question: response.question,
+          options: response.options,
+          traceId: response.traceId,
+          parseWarnings: response.parseWarnings,
+          proposalStatus: response.outcome === 'proposed' ? 'pending' : null,
+          selectedTaskIds: taskIdsOf(response.changes),
+        },
+      ],
+      sending: false,
+    }
+  }
+  if (event.type === 'fail') {
+    return {
+      messages: [
+        ...state.messages,
+        {
+          id: event.id,
+          role: 'assistant',
+          text: event.text,
+          outcome: 'failed',
+          changes: [],
+          proposalStatus: null,
+        },
+      ],
+      sending: false,
+    }
+  }
+  if (event.type === 'toggle') {
+    return {
+      ...state,
+      messages: state.messages.map((message) => {
+        if (message.id !== event.messageId) return message
+        const selected = message.selectedTaskIds ?? []
+        const next = selected.includes(event.taskId)
+          ? selected.filter((id) => id !== event.taskId)
+          : [...selected, event.taskId]
+        return { ...message, selectedTaskIds: next }
+      }),
+    }
+  }
+  if (event.type === 'resolve') {
+    return {
+      ...state,
+      messages: state.messages.map((message) => {
+        if (message.id !== event.messageId) return message
+        const fromPending = event.status === 'applied' || event.status === 'rejected'
+        if (fromPending && message.proposalStatus !== 'pending') return message
+        if (event.status === 'undone' && message.proposalStatus !== 'applied') return message
+        return {
+          ...message,
+          proposalStatus: event.status,
+          appliedTaskIds: event.status === 'applied' ? [...(message.selectedTaskIds ?? [])] : message.appliedTaskIds,
+        }
+      }),
+    }
+  }
+  return EMPTY
+}
+
+export function toHistory(messages: ChatMessage[]): HistoryTurn[] {
+  const source = messages.at(-1)?.role === 'user' ? messages.slice(0, -1) : messages
+  return source.map((message) => {
+    const dropProposal = message.role === 'user' || message.outcome === 'failed' || message.outcome === 'asked'
+    return {
+      role: message.role,
+      text: message.text.slice(0, 4000),
+      proposal: dropProposal ? null : (message.changes ?? []),
+      proposalStatus: dropProposal ? null : (message.proposalStatus ?? null),
+    }
+  })
+}
+
+export function chatKey(userId: string): string {
+  return `boday-agent-chat-v1:${userId}`
+}
+
+export interface ChatStorage {
+  getItem(key: string): string | null
+  setItem(key: string, value: string): void
+  removeItem(key: string): void
+}
+
+export function loadChat(storage: ChatStorage, userId: string): ChatState {
+  try {
+    const raw = storage.getItem(chatKey(userId))
+    if (!raw) return EMPTY
+    const parsed = JSON.parse(raw) as { messages?: unknown; sending?: unknown }
+    if (!parsed || !Array.isArray(parsed.messages)) return EMPTY
+    return { messages: parsed.messages as ChatMessage[], sending: false }
+  } catch {
+    return EMPTY
+  }
+}
+
+export function saveChat(storage: ChatStorage, userId: string, state: ChatState): void {
+  try {
+    const key = chatKey(userId)
+    if (state.messages.length === 0) {
+      storage.removeItem(key)
+      return
+    }
+    storage.setItem(key, JSON.stringify({ messages: state.messages, sending: false }))
+  } catch {
+    // A full localStorage must not crash the panel.
+  }
+}
+
+export function agentEntry({ online }: { online: boolean }): { disabled: boolean; hint: string | null } {
+  return { disabled: !online, hint: online ? null : 'needs internet' }
+}
+
+export function agentPaletteItem(
+  query: string,
+  online: boolean,
+  configured: boolean,
+): { label: string; disabled: boolean; hint: string } | null {
+  if (query.trim() === '') return null
+  if (!online) return { label: `BoDay Agent: ${query}`, disabled: true, hint: 'needs internet' }
+  if (!configured) return { label: `BoDay Agent: ${query}`, disabled: true, hint: 'Connect a model' }
+  return { label: `BoDay Agent: ${query}`, disabled: false, hint: 'Ask' }
+}
+
+export function canSend({
+  online,
+  serviceConfigured,
+  hasModel,
+  sending,
+  text,
+}: {
+  online: boolean
+  serviceConfigured: boolean
+  hasModel: boolean
+  sending: boolean
+  text: string
+}): boolean {
+  return online && serviceConfigured && hasModel && !sending && text.trim().length > 0
+}
+
+export function panelMessage({
+  online,
+  serviceConfigured,
+  signedIn,
+  hasModel,
+}: {
+  online: boolean
+  serviceConfigured: boolean
+  signedIn: boolean
+  hasModel: boolean
+}): string | null {
+  if (!online) return 'needs internet'
+  if (!serviceConfigured) return "BoDay AI isn't configured on this build."
+  if (!signedIn) return 'Sign in required.'
+  if (!hasModel) return 'Connect a model to enable BoDay AI.'
+  return null
+}
+
+export function normalizeToast(
+  detail: string | { message: string; actionLabel: string | null; onAction?: () => void },
+): { message: string; actionLabel: string | null; durationMs: number; onAction?: () => void } {
+  if (typeof detail === 'string') return { message: detail, actionLabel: null, durationMs: 5000 }
+  return {
+    message: detail.message,
+    actionLabel: detail.actionLabel,
+    durationMs: 8000,
+    onAction: detail.onAction,
+  }
+}

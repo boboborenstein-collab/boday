@@ -539,7 +539,7 @@ check('raw restored', restored.ok && restored.tasks[0].someFutureField.x === 1 &
   - `rejectMessage(deps, message)`: only from `pending`. `dispatch` `rejected`, then fire-and-forget `feedback` `reject` with `taskIds: []`. Tasks are not touched.
   - `undoMessage(deps, message)`: only from `applied`. Calls `undo(message.changes, message.appliedTaskIds)`. On `{ ok: false }`: `toast(result.message)`, status stays `applied`. On `{ ok: true }`: `dispatch` `undone`, `toast('Undone.')`, then fire-and-forget `feedback` `undo` with `taskIds: message.appliedTaskIds`. The toast's Undo and the diff card's Undo both call this function, and a second call after `undone` does nothing.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 let state = { messages: [], sending: false }
@@ -605,10 +605,10 @@ check('stale approve stays pending', chat.messages[3].proposalStatus === 'pendin
 
 `update` and `contractResponse` are the values defined earlier in this file. An unhandled rejection from `feedback` would crash `tsx`, so the test also proves the `.catch`.
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** `agentChat.ts` and `agentActions.ts`. Storage failures are ignored (a full `localStorage` must not crash the panel). `agentActions.ts` imports neither the store nor the client; everything comes in through `deps`.
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: agent chat state, history, and offline gate"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** `agentChat.ts` and `agentActions.ts`. Storage failures are ignored (a full `localStorage` must not crash the panel). `agentActions.ts` imports neither the store nor the client; everything comes in through `deps`.
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: agent chat state, history, and offline gate"`.
 
 ---
 
