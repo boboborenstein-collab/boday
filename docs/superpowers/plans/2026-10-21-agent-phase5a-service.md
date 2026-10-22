@@ -315,7 +315,7 @@ The spec's repo sketch puts `api.py` and `crypto.py` next to `loop.py`, and a Po
   - `EncryptRequest` with `plaintext: str` (1..500).
   - `run_settings_error(settings: RunSettings, *, is_owner: bool) -> tuple[int, str, str] | None` — `None` when the settings are usable. Otherwise `(status, code, message)` from the contract table: non-owner `auto` → 403 `AUTO_OWNER_ONLY`; `claude` with no ciphertext, or `custom` missing `baseUrl` or `model` → 403 `MODEL_NOT_CONFIGURED`. Does not decrypt and does not resolve DNS.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Copy the `POST /agent/run` request example and the HTTP 200 response example from the API contract section into the two fixture files, byte for byte inside the JSON (pretty-printed the same way).
 
@@ -357,10 +357,10 @@ def test_response_fixture_has_the_contract_keys():
     }
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_contract.py -q` → FAIL (`contract` is not a module).
-- [ ] **Step 3: Implement** `contract.py` as in Interfaces. Validators reject a non-dict snapshot and the length limits. No FastAPI in this task.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: phase 5a HTTP contract models"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_contract.py -q` → FAIL (`contract` is not a module).
+- [x] **Step 3: Implement** `contract.py` as in Interfaces. Validators reject a non-dict snapshot and the length limits. No FastAPI in this task.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: phase 5a HTTP contract models"`.
 
 ---
 
