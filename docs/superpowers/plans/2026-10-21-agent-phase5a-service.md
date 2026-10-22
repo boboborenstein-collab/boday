@@ -379,7 +379,7 @@ def test_response_fixture_has_the_contract_keys():
   - `decrypt(self, ciphertext: str, *, user_id: str) -> str` — the inverse. Any failure (bad base64, wrong version byte, truncated blob, bad tag, wrong user id) raises `DecryptError` and nothing else.
   - `encryptor_from_b64(value: str) -> Encryptor` — decodes standard base64 and requires 32 bytes.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_round_trip_is_bound_to_the_user_and_not_deterministic():
@@ -410,10 +410,10 @@ def test_key_length():
     assert isinstance(encryptor_from_b64(base64.b64encode(b"k" * 32).decode()), Encryptor)
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_crypto.py -q` → FAIL.
-- [ ] **Step 3: Implement.** `uv add cryptography`. Use `AESGCM` from `cryptography.hazmat`. Catch every crypto and decoding exception and raise `DecryptError("ciphertext rejected")` from None, so the original message cannot leak.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: AES-GCM key encryption bound to the user id"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_crypto.py -q` → FAIL.
+- [x] **Step 3: Implement.** `uv add cryptography`. Use `AESGCM` from `cryptography.hazmat`. Catch every crypto and decoding exception and raise `DecryptError("ciphertext rejected")` from None, so the original message cannot leak.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: AES-GCM key encryption bound to the user id"`.
 
 ---
 
