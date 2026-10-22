@@ -533,7 +533,7 @@ Test imports: `jwt`, `httpx`, `json`, `pytest`, `from cryptography.hazmat.primit
   - `pinning_transport(pinned: PinnedUrl, *, max_response_bytes: int = 2_097_152) -> httpx.BaseTransport` returns `CappedTransport(PinnedHTTPTransport(pinned), max_response_bytes)`. Every client built over it uses `follow_redirects=False` (the httpx default; never turn it on). Build a separate transport for the `select_provider` health check, because `select_provider` closes the client it opens.
   - `default_resolve(host: str) -> list[str]` — `socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)`, the address of each entry, used only outside unit tests. Not used by the tests below.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 PUBLIC = "8.8.8.8"  # a truly global address; resolve is stubbed, so no socket opens
@@ -660,10 +660,10 @@ def test_backend_refuses_a_different_host():
 
 Test imports: `socket`, `time`, `httpx`, `pytest`, `OpenAICompatProvider` from `boday_agent.providers.openai_compat`, `ProviderError` and `UserText` from `boday_agent.providers.base`, and everything Task 4 produces from `boday_agent.server.ssrf`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_ssrf.py -q` → FAIL (`test_redirect_is_not_followed` is the one that already passes).
-- [ ] **Step 3: Implement** as in Interfaces. Classify with `ipaddress.ip_address`. Wrap `resolve` in a daemon thread and `join(resolve_timeout_s)`. `PinnedHTTPTransport` swaps `self._pool` as described; do not reimplement httpx's request conversion. Do not turn redirects on anywhere this transport is used.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: SSRF guard pins the resolved address"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_ssrf.py -q` → FAIL (`test_redirect_is_not_followed` is the one that already passes).
+- [x] **Step 3: Implement** as in Interfaces. Classify with `ipaddress.ip_address`. Wrap `resolve` in a daemon thread and `join(resolve_timeout_s)`. `PinnedHTTPTransport` swaps `self._pool` as described; do not reimplement httpx's request conversion. Do not turn redirects on anywhere this transport is used.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: SSRF guard pins the resolved address"`.
 
 ---
 
