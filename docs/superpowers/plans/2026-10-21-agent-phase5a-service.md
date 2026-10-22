@@ -1215,7 +1215,7 @@ def test_agent_test_reports_the_mac_without_a_trace(monkeypatch):
 - `agent/.dockerignore` excludes `.venv`, `tests`, `evals`, `traces`, `.env`, and `__pycache__`.
 - `agent/DEPLOY.md` is the owner runbook. It contains the strings the test below checks, the secret names from the contract, and the steps marked owner step. It contains no secret values.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_image_and_runbook_match_the_spec():
@@ -1262,8 +1262,8 @@ def test_image_and_runbook_match_the_spec():
     assert "sk-ant-" not in doc
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_image.py -q` → FAIL.
-- [ ] **Step 3: Write the three files.** Dockerfile and dockerignore as in Interfaces. `DEPLOY.md` sections, in this order:
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_image.py -q` → FAIL.
+- [x] **Step 3: Write the three files.** Dockerfile and dockerignore as in Interfaces. `DEPLOY.md` sections, in this order:
   1. What it is: stateless Cloud Run service, snapshot in, proposal out, no task-table access.
   2. **owner step** — billing account on the GCP project. Free tier quoted from the spec: 2M requests, 180k vCPU-s, 360k GiB-s per month. Budget alert at $1.
   3. **owner step** — run `agent/sql/agent_traces.sql` in the Supabase SQL editor (it is safe to run again). Then `alter role agent_tracer password '...'` in that editor; the password is not written into the repo. The direct database host is IPv6-only on the free plan and Cloud Run sends IPv4, so use the Supavisor pooler: `AGENT_TRACES_DSN` is `postgresql://agent_tracer.cgsjsbsxuzawvgunrpqi:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres` (transaction mode; copy the exact host from Supabase → Connect). The pooler user name is the role name, a dot, and the project ref. `postgres_connect` already turns prepared statements off for this mode. Schedule the 30-day delete once `pg_cron` is enabled (the comment at the end of the SQL file).
@@ -1271,7 +1271,7 @@ def test_image_and_runbook_match_the_spec():
   5. **owner step** — the Mac. Ollama starts at login. `cloudflared` serves a hostname under `expense-app.uk` (the spec's example is `llm.expense-app.uk`). Cloudflare Access service token; the Cloud Run service sends `CF-Access-Client-Id` and `CF-Access-Client-Secret`. Put the public `https` base URL (ending in `/v1` if Ollama is mounted there) in `BODAY_LOCAL_BASE_URL` and the chosen model id in `BODAY_LOCAL_MODEL`. Do not pick the model in this repo.
   6. **owner step** — the app. Builds run on the owner's Mac, not on Cloudflare, so put `VITE_AGENT_URL=<Cloud Run URL, no trailing slash>` in the repo-root `.env` (gitignored) and then run `npm run build && npx wrangler deploy`. Artifact Registry cleanup policy so the repository stays under 0.5 GB.
   7. Local run without deploy: `uv run uvicorn --factory boday_agent.server.app:app_from_env --reload`. With `AGENT_TRACES_DSN` empty it uses `MemorySink`. `create_app` raises at startup unless `SUPABASE_JWT_SECRET` or `SUPABASE_JWKS_URL` is set. Without `AGENT_ENCRYPTION_KEY`, `/encrypt` returns 503 and saved keys cannot be read.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS. Do not run `docker build` and do not run `gcloud`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS. Do not run `docker build` and do not run `gcloud`.
 - [ ] **Step 5: Owner step — deploy.** Leave unchecked. The owner runs the SQL, sets the secrets, and deploys from `DEPLOY.md`.
 - [ ] **Step 6: Commit, push, open the PR**
 
