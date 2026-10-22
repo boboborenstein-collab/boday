@@ -433,7 +433,7 @@ def test_key_length():
   - `verify(self, header_value: str | None) -> User`. Accepts `Bearer <jwt>` with one space. Requires `sub` (non-empty string), `aud == "authenticated"`, an `exp` in the future (`now()` is unix seconds; default `time.time`), and `iss == issuer` when `issuer` is set. A `kid` that is not in the JWKS, any other shape, algorithm, signature, issuer, or audience raises `AuthError`.
   - `cached_jwks(url: str, *, ttl_s: float = 600, timeout_s: float = 3.0, get=None, clock=time.monotonic) -> Callable[[], dict]` — the production `jwks_get`. Fetches `url` with `httpx.get(url, timeout=timeout_s)` (or the injected `get`), keeps the JSON for `ttl_s` seconds, and on a fetch error keeps serving the last good copy. With no good copy yet, a fetch error raises `AuthError`. `verify` calls `jwks_get` once per token and, when the `kid` is missing, asks for one forced refresh (`jwks_get.refresh()`, an attribute on the returned callable) before rejecting.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def _hs(secret, **claims):
@@ -502,10 +502,10 @@ def test_cached_jwks_keeps_the_last_good_copy():
 
 Test imports: `jwt`, `httpx`, `json`, `pytest`, `from cryptography.hazmat.primitives.asymmetric import ec, rsa`, `from jwt.algorithms import ECAlgorithm, RSAAlgorithm`, and `AuthError`, `TokenVerifier`, `User`, `cached_jwks`, `is_owner` from `boday_agent.server.auth`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_auth.py -q` → FAIL.
-- [ ] **Step 3: Implement.** `uv add "pyjwt[crypto]"`. Read the header with `jwt.get_unverified_header` only to find `kid` and `alg`. In JWKS mode, reject unless `alg` is `ES256` or `RS256`, then call `jwt.decode(token, key, algorithms=[alg], audience="authenticated", issuer=issuer)` where `alg` is one of those two and `key` comes from the JWKS entry with that `kid`. In HS256 mode, `algorithms=["HS256"]`. Never pass an HS algorithm in JWKS mode, and never pass ES/RS in HS mode. Wrap every PyJWT error in `AuthError("unauthorized")` from None.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: verify Supabase access tokens"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_auth.py -q` → FAIL.
+- [x] **Step 3: Implement.** `uv add "pyjwt[crypto]"`. Read the header with `jwt.get_unverified_header` only to find `kid` and `alg`. In JWKS mode, reject unless `alg` is `ES256` or `RS256`, then call `jwt.decode(token, key, algorithms=[alg], audience="authenticated", issuer=issuer)` where `alg` is one of those two and `key` comes from the JWKS entry with that `kid`. In HS256 mode, `algorithms=["HS256"]`. Never pass an HS algorithm in JWKS mode, and never pass ES/RS in HS mode. Wrap every PyJWT error in `AuthError("unauthorized")` from None.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: verify Supabase access tokens"`.
 
 ---
 
