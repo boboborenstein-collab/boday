@@ -862,7 +862,7 @@ grant execute on function public.append_agent_feedback(text, text, jsonb) to age
 
 Do not put a password in this file. The owner sets one later.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_memory_sink_redacts_and_feedback_is_user_scoped(tmp_path):
@@ -920,10 +920,10 @@ def test_postgres_connect_disables_prepared_statements(monkeypatch):
 
 `FakeCursor.calls` is a list of `(sql, params)`; `fetchone()` returns `(True,)`. `FakeConn` returns that cursor from `cursor()` and records `close`. Test imports include `sys`, `types`, `json`, `datetime` / `UTC`, `Trace` from `boday_agent.tracing`, and `MemorySink`, `PostgresSink`, `feedback_event`, `postgres_connect` from `boday_agent.server.traces`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_traces.py -q` → FAIL.
-- [ ] **Step 3: Implement** the sinks and commit the SQL above. `uv add "psycopg[binary]"`. `PostgresSink` and `postgres_connect` import psycopg inside the function body so tests that never construct them do not need a server (and so the monkeypatched `sys.modules["psycopg"]` is what the test sees). `write` passes `json.dumps(redact(...))` as the third parameter.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: trace table, tracer role, and sink"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_traces.py -q` → FAIL.
+- [x] **Step 3: Implement** the sinks and commit the SQL above. `uv add "psycopg[binary]"`. `PostgresSink` and `postgres_connect` import psycopg inside the function body so tests that never construct them do not need a server (and so the monkeypatched `sys.modules["psycopg"]` is what the test sees). `write` passes `json.dumps(redact(...))` as the third parameter.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: trace table, tracer role, and sink"`.
 
 ---
 
