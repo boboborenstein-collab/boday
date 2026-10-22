@@ -687,7 +687,7 @@ Test imports: `socket`, `time`, `httpx`, `pytest`, `OpenAICompatProvider` from `
     - `custom`: `GET {base}/models` through the pinning transport, timeout 5s. 200 → `{ok: true, provider: "openai_compat", model, detail: "models endpoint returned 200"}`. Otherwise `ok: false` and `detail` `models endpoint returned <status>` or `models endpoint unreachable`. No request to `/chat/completions`.
     - `auto`: the same GET against the local URL with the CF headers and no user key, timeout 2s. Shapes are the ones in the API contract (`auto: local reachable` / `auto: local unreachable ...`). Do not call Anthropic.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Use `Encryptor(b"k" * 32)` and `httpx.MockTransport`. Script `resolve` to return `8.8.8.8` for `llm.example`.
 
@@ -749,10 +749,10 @@ def test_probe_never_posts_a_completion():
 
 Add two shorter tests beside these: auto with `local_base_url=None` returns the Anthropic fallback and a reason starting `auto: local unreachable`, and a Claude `probe_connection` against a stub client calls `models.list` and does not call `messages.create`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_providers.py -q` → FAIL.
-- [ ] **Step 3: Implement** as in Interfaces. `AnthropicProvider` stores the key on `client.api_key` when it constructs `anthropic.Anthropic`; assert against the object the constructor actually keeps (the existing attribute is `client`). Do not modify `providers/`.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: build a provider from per-user settings"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_providers.py -q` → FAIL.
+- [x] **Step 3: Implement** as in Interfaces. `AnthropicProvider` stores the key on `client.api_key` when it constructs `anthropic.Anthropic`; assert against the object the constructor actually keeps (the existing attribute is `client`). Do not modify `providers/`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: build a provider from per-user settings"`.
 
 ---
 
