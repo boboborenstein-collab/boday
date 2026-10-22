@@ -27,6 +27,15 @@ import {
   toHistory,
 } from '../src/lib/agentChat.ts'
 import { approveMessage, rejectMessage, undoMessage } from '../src/lib/agentActions.ts'
+import {
+  hasUsableModel,
+  keyFieldPlaceholder,
+  macStatus,
+  nextAiPrefs,
+  settingsViewModel,
+  traceLoadMessage,
+  traceSummary,
+} from '../src/lib/agentSettings.ts'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = '') {
@@ -520,6 +529,40 @@ check('stale approve stays pending', flow.messages[3].proposalStatus === 'pendin
 const pending = flow.messages[3]
 rejectMessage(deps, pending)
 check('reject leaves the task status rejected', flow.messages[3].proposalStatus === 'rejected' && log.includes('feedback:reject'))
+
+const owner = settingsViewModel({ email: 'bobo.borenstein@gmail.com', prefs: null })
+check('owner sees auto', owner.showAuto && owner.provider === 'auto')
+const friend = settingsViewModel({ email: 'friend@example.com', prefs: { provider: 'auto', model: null, baseUrl: null, keyCiphertext: null } })
+check('friend does not keep auto', friend.showAuto === false && friend.provider === 'claude')
+check('owner can run auto without a saved key', hasUsableModel('bobo.borenstein@gmail.com', null) === true)
+check('friend needs a key', hasUsableModel('friend@example.com', null) === false)
+check('saved mark', keyFieldPlaceholder(true) === 'saved ✓')
+check('empty key mark', keyFieldPlaceholder(false) === 'API key')
+const saved = nextAiPrefs(null, {
+  provider: 'claude', model: 'claude-haiku-5-5', baseUrl: '',
+  plaintext: 'sk-ant-example', ciphertextFromEncrypt: 'opaque-blob',
+})
+check('plaintext not stored', JSON.stringify(saved).includes('sk-ant-example') === false && saved.keyCiphertext === 'opaque-blob')
+const sameProvider = nextAiPrefs(saved, { provider: 'claude', model: 'claude-sonnet-5-5', baseUrl: '', plaintext: '', ciphertextFromEncrypt: null })
+check('same provider keeps the key', sameProvider.keyCiphertext === 'opaque-blob')
+const switched = nextAiPrefs(saved, { provider: 'custom', model: 'm', baseUrl: 'https://llm.example/v1', plaintext: '', ciphertextFromEncrypt: null })
+check('switching provider drops the claude key', switched.keyCiphertext === null && switched.provider === 'custom')
+check('form on another provider shows no saved key', settingsViewModel({ email: 'friend@example.com', prefs: saved, formProvider: 'custom' }).hasKey === false)
+check('mac reachable', macStatus('auto: local reachable') === 'Mac: reachable')
+check('mac unreachable', macStatus('auto: local unreachable, try later') === 'Mac: unreachable')
+check('mac unchecked', macStatus(null) === 'Mac: not checked' && macStatus('models endpoint returned 200') === 'Mac: not checked')
+const summary = traceSummary({
+  id: 'run-1', created_at: '2026-10-21T18:00:00Z',
+  data: { outcome: 'proposed', totals: { cost_usd: 0.0012 }, events: [
+    { type: 'model_call', model: 'claude-haiku-5-5', stop_reason: 'end_turn' },
+    { type: 'tool_call', name: 'search_tasks', ok: false, error_code: 'NOT_FOUND' },
+  ] },
+})
+check('trace summary', summary.outcome === 'proposed' && summary.costUsd === 0.0012 && summary.createdAt === '2026-10-21T18:00:00Z' && summary.events[0].detail === 'claude-haiku-5-5 · end_turn' && summary.events[1].detail === 'NOT_FOUND' && summary.events[1].label === 'search_tasks')
+check('trace error hidden', traceLoadMessage(true) === "Traces aren't available yet.")
+check('trace load ok', traceLoadMessage(false) === null)
+const autoClears = nextAiPrefs(saved, { provider: 'auto', model: 'claude-haiku-5-5', baseUrl: '', plaintext: 'sk-ant-example', ciphertextFromEncrypt: 'should-not-keep' })
+check('auto stores no key', autoClears.keyCiphertext === null && JSON.stringify(autoClears).includes('sk-ant-example') === false)
 
 console.log('')
 if (failures === 0) {

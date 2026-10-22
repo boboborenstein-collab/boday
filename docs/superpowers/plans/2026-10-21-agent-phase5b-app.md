@@ -628,7 +628,7 @@ check('stale approve stays pending', chat.messages[3].proposalStatus === 'pendin
 - `traceSummary(row)`: `id`, `createdAt` from `created_at`, `outcome` from `data.outcome` or `unknown`, `costUsd` from `data.totals.cost_usd` or null. Each `model_call` event becomes `{ label: 'model', detail: '<model> · <stop_reason>' }`. Each `tool_call` becomes `{ label: name, detail: 'ok' }` or the `error_code`.
 - `traceLoadMessage(failed: boolean): string | null` — failed → `Traces aren't available yet.`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const owner = settingsViewModel({ email: 'bobo.borenstein@gmail.com', prefs: null })
@@ -660,10 +660,10 @@ check('trace summary', summary.outcome === 'proposed' && summary.events[1].detai
 check('trace error hidden', traceLoadMessage(true) === "Traces aren't available yet.")
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** `agentSettings.ts`. Import `ADMIN_EMAIL`; do not copy the address into a second constant.
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: agent settings model and trace summary"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** `agentSettings.ts`. Import `ADMIN_EMAIL`; do not copy the address into a second constant.
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: agent settings model and trace summary"`.
 
 ---
 
