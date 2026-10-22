@@ -763,8 +763,8 @@ check('env example', env.includes('VITE_AGENT_URL=') && env.includes('VITE_SUPAB
 
 **Files:** none new, unless the pass finds a bug. Fix it in the component that owns it and add a failing `check` first.
 
-- [ ] **Step 1: Run the scripts** — `npm run test:agent && npm run test:logic && npm run typecheck` → PASS.
-- [ ] **Step 2: Browser pass.** `npm run dev`. Walk these with the devtools network panel open. There is no service in this track, so the network assertion is that BoDay Agent does not request `/agent/run` while offline or while `VITE_AGENT_URL` is empty.
+- [x] **Step 1: Run the scripts** — `npm run test:agent && npm run test:logic && npm run typecheck` → PASS.
+- [x] **Step 2: Browser pass.** `npm run dev`. Walk these with the devtools network panel open. There is no service in this track, so the network assertion is that BoDay Agent does not request `/agent/run` while offline or while `VITE_AGENT_URL` is empty.
 
   At 375px and at 1280px:
   - Header shows BoDay Agent beside Search (icon only at 375px, icon plus `BoDay Agent` at 1280px). The bottom nav still has Today, Tasks, the add button, Calendar, Stats, Settings.
@@ -778,6 +778,6 @@ check('env example', env.includes('VITE_AGENT_URL=') && env.includes('VITE_SUPAB
 
   `VITE_AGENT_URL` pointing at a real service is an **owner step**. Do not block the PR on it. Apply, undo, and the diff lines are covered by `npm run test:agent`.
 - [ ] **Step 3: Owner step — production URL.** Leave unchecked. The owner puts `VITE_AGENT_URL=<Cloud Run URL from the phase 5a deploy, no trailing slash>` in the repo-root `.env` on the Mac and runs `npm run build && npx wrangler deploy`. Nothing is set on Cloudflare; the value is baked in at build time.
-- [ ] **Step 4: Commit any fixes, push, open the PR**
+- [x] **Step 4: Commit any fixes, push, open the PR**
 
 PR into `main`, title `Agent phase 5b: app chat UI`. Do not merge. In the body, name the browser cases you could not run.
