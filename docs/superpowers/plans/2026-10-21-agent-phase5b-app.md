@@ -312,7 +312,7 @@ The plaintext API key is never stored and is never sent except as `plaintext` to
 
 The shim installs a `localStorage` on `globalThis` and `global` before any store import. `scripts/test-agent.ts` imports `./agent-test-shim.ts` as its first import. The harness matches `scripts/test-logic.ts`: `check(name, cond)`, a failure count, exit 0 or 1.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Use the `POST /agent/run` request example and the success response example from the API contract section as the fixtures `contractRun` and `contractResponse` (paste them, do not retype the fields).
 
@@ -346,10 +346,10 @@ check('error message', denied.code === 'MODEL_NOT_CONFIGURED' && denied.message 
 
 Add a call that returns status 500 with a plain-text body and checks the message is `Couldn't reach BoDay AI.` Add `encrypt`, `feedback`, and `test` calls and check the paths `/encrypt`, `/feedback`, and `/agent/test`.
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL (modules missing).
-- [ ] **Step 3: Implement** the two modules and the harness. Do not add a dependency. `parseRunResponse` throws `AgentError` (`code: 'HTTP'`) when required keys are missing.
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: agent HTTP client against the phase 5 contract"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL (modules missing).
+- [x] **Step 3: Implement** the two modules and the harness. Do not add a dependency. `parseRunResponse` throws `AgentError` (`code: 'HTTP'`) when required keys are missing.
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: agent HTTP client against the phase 5 contract"`.
 
 ---
 
