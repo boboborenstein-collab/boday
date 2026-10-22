@@ -62,6 +62,11 @@ export function keyFieldPlaceholder(hasKey: boolean): string {
   return hasKey ? 'saved ✓' : 'API key'
 }
 
+/** A typed key belongs to the provider it was typed for. Switching clears it. */
+export function onProviderPicked(choice: AiProvider): { provider: AiProvider; password: string } {
+  return { provider: choice, password: '' }
+}
+
 export function nextAiPrefs(current: AgentAiPrefs | null, form: AiSettingsForm): AgentAiPrefs {
   let keyCiphertext: string | null = null
   if (form.provider !== 'auto') {

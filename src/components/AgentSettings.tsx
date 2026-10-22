@@ -5,6 +5,7 @@ import {
   keyFieldPlaceholder,
   macStatus,
   nextAiPrefs,
+  onProviderPicked,
   settingsViewModel,
   type AiProvider,
 } from '../lib/agentSettings'
@@ -142,7 +143,11 @@ export function AgentSettings({ email }: { email: string | null }) {
                 type="radio"
                 name="agent-provider"
                 checked={provider === choice}
-                onChange={() => setProvider(choice)}
+                onChange={() => {
+                  const picked = onProviderPicked(choice)
+                  setProvider(picked.provider)
+                  setPassword(picked.password)
+                }}
               />
               {choice === 'auto' ? 'Auto' : choice === 'claude' ? 'Claude' : 'Custom'}
             </label>

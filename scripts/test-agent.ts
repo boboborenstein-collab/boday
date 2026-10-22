@@ -27,6 +27,8 @@ import {
   reduce,
   saveChat,
   toHistory,
+  chatOnOpen,
+  acceptModelReply,
 } from '../src/lib/agentChat.ts'
 import { approveMessage, rejectMessage, undoMessage } from '../src/lib/agentActions.ts'
 import {
@@ -37,6 +39,7 @@ import {
   settingsViewModel,
   traceLoadMessage,
   traceSummary,
+  onProviderPicked,
 } from '../src/lib/agentSettings.ts'
 
 let failures = 0
@@ -601,6 +604,26 @@ const traces = readFileSync('src/components/TraceViewer.tsx', 'utf8')
 check('traces table', traces.includes('agent_traces') && traces.includes('traceSummary') && traces.includes('traceLoadMessage'))
 const envExample = readFileSync('.env.example', 'utf8')
 check('env example', envExample.includes('VITE_AGENT_URL=') && envExample.includes('VITE_SUPABASE_URL='))
+
+const inflight = {
+  messages: [{ id: 'u1', role: 'user' as const, text: 'move dentist' }],
+  sending: true,
+}
+const storedQuiet = {
+  messages: [{ id: 'u1', role: 'user' as const, text: 'move dentist' }],
+  sending: false,
+}
+const reopened = chatOnOpen(inflight, storedQuiet, 'user-1', 'user-1')
+check('reopen keeps the in-flight chat', reopened.sending === true && reopened.messages.length === 1)
+const firstOpen = chatOnOpen(null, storedQuiet, null, 'user-1')
+check('first open loads storage', firstOpen.sending === false && firstOpen.messages[0].text === 'move dentist')
+const switchedUser = chatOnOpen(inflight, { messages: [], sending: false }, 'user-1', 'user-2')
+check('a different account does not keep the chat', switchedUser.messages.length === 0)
+check('a reply from an old turn is dropped', acceptModelReply(2, 1) === false)
+check('a reply from the current turn is kept', acceptModelReply(2, 2) === true)
+check('provider switch clears a typed key', onProviderPicked('custom').password === '' && onProviderPicked('claude').provider === 'claude')
+check('panel uses the flight helpers', chat.includes('chatOnOpen') && chat.includes('acceptModelReply'))
+check('settings clears the key on radio change', settings.includes('onProviderPicked'))
 
 console.log('')
 if (failures === 0) {

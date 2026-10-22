@@ -149,6 +149,23 @@ export interface ChatStorage {
   removeItem(key: string): void
 }
 
+/** Keep an in-flight thread when the same account reopens the panel. */
+export function chatOnOpen(
+  current: ChatState | null,
+  stored: ChatState,
+  previousUserId: string | null,
+  nextUserId: string | null,
+): ChatState {
+  const sameUser = previousUserId !== null && previousUserId === nextUserId
+  if (sameUser && current && (current.sending || current.messages.length > 0)) return current
+  return stored
+}
+
+/** A model reply belongs to the turn that sent it. New chat bumps the generation. */
+export function acceptModelReply(currentGeneration: number, sentGeneration: number): boolean {
+  return currentGeneration === sentGeneration
+}
+
 export function loadChat(storage: ChatStorage, userId: string): ChatState {
   try {
     const raw = storage.getItem(chatKey(userId))

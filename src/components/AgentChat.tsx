@@ -12,7 +12,9 @@ import {
   type AgentActionDeps,
 } from '../lib/agentActions'
 import {
+  acceptModelReply,
   canSend,
+  chatOnOpen,
   loadChat,
   panelMessage,
   reduce,
@@ -54,6 +56,8 @@ export function AgentChat() {
   const [chat, setChat] = useState<ChatState>(EMPTY)
   const [draft, setDraft] = useState('')
   const chatRef = useRef(chat)
+  const loadedFor = useRef<string | null>(null)
+  const generation = useRef(0)
   const userIdRef = useRef(userId)
   const prefsRef = useRef(prefs)
   const windowsRef = useRef(windows)
@@ -85,6 +89,7 @@ export function AgentChat() {
   useEffect(() => {
     if (!open) return
     let cancelled = false
+    const seenGeneration = generation.current
     setLoading(true)
     ;(async () => {
       let sessionUser: { id: string; email: string | null } | null = null
@@ -95,14 +100,16 @@ export function AgentChat() {
         }
       }
       const env = await loadUserPrefsEnvelope()
-      if (cancelled) return
+      if (cancelled || generation.current !== seenGeneration) return
       const id = sessionUser?.id ?? null
       setSignedIn(sessionUser !== null)
       setEmail(sessionUser?.email ?? null)
       setUserId(id)
       setPrefs(env.ai ?? null)
       setWindows(env.cache?.windows ?? [])
-      const loaded = id ? loadChat(localStorage, id) : EMPTY
+      const stored = id ? loadChat(localStorage, id) : EMPTY
+      const loaded = chatOnOpen(chatRef.current, stored, loadedFor.current, id)
+      loadedFor.current = id
       chatRef.current = loaded
       setChat(loaded)
       setLoading(false)
@@ -152,12 +159,14 @@ export function AgentChat() {
     }
     if (!canSend(gates)) return
     if (panelMessage({ online, serviceConfigured, signedIn, hasModel: modelReady })) return
+    const sentGeneration = generation.current
     dispatch({ type: 'send', id: crypto.randomUUID(), text: text.trim() })
     const base = serviceUrl()
     if (!base) return
     const client = createAgentClient({ baseUrl: base, fetchImpl: globalThis.fetch })
     try {
       const token = await readAccessToken()
+      if (!acceptModelReply(generation.current, sentGeneration)) return
       if (!token) {
         dispatch({ type: 'fail', id: crypto.randomUUID(), text: 'Sign in required.' })
         return
@@ -183,8 +192,10 @@ export function AgentChat() {
         },
         token,
       )
+      if (!acceptModelReply(generation.current, sentGeneration)) return
       dispatch({ type: 'assistant', id: crypto.randomUUID(), response })
     } catch (error) {
+      if (!acceptModelReply(generation.current, sentGeneration)) return
       const textOut = error instanceof AgentError ? error.message : "Couldn't reach BoDay AI."
       dispatch({ type: 'fail', id: crypto.randomUUID(), text: textOut })
     }
@@ -226,6 +237,7 @@ export function AgentChat() {
                 <button
                   type="button"
                   onClick={() => {
+                    generation.current += 1
                     dispatch({ type: 'new' })
                     setDraft('')
                   }}
