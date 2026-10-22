@@ -1,10 +1,16 @@
 import inspect
+import json
+import subprocess
+import sys
+from pathlib import Path
 
 import jwt
 import pytest
 from fastapi.testclient import TestClient
 
 import boday_agent.server.app as app_module
+from boday_agent.providers.base import ProviderError
+from boday_agent.providers.fake import FakeProvider, fake_text, fake_tools
 from boday_agent.server.app import create_app
 from boday_agent.server.auth import TokenVerifier
 from boday_agent.server.contract import error_body
@@ -139,8 +145,210 @@ def test_encrypt_returns_ciphertext_and_logs_no_plaintext(caplog):
     assert "detail" not in bad.json()
 
 
+def test_importing_the_app_registers_the_tools():
+    # uvicorn imports the app, not the test conftest. The registry starts empty.
+    code = (
+        "import boday_agent.server.app\n"
+        "from boday_agent.tools.registry import REGISTRY\n"
+        "assert 'search_tasks' in REGISTRY and 'propose_update_task' in REGISTRY\n"
+    )
+    completed = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert completed.returncode == 0, completed.stderr
+
+
 def test_encrypt_without_a_key_is_503():
     client = _client(encryptor=None)
     res = client.post("/encrypt", json={"plaintext": "sk-ant-example"}, headers=_auth())
     assert res.status_code == 503
     assert res.json()["error"]["code"] == "NOT_CONFIGURED"
+
+
+def _run_body():
+    return json.loads(Path("tests/fixtures/api_contract_run.json").read_text())
+
+
+def _demo_snapshot():
+    demo = json.loads(Path("examples/demo_snapshot.json").read_text())
+    demo["now"] = "2026-10-21T18:00:00Z"
+    return demo
+
+
+def test_run_returns_the_draft_and_writes_a_trace(monkeypatch):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    body = _run_body()
+    monkeypatch.setattr(
+        app_module,
+        "build_provider",
+        lambda *a, **k: (
+            FakeProvider(
+                [
+                    fake_tools(("search_tasks", {"query": "dentist"})),
+                    fake_tools(
+                        (
+                            "propose_update_task",
+                            {
+                                "task_id": "dentist",
+                                "changes": {"scheduled_date": "2026-10-21"},
+                            },
+                        )
+                    ),
+                    fake_text("Moved dentist to Wednesday."),
+                ]
+            ),
+            "explicit",
+        ),
+    )
+    body["snapshot"] = _demo_snapshot()
+    res = client.post("/agent/run", json=body, headers=_auth())
+    assert res.status_code == 200
+    payload = res.json()
+    assert payload["outcome"] == "proposed" and payload["changes"][0]["op"] == "update"
+    assert payload["changes"][0]["patch"] == {"scheduledDate": "2026-10-21"}
+    row = sink.rows[payload["traceId"]]
+    assert row["user_id"] == "user-1"
+    assert "snapshot_hash" in row["data"]["request"] and "tasks" not in row["data"]["request"]
+
+
+def test_provider_failure_is_http_200_and_fail_closed(monkeypatch):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    body = _run_body()
+    fake = FakeProvider([ProviderError("bad key sk-ant-example", retryable=False)])
+    monkeypatch.setattr(app_module, "build_provider", lambda *a, **k: (fake, "explicit"))
+    res = client.post("/agent/run", json=body, headers=_auth())
+    assert res.status_code == 200
+    assert res.json()["outcome"] == "failed" and res.json()["changes"] == []
+    assert "sk-ant-example" not in res.text
+    blob = json.dumps(sink.rows[res.json()["traceId"]])
+    assert "sk-ant-example" not in blob
+
+
+def test_non_owner_auto_does_not_build_a_provider(monkeypatch):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    body = _run_body()
+
+    def boom(*args, **kwargs):
+        raise AssertionError("provider built")
+
+    monkeypatch.setattr(app_module, "build_provider", boom)
+    auto = {
+        **body,
+        "settings": {"provider": "auto", "model": None, "baseUrl": None, "keyCiphertext": None},
+    }
+    res = client.post("/agent/run", json=auto, headers=_auth(email="friend@example.com"))
+    assert res.status_code == 403 and res.json()["error"]["code"] == "AUTO_OWNER_ONLY"
+    assert sink.rows == {}
+
+
+def test_snapshot_must_be_an_object_and_a_bad_task_is_a_warning(monkeypatch):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    body = _run_body()
+    res = client.post("/agent/run", json={**body, "snapshot": []}, headers=_auth())
+    assert res.status_code == 400 and res.json()["error"]["code"] == "INVALID_REQUEST"
+    warned = {**body, "snapshot": {**body["snapshot"], "tasks": [{"id": "bad"}]}}
+    monkeypatch.setattr(
+        app_module,
+        "build_provider",
+        lambda *a, **k: (FakeProvider([fake_text("Nothing to change.")]), "explicit"),
+    )
+    res = client.post("/agent/run", json=warned, headers=_auth())
+    assert res.status_code == 200 and res.json()["outcome"] == "answered"
+    assert any(item.startswith("skipped task 'bad'") for item in res.json()["parseWarnings"])
+
+
+def test_trace_write_failure_returns_no_changes(monkeypatch):
+    body = _run_body()
+
+    class DeadSink(MemorySink):
+        def write(self, trace, user_id):
+            raise OSError("dsn=postgres://agent_tracer:secret@db.example/postgres")
+
+    client = _client(sink=DeadSink())
+    monkeypatch.setattr(
+        app_module,
+        "build_provider",
+        lambda *a, **k: (FakeProvider([fake_text("Moved it.")]), "explicit"),
+    )
+    res = client.post("/agent/run", json=body, headers=_auth())
+    assert res.status_code == 500
+    assert res.json() == error_body("TRACE_WRITE_FAILED", "Could not record the trace.")
+    assert "changes" not in res.json() and "secret" not in res.text and "postgres" not in res.text
+
+
+def test_asked_returns_no_changes(monkeypatch):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    body = _run_body()
+    monkeypatch.setattr(
+        app_module,
+        "build_provider",
+        lambda *a, **k: (
+            FakeProvider(
+                [
+                    fake_tools(
+                        ("ask_user", {"question": "Which one?", "options": ["Dentist", "Doctor"]})
+                    ),
+                ]
+            ),
+            "explicit",
+        ),
+    )
+    res = client.post("/agent/run", json=body, headers=_auth())
+    assert res.status_code == 200
+    assert res.json()["outcome"] == "asked" and res.json()["changes"] == []
+    assert res.json()["question"] == "Which one?" and res.json()["options"] == ["Dentist", "Doctor"]
+
+
+def test_null_before_field_survives_the_response(monkeypatch):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    body = _run_body()
+    monkeypatch.setattr(
+        app_module,
+        "build_provider",
+        lambda *a, **k: (
+            FakeProvider(
+                [
+                    fake_tools(("search_tasks", {"query": "standup"})),
+                    fake_tools(
+                        (
+                            "propose_update_task",
+                            {"task_id": "standup", "changes": {"end_date": "2026-12-31"}},
+                        )
+                    ),
+                    fake_text("Ends on Dec 31."),
+                ]
+            ),
+            "explicit",
+        ),
+    )
+    res = client.post("/agent/run", json={**body, "snapshot": _demo_snapshot()}, headers=_auth())
+    change = res.json()["changes"][0]
+    assert change["patch"] == {"endDate": "2026-12-31"}
+    assert "endDate" in change["beforeFields"] and change["beforeFields"]["endDate"] is None
+
+
+def test_other_users_ciphertext_is_rejected(caplog):
+    sink = MemorySink()
+    client = _client(sink=sink)
+    body = _run_body()
+    enc = Encryptor(KEY)
+    stolen = {
+        **body,
+        "settings": {
+            "provider": "claude",
+            "model": "claude-haiku-5-5",
+            "baseUrl": None,
+            "keyCiphertext": enc.encrypt("sk-ant-example", user_id="user-1"),
+        },
+    }
+    res = client.post(
+        "/agent/run",
+        json=stolen,
+        headers=_auth(sub="user-2", email="friend@example.com"),
+    )
+    assert res.status_code == 400 and res.json()["error"]["code"] == "KEY_DECRYPT_FAILED"
+    assert "sk-ant-example" not in caplog.text and sink.rows == {}

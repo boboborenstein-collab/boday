@@ -8,11 +8,15 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from boday_agent.server.auth import AuthError, TokenVerifier, cached_jwks
-from boday_agent.server.contract import EncryptRequest, error_body
+from boday_agent.domain.models import Snapshot
+from boday_agent.loop import AgentRequest, run_agent
+from boday_agent.prompt import HistoryTurn
+from boday_agent.server.auth import AuthError, TokenVerifier, cached_jwks, is_owner
+from boday_agent.server.contract import EncryptRequest, RunRequest, error_body, run_settings_error
 from boday_agent.server.crypto import Encryptor, encryptor_from_b64
+from boday_agent.server.providers import ProviderBuildError, build_provider
 from boday_agent.server.ssrf import default_resolve
 from boday_agent.server.traces import MemorySink, PostgresSink, postgres_connect
 
@@ -127,6 +131,72 @@ def create_app(
         # Look up encrypt on the class so tests can patch app.Encryptor.encrypt.
         token = Encryptor.encrypt(encryptor, body.plaintext, user_id=user.id)
         return {"ciphertext": token}
+
+    @app.post("/agent/run")
+    def agent_run(request: Request, body: RunRequest):
+        user = _authorize(request)
+        if isinstance(user, JSONResponse):
+            return user
+        config = request.app.state.config
+        problem = run_settings_error(
+            body.settings,
+            is_owner=is_owner(user, config.admin_email),
+        )
+        if problem is not None:
+            status, code, message = problem
+            return JSONResponse(status_code=status, content=error_body(code, message))
+        try:
+            provider, reason = build_provider(
+                body.settings,
+                user_id=user.id,
+                encryptor=request.app.state.encryptor,
+                anthropic_api_key=config.anthropic_api_key,
+                local_base_url=config.local_base_url,
+                local_model=config.local_model,
+                cf_access_client_id=config.cf_access_client_id,
+                cf_access_client_secret=config.cf_access_client_secret,
+                resolve=request.app.state.resolve,
+            )
+        except ProviderBuildError as exc:
+            return JSONResponse(status_code=400, content=error_body(exc.code, exc.message))
+        try:
+            snapshot = Snapshot.from_app(body.snapshot)
+        except ValidationError:
+            return JSONResponse(
+                status_code=400,
+                content=error_body("INVALID_REQUEST", _INVALID),
+            )
+        history = [
+            HistoryTurn(
+                role=item.role,
+                text=item.text,
+                proposal=item.proposal,
+                proposal_status=item.proposal_status,
+            )
+            for item in body.history
+        ]
+        result = run_agent(
+            AgentRequest(message=body.message, history=history, snapshot=snapshot),
+            provider,
+            selection_reason=reason,
+        )
+        try:
+            request.app.state.sink.write(result.trace, user.id)
+        except Exception as exc:
+            _log.error("trace write %s", type(exc).__name__)
+            return JSONResponse(
+                status_code=500,
+                content=error_body("TRACE_WRITE_FAILED", "Could not record the trace."),
+            )
+        return {
+            "traceId": result.trace.run_id,
+            "outcome": result.outcome,
+            "text": result.text,
+            "changes": result.changes,
+            "question": result.question,
+            "options": result.options,
+            "parseWarnings": list(result.trace.parse_warnings),
+        }
 
     app.add_middleware(ErrorMiddleware)
     app.add_middleware(BodyLimitMiddleware, max_bytes=config.max_body_bytes)
