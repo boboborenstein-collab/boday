@@ -1039,7 +1039,7 @@ def test_encrypt_without_a_key_is_503():
   7. `sink.write(result.trace, user.id)`. On any exception, 500 `TRACE_WRITE_FAILED` and do not include `changes` or `text`.
   8. Return 200 with `traceId`, `outcome`, `text`, `changes` (the list from the result, not a re-parsed strict model), `question`, `options`, `parseWarnings` from `result.trace.parse_warnings`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Monkeypatch `boday_agent.server.app.build_provider` to return `(FakeProvider([...]), "explicit")` and a `MemorySink`. The happy-path script is one `fake_text("Moved dentist to Wednesday.")` after the tools the fixture needs, or a single `fake_text` when the snapshot has no matching task so the outcome is `answered`. Drive a proposal by scripting `fake_tools` then `fake_text`, using a snapshot copied from `agent/examples/demo_snapshot.json` with its `now` set to `2026-10-21T18:00:00Z`.
 
@@ -1148,10 +1148,10 @@ def test_other_users_ciphertext_is_rejected(caplog):
 
 `test_other_users_ciphertext_is_rejected` does not monkeypatch `build_provider`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL on the new tests.
-- [ ] **Step 3: Implement** the flow in Interfaces. History mapping is `HistoryTurn(role=item.role, text=item.text, proposal=item.proposal, proposal_status=item.proposal_status)`. Catch `ProviderBuildError` and `ValidationError` only around the steps that raise them.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check . && uv run boday-eval validate` → PASS. `validate` must still report the suite valid; this task does not edit cases.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: POST /agent/run over the existing loop"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL on the new tests.
+- [x] **Step 3: Implement** the flow in Interfaces. History mapping is `HistoryTurn(role=item.role, text=item.text, proposal=item.proposal, proposal_status=item.proposal_status)`. Catch `ProviderBuildError` and `ValidationError` only around the steps that raise them.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check . && uv run boday-eval validate` → PASS. `validate` must still report the suite valid; this task does not edit cases.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: POST /agent/run over the existing loop"`.
 
 ---
 
