@@ -364,7 +364,7 @@ Add a call that returns status 500 with a plain-text body and checks the message
 - `buildAgentSnapshot({ tasks, completions, quietWindows, now, timeZone })` returns a plain object whose keys are exactly `tasks`, `completions`, `quietWindows`, `now`, `timezone`. `now` is `now.toISOString()`. `tasks` and `completions` are the same arrays, not remapped, so unknown fields stay. `quietWindows` is the array passed in (possibly empty).
 - `UserPrefsEnvelope.cache` is `{ fetchedAt?: string; windows?: { start: string; end: string; title: string }[] }`. `ai` is `AgentAiPrefs | undefined` with `provider`, `model`, `baseUrl`, `keyCiphertext` (each `model` / `baseUrl` / `keyCiphertext` is `string | null`). `mergeUserPrefsData` already replaces a top-level key other than `snoozes`; do not special-case `ai`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const task = { id: 'dentist', type: 'one_time', title: 'Dentist', someFutureField: { x: 1 } }
@@ -382,10 +382,10 @@ check('future field kept', snap.tasks[0].someFutureField.x === 1)
 check('no secrets', JSON.stringify(snap).includes('sk-') === false)
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement.** This task only types the envelope and builds the object. `loadUserPrefsEnvelope()` is `async` (it reads `user_prefs` from Supabase), so the chat panel in Task 6 awaits it: `const env = await loadUserPrefsEnvelope()`, then `env.cache?.windows ?? []` and `env.ai ?? null`. The time zone comes from `Intl.DateTimeFormat().resolvedOptions().timeZone`. The window shape matches what the push worker writes (`worker-push/src/index.ts`, `cache: { fetchedAt, windows }`).
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: build the agent snapshot from local tasks"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement.** This task only types the envelope and builds the object. `loadUserPrefsEnvelope()` is `async` (it reads `user_prefs` from Supabase), so the chat panel in Task 6 awaits it: `const env = await loadUserPrefsEnvelope()`, then `env.cache?.windows ?? []` and `env.ai ?? null`. The time zone comes from `Intl.DateTimeFormat().resolvedOptions().timeZone`. The window shape matches what the push worker writes (`worker-push/src/index.ts`, `cache: { fetchedAt, windows }`).
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: build the agent snapshot from local tasks"`.
 
 ---
 

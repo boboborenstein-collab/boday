@@ -2,9 +2,22 @@ import { getSupabase, isSupabaseConfigured } from './supabaseClient'
 
 export type SnoozeMap = Record<string, string>
 
+export interface UserPrefsCache {
+  fetchedAt?: string
+  windows?: { start: string; end: string; title: string }[]
+}
+
+export interface AgentAiPrefs {
+  provider: 'auto' | 'claude' | 'custom'
+  model: string | null
+  baseUrl: string | null
+  keyCiphertext: string | null
+}
+
 export interface UserPrefsEnvelope {
   quiet?: unknown
-  cache?: unknown
+  cache?: UserPrefsCache
+  ai?: AgentAiPrefs
   calendarToken?: string
   snoozes?: SnoozeMap
 }

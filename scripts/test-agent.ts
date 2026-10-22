@@ -5,6 +5,7 @@ import './agent-test-shim.ts'
 import { agentBaseUrl, createAgentClient } from '../src/lib/agentClient.ts'
 import { parseErrorBody, parseRunResponse } from '../src/lib/agentContract.ts'
 import type { AgentError } from '../src/lib/agentContract.ts'
+import { buildAgentSnapshot } from '../src/lib/agentSnapshot.ts'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = '') {
@@ -148,6 +149,26 @@ try {
   netErr = e as AgentError
 }
 check('network error', netErr?.code === 'NETWORK' && netErr.message === "Couldn't reach BoDay AI.")
+
+const task = { id: 'dentist', type: 'one_time', title: 'Dentist', someFutureField: { x: 1 } }
+const snapTasks = [task]
+const snapCompletions: never[] = []
+const snapWindows = [{ start: '2026-10-23T17:52:00-04:00', end: '2026-10-24T18:51:00-04:00', title: 'Candle lighting' }]
+const snap = buildAgentSnapshot({
+  tasks: snapTasks,
+  completions: snapCompletions,
+  quietWindows: snapWindows,
+  now: new Date('2026-10-21T22:00:00.000Z'),
+  timeZone: 'America/New_York',
+})
+check('snapshot keys', Object.keys(snap).sort().join() === 'completions,now,quietWindows,tasks,timezone')
+check('now is iso', snap.now === '2026-10-21T22:00:00.000Z')
+check('timezone kept', snap.timezone === 'America/New_York')
+check('future field kept', snap.tasks[0].someFutureField.x === 1)
+check('same task array', snap.tasks === snapTasks)
+check('same completion array', snap.completions === snapCompletions)
+check('same quiet windows', snap.quietWindows === snapWindows)
+check('no secrets', JSON.stringify(snap).includes('sk-') === false)
 
 console.log('')
 if (failures === 0) {
