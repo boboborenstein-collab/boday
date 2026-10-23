@@ -39,3 +39,8 @@ Deferred items from the phase 1 final review, grouped by the phase that should p
 - [x] The round-trip test should assert `patch` / `beforeFields` keys.
 - [x] Untested propose rules: end before start, start/end on a one-time create (`tests/test_propose_tools.py`).
 - [x] `ToolError` propagation via `execute`, and agenda empty/truncated fault tests beyond the seen-id checks (`tests/test_registry.py`).
+
+## Phase 5a (from the PR #8 review)
+
+- The body is parsed before auth, so an unauthenticated request with a bad body gets 400 `INVALID_REQUEST` instead of 401. This follows from the plan's design: FastAPI validates a body parameter before the handler runs. Fix by doing auth in a `Depends(...)` that raises, or by parsing the body by hand after `_authorize` (`boday_agent/server/app.py`).
+- A NUL can still reach the trace from model output or from task titles inside tool results. jsonb rejects `\u0000`, so that run ends in `TRACE_WRITE_FAILED`. Request text is already rejected. Strip `\x00` in `traces.bounded` or in `redact` (`boday_agent/server/traces.py`).
