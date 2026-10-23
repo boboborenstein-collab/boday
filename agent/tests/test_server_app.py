@@ -481,3 +481,61 @@ def test_a_nul_in_the_text_is_400_before_any_model_call(monkeypatch, where):
         "INVALID_REQUEST",
         "Check the message, snapshot, and model settings.",
     )
+
+
+def test_unknown_path_and_method_are_route_not_found():
+    client = _client(allowed_origins=["http://localhost:5173"])
+    origin = {"Origin": "http://localhost:5173"}
+    expected = error_body("ROUTE_NOT_FOUND", "Something went wrong. Try again.")
+
+    missing = client.get("/nope", headers=origin)
+    assert missing.status_code == 404
+    assert missing.json() == expected
+    assert "detail" not in missing.json()
+    assert missing.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+    wrong = client.get("/agent/run", headers=origin)
+    assert wrong.status_code == 405
+    assert wrong.json() == expected
+    assert "detail" not in wrong.json()
+    assert wrong.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+    doubled = client.post(
+        "//agent/run",
+        content=b"{}",
+        headers={**origin, "content-type": "application/json"},
+    )
+    assert doubled.status_code == 404
+    assert doubled.json() == expected
+    assert "detail" not in doubled.json()
+    assert doubled.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def test_an_http_exception_does_not_return_a_detail_body():
+    from starlette.exceptions import HTTPException
+
+    app = create_app(
+        _config(allowed_origins=["http://localhost:5173"]),
+        sink=MemorySink(),
+        encryptor=Encryptor(KEY),
+        resolve=lambda host: ["8.8.8.8"],
+        verifier=TokenVerifier(hs256_secret="test-secret", jwks_get=None),
+    )
+
+    @app.get("/probe-http-exception")
+    def probe_http_exception():
+        raise HTTPException(status_code=400, detail="leaked sk-ant-example")
+
+    client = TestClient(app)
+    res = client.get(
+        "/probe-http-exception",
+        headers={"Origin": "http://localhost:5173"},
+    )
+    assert res.status_code == 400
+    assert "detail" not in res.json()
+    assert "sk-ant-example" not in res.text
+    assert res.json() == error_body(
+        "INVALID_REQUEST",
+        "Check the message, snapshot, and model settings.",
+    )
+    assert res.headers["access-control-allow-origin"] == "http://localhost:5173"

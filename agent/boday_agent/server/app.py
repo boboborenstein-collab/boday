@@ -10,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from starlette.exceptions import HTTPException
 
 from boday_agent.domain.models import Snapshot
 from boday_agent.loop import AgentRequest, run_agent
@@ -35,6 +36,7 @@ _UNAUTHORIZED = "Sign in required."
 _NOT_CONFIGURED = "Key saving isn't available right now."
 _TOO_LARGE = "That request is too large."
 _INTERNAL = "Something went wrong. Try again."
+_ROUTE_NOT_FOUND = "Something went wrong. Try again."
 _ADMIN_EMAIL = "bobo.borenstein@gmail.com"
 
 
@@ -123,6 +125,23 @@ def create_app(
             status_code=400,
             content=error_body("INVALID_REQUEST", _INVALID),
         )
+
+    @app.exception_handler(HTTPException)
+    def http_exception(request: Request, exc: HTTPException) -> JSONResponse:
+        # Starlette's default body is {"detail": ...}. The contract never returns that.
+        if exc.status_code in (404, 405):
+            content = error_body("ROUTE_NOT_FOUND", _ROUTE_NOT_FOUND)
+        elif exc.status_code == 400:
+            content = error_body("INVALID_REQUEST", _INVALID)
+        elif exc.status_code == 401:
+            content = error_body("UNAUTHORIZED", _UNAUTHORIZED)
+        elif exc.status_code == 413:
+            content = error_body("PAYLOAD_TOO_LARGE", _TOO_LARGE)
+        elif exc.status_code == 503:
+            content = error_body("NOT_CONFIGURED", _NOT_CONFIGURED)
+        else:
+            content = error_body("INTERNAL_ERROR", _INTERNAL)
+        return JSONResponse(status_code=exc.status_code, content=content, headers=exc.headers)
 
     @app.get("/health")
     def health(request: Request):
