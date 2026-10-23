@@ -718,6 +718,10 @@ const closedLoad = loadPanel ? await loadPanel({
 }) : 'missing'
 check('fix2: a closed panel ignores the late load', closedLoad === null)
 
+// Fix 3: the browser must not autofill the BoDay login password into the API-key field.
+const keyInput = settingsHtml.match(/<input[^>]*type="password"[^>]*>/)?.[0] ?? ''
+check('fix3: API-key field asks for a new password', /autocomplete="new-password"/i.test(keyInput), keyInput)
+
 console.log('')
 if (failures === 0) {
   console.log('✅ ALL AGENT ASSERTIONS PASSED\n')

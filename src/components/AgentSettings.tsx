@@ -162,8 +162,9 @@ export function AgentSettings({ email }: { email: string | null }) {
         {provider !== 'auto' && (
           <input
             type="password"
+            name="ai-api-key"
             value={password}
-            autoComplete="off"
+            autoComplete="new-password"
             onChange={(event) => setPassword(event.target.value)}
             placeholder={keyFieldPlaceholder(view.hasKey)}
             className={inputCls}
