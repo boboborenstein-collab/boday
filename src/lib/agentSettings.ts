@@ -68,10 +68,16 @@ export function onProviderPicked(choice: AiProvider): { provider: AiProvider; pa
   return { provider: choice, password: '' }
 }
 
+/** The API key as pasted, without surrounding whitespace; blank means no key. */
+export function typedKey(plaintext: string): string | null {
+  const key = plaintext.trim()
+  return key === '' ? null : key
+}
+
 export function nextAiPrefs(current: AgentAiPrefs | null, form: AiSettingsForm): AgentAiPrefs {
   let keyCiphertext: string | null = null
   if (form.provider !== 'auto') {
-    if (form.plaintext.trim() !== '') keyCiphertext = form.ciphertextFromEncrypt
+    if (typedKey(form.plaintext) !== null) keyCiphertext = form.ciphertextFromEncrypt
     else if (current && form.provider === current.provider) keyCiphertext = current.keyCiphertext
   }
   return {
@@ -124,8 +130,8 @@ export async function saveAiSettings({
       const failed = settingsLoadFrom(current)
       return { ok: false, message: failed.status === 'failed' ? failed.message : LOAD_FAILED }
     }
-    const typed = form.provider !== 'auto' && form.plaintext.trim() !== ''
-    const ciphertextFromEncrypt = typed ? await encrypt(form.plaintext) : null
+    const key = form.provider === 'auto' ? null : typedKey(form.plaintext)
+    const ciphertextFromEncrypt = key === null ? null : await encrypt(key)
     const prefs = nextAiPrefs(current.env.ai ?? null, { ...form, ciphertextFromEncrypt })
     const written = await merge({ ai: prefs })
     if (!written.ok) return { ok: false, message: written.message }

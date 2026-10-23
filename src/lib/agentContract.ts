@@ -74,3 +74,27 @@ export function parseRunResponse(data: unknown): RunResponse {
     parseWarnings: row.parseWarnings,
   }
 }
+
+export interface TestResponse {
+  ok: boolean
+  provider: string
+  model: string
+  detail: string
+}
+
+export function parseEncryptResponse(data: unknown): { ciphertext: string } {
+  const ciphertext = (data as { ciphertext?: unknown } | null)?.ciphertext
+  if (typeof ciphertext !== 'string' || ciphertext === '') throw new AgentError('HTTP', UNREACHABLE)
+  return { ciphertext }
+}
+
+export function parseTestResponse(data: unknown): TestResponse {
+  const row = (data ?? {}) as Partial<Record<keyof TestResponse, unknown>>
+  if (typeof row.ok !== 'boolean' || typeof row.detail !== 'string') throw new AgentError('HTTP', UNREACHABLE)
+  return {
+    ok: row.ok,
+    provider: typeof row.provider === 'string' ? row.provider : '',
+    model: typeof row.model === 'string' ? row.model : '',
+    detail: row.detail,
+  }
+}

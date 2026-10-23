@@ -1,4 +1,12 @@
-import { AgentError, parseErrorBody, parseRunResponse, type RunResponse } from './agentContract'
+import {
+  AgentError,
+  parseEncryptResponse,
+  parseErrorBody,
+  parseRunResponse,
+  parseTestResponse,
+  type RunResponse,
+  type TestResponse,
+} from './agentContract'
 
 export function agentBaseUrl(env: { VITE_AGENT_URL?: string }): string | null {
   const raw = env.VITE_AGENT_URL
@@ -55,18 +63,13 @@ export function createAgentClient({
       return post('/agent/run', body, token, true).then((data) => parseRunResponse(data))
     },
     encrypt(body: unknown, token: string): Promise<{ ciphertext: string }> {
-      return post('/encrypt', body, token, false) as Promise<{ ciphertext: string }>
+      return post('/encrypt', body, token, false).then(parseEncryptResponse)
     },
     feedback(body: unknown, token: string): Promise<{ ok: boolean }> {
       return post('/feedback', body, token, false) as Promise<{ ok: boolean }>
     },
-    test(body: unknown, token: string): Promise<{ ok: boolean; provider: string; model: string; detail: string }> {
-      return post('/agent/test', body, token, false) as Promise<{
-        ok: boolean
-        provider: string
-        model: string
-        detail: string
-      }>
+    test(body: unknown, token: string): Promise<TestResponse> {
+      return post('/agent/test', body, token, false).then(parseTestResponse)
     },
   }
 }

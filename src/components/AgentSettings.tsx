@@ -9,6 +9,7 @@ import {
   saveAiSettings,
   settingsLoadFrom,
   settingsViewModel,
+  typedKey,
   type AiProvider,
   type SettingsLoad,
 } from '../lib/agentSettings'
@@ -70,11 +71,12 @@ export function AgentSettings({ email }: { email: string | null }) {
   }
 
   async function ciphertextForTest(): Promise<string | null> {
-    if (!password.trim()) {
+    const key = typedKey(password)
+    if (key === null) {
       return provider === prefs?.provider ? (prefs?.keyCiphertext ?? null) : null
     }
     const ready = await serviceClient()
-    const encrypted = await ready.client.encrypt({ plaintext: password }, ready.token)
+    const encrypted = await ready.client.encrypt({ plaintext: key }, ready.token)
     return encrypted.ciphertext
   }
 

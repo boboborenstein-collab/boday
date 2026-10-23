@@ -825,6 +825,27 @@ check('fix7: a v4 id without randomUUID', typeof idA === 'string' && uuidShape.t
 check('fix7: randomUUID is used when present', randomId?.({ ...httpCrypto, randomUUID: () => 'from-randomUUID' }) === 'from-randomUUID')
 check('fix7: the panel has no bare crypto.randomUUID call', !readFileSync('src/components/AgentChat.tsx', 'utf8').includes('crypto.randomUUID'))
 
+// Fix 8: Settings trims the pasted key and only trusts well-formed service replies.
+const replyClient = (body: unknown) => createAgentClient({
+  baseUrl: 'https://agent.example',
+  fetchImpl: (async () => new Response(JSON.stringify(body), { status: 200 })) as typeof fetch,
+})
+const settles = async (p: Promise<unknown>) => p.then((v) => ({ ok: true, v }), (e: AgentError) => ({ ok: false, e }))
+const noCipher = await settles(replyClient({}).encrypt({ plaintext: 'sk' }, 't'))
+check('fix8: /encrypt without a ciphertext is an error', noCipher.ok === false && 'e' in noCipher && noCipher.e.message === "Couldn't reach BoDay AI.")
+const blankCipher = await settles(replyClient({ ciphertext: '' }).encrypt({ plaintext: 'sk' }, 't'))
+check('fix8: /encrypt with an empty ciphertext is an error', blankCipher.ok === false)
+const goodCipher = await settles(replyClient({ ciphertext: 'opaque' }).encrypt({ plaintext: 'sk' }, 't'))
+check('fix8: a good /encrypt reply passes', goodCipher.ok === true && 'v' in goodCipher && (goodCipher.v as { ciphertext: string }).ciphertext === 'opaque')
+const noDetail = await settles(replyClient({ ok: true }).test({ settings: {} }, 't'))
+check('fix8: /agent/test without detail is an error', noDetail.ok === false)
+const goodTest = await settles(replyClient({ ok: false, provider: 'anthropic', model: 'claude-haiku-5-5', detail: 'auto: local unreachable' }).test({ settings: {} }, 't'))
+check('fix8: a good /agent/test reply passes', goodTest.ok === true)
+const paddedSave = await runSave({ ok: true, env: { ai: savedKeyAi } }, { plaintext: '  sk-ant-new \n' })
+check('fix8: the pasted key is trimmed before encrypting', paddedSave.calls.encrypt.join() === 'sk-ant-new')
+const typedKey = lib(settingsLib, 'typedKey')
+check('fix8: a blank key is no key', typedKey?.(' \n ') === null && typedKey?.(' sk ') === 'sk')
+
 console.log('')
 if (failures === 0) {
   console.log('✅ ALL AGENT ASSERTIONS PASSED\n')
