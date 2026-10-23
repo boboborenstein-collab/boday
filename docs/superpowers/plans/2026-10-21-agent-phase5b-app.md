@@ -76,6 +76,8 @@ Every non-2xx JSON body is exactly:
 | 400 | KEY_DECRYPT_FAILED | The saved API key could not be read. Save it again in Settings. |
 | 413 | PAYLOAD_TOO_LARGE | That request is too large. |
 | 404 | NOT_FOUND | Trace not found. |
+| 404 | ROUTE_NOT_FOUND | Something went wrong. Try again. |
+| 405 | ROUTE_NOT_FOUND | Something went wrong. Try again. |
 | 500 | TRACE_WRITE_FAILED | Could not record the trace. |
 | 500 | INTERNAL_ERROR | Something went wrong. Try again. |
 | 503 | NOT_CONFIGURED | Key saving isn't available right now. |
@@ -92,6 +94,7 @@ When each code applies:
 - `KEY_DECRYPT_FAILED` — `keyCiphertext` does not decrypt for this user id.
 - `PAYLOAD_TOO_LARGE` — the raw body is larger than 4194304 bytes (4 MiB).
 - `NOT_FOUND` — `POST /feedback` names a run that is missing or belongs to another user. Same message either way.
+- `ROUTE_NOT_FOUND` — the path is not a documented endpoint (404), or the method is not allowed on it (405). This includes `//agent/run`. The app removes a trailing `/` from `VITE_AGENT_URL` before joining paths.
 - `TRACE_WRITE_FAILED` — the loop finished but the trace row was not written. The body is only the error shape: no `changes`, no `text`.
 - `INTERNAL_ERROR` — any exception no other code covers. The body is only the error shape and still carries the CORS headers, so the app can read it.
 - `NOT_CONFIGURED` — `POST /encrypt` while the server has no encryption key.
