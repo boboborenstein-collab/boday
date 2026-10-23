@@ -16,13 +16,21 @@ export interface AgentActionDeps {
   feedback: (body: FeedbackBody) => Promise<unknown>
   dispatch: (event: ChatEvent) => void
   toast: (detail: string | { message: string; actionLabel: string; onAction?: () => void }) => void
+  /** The message as it is now. Clicks hold the copy from render time, which can be stale. */
+  current: (messageId: string) => ChatMessage | undefined
 }
 
 function fireFeedback(deps: AgentActionDeps, body: FeedbackBody): void {
   void deps.feedback(body).catch(() => {})
 }
 
-export function approveMessage(deps: AgentActionDeps, message: ChatMessage): void {
+/** Prefer the live message; a toast can outlive it (New chat), so fall back to the copy. */
+function latest(deps: AgentActionDeps, message: ChatMessage): ChatMessage {
+  return deps.current(message.id) ?? message
+}
+
+export function approveMessage(deps: AgentActionDeps, clicked: ChatMessage): void {
+  const message = latest(deps, clicked)
   if (message.proposalStatus !== 'pending') return
   const selected = message.selectedTaskIds ?? []
   const result = deps.apply(message.changes ?? [], selected)
@@ -40,13 +48,15 @@ export function approveMessage(deps: AgentActionDeps, message: ChatMessage): voi
   fireFeedback(deps, { runId: message.traceId ?? '', event: 'approve', taskIds: selected })
 }
 
-export function rejectMessage(deps: AgentActionDeps, message: ChatMessage): void {
+export function rejectMessage(deps: AgentActionDeps, clicked: ChatMessage): void {
+  const message = latest(deps, clicked)
   if (message.proposalStatus !== 'pending') return
   deps.dispatch({ type: 'resolve', messageId: message.id, status: 'rejected' })
   fireFeedback(deps, { runId: message.traceId ?? '', event: 'reject', taskIds: [] })
 }
 
-export function undoMessage(deps: AgentActionDeps, message: ChatMessage): void {
+export function undoMessage(deps: AgentActionDeps, clicked: ChatMessage): void {
+  const message = latest(deps, clicked)
   if (message.proposalStatus !== 'applied') return
   const applied = message.appliedTaskIds ?? []
   const result = deps.undo(message.changes ?? [], applied)

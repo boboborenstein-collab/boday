@@ -520,6 +520,7 @@ const deps = {
   feedback: (body: { event: string }) => { log.push(`feedback:${body.event}`); return Promise.reject(new Error('offline')) },
   dispatch: (e: { type: string }) => { flow = reduce(flow, e) },
   toast: (d: string | { message: string }) => log.push(`toast:${typeof d === 'string' ? d : d.message}`),
+  current: (id: string) => flow.messages.find((m) => m.id === id) as never,
 }
 flow = reduce(flow, { type: 'send', id: 'u1', text: 'move dentist' })
 flow = reduce(flow, { type: 'assistant', id: 'a1', response: { ...contractResponse, outcome: 'proposed', changes: [update] } })
@@ -721,6 +722,39 @@ check('fix2: a closed panel ignores the late load', closedLoad === null)
 // Fix 3: the browser must not autofill the BoDay login password into the API-key field.
 const keyInput = settingsHtml.match(/<input[^>]*type="password"[^>]*>/)?.[0] ?? ''
 check('fix3: API-key field asks for a new password', /autocomplete="new-password"/i.test(keyInput), keyInput)
+
+// Fix 4: Approve and the toast's Undo read the live message, not the copy from render time.
+useStore.setState({
+  tasks: [{ id: 'dentist', type: 'one_time', title: 'Dentist', priority: 3, scheduledDate: '2026-10-22', completed: false, createdAt: '2026-09-01T12:00:00Z' }] as never,
+  completions: [],
+})
+const liveUpdate = { op: 'update', taskId: 'dentist', patch: { priority: 1 }, beforeFields: { priority: 3 }, warnings: [] }
+let live: { messages: Record<string, unknown>[]; sending: boolean } = { messages: [], sending: false }
+live = reduce(live, { type: 'send', id: 'lu1', text: 'bump dentist' })
+live = reduce(live, { type: 'assistant', id: 'la1', response: { ...contractResponse, outcome: 'proposed', changes: [liveUpdate] } })
+const liveLog: string[] = []
+const liveOpts = { nowIso: '2026-10-22T12:00:00.000Z', newId: () => 'unused' }
+const liveDeps = {
+  apply: (c: unknown[], ids: string[]) => useStore.getState().applyAgentProposal(c as Record<string, unknown>[], ids, liveOpts),
+  undo: (c: unknown[], ids: string[]) => useStore.getState().undoAgentProposal(c as Record<string, unknown>[], ids, liveOpts),
+  feedback: async (body: { event: string }) => { liveLog.push(`feedback:${body.event}`) },
+  dispatch: (e: { type: string }) => { live = reduce(live, e as never) },
+  toast: (d: string | { message: string; onAction?: () => void }) => { liveLog.push(`toast:${typeof d === 'string' ? d : d.message}`); if (typeof d !== 'string' && d.onAction) toastUndo = d.onAction },
+  current: (id: string) => live.messages.find((m) => m.id === id),
+}
+let toastUndo: (() => void) | null = null
+const renderCopy = live.messages[1]
+approveMessage(liveDeps as never, renderCopy as never)
+approveMessage(liveDeps as never, renderCopy as never)
+const priorityNow = () => (useStore.getState().tasks.find((t) => t.id === 'dentist') as { priority?: number } | undefined)?.priority
+check('fix4: a second Approve with the render copy is a silent no-op',
+  priorityNow() === 1 && liveLog.filter((l) => l.startsWith('toast:')).join('|') === 'toast:Applied.' && liveLog.filter((l) => l === 'feedback:approve').length === 1,
+  liveLog.join(' '))
+undoMessage(liveDeps as never, live.messages[1] as never)
+const afterCardUndo = liveLog.length
+;(toastUndo as (() => void) | null)?.()
+check('fix4: the toast Undo after the card Undo is a silent no-op', priorityNow() === 3 && liveLog.length === afterCardUndo, liveLog.slice(afterCardUndo).join(' '))
+check('fix4: the card shows the proposal undone', live.messages[1].proposalStatus === 'undone')
 
 console.log('')
 if (failures === 0) {

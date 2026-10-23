@@ -151,6 +151,7 @@ export function AgentChat() {
       },
       dispatch,
       toast: (detail) => window.dispatchEvent(new CustomEvent('boday-toast', { detail })),
+      current: (messageId) => chatRef.current.messages.find((message) => message.id === messageId),
     }
   }
 
