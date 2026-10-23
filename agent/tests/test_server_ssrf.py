@@ -249,3 +249,14 @@ def test_backend_refuses_a_different_host():
     pinned = check_base_url("https://llm.example/v1", resolve=lambda host: [PUBLIC])
     with pytest.raises(UrlRejected):
         PinnedBackend(pinned).connect_tcp("evil.example", 443)
+
+
+def test_pins_an_ipv4_address_when_dns_returns_both_families():
+    # Cloud Run has no IPv6 egress by default, so an AAAA-first answer must not win.
+    v6 = "2606:4700:4700::1111"
+    pinned = check_base_url("https://llm.example/v1", resolve=lambda host: [v6, PUBLIC])
+    assert pinned.ip == PUBLIC
+    pinned = check_base_url("https://llm.example/v1", resolve=lambda host: [v6])
+    assert pinned.ip == v6
+    with pytest.raises(UrlRejected):
+        check_base_url("https://llm.example/v1", resolve=lambda host: [PUBLIC, "fd00::1"])

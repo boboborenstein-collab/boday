@@ -61,7 +61,10 @@ def check_base_url(
     if not ips or any(not _allowed(ip) for ip in ips):
         raise UrlRejected()
     base_url = url[:-1] if url.endswith("/") else url
-    return PinnedUrl(base_url=base_url, host=host, port=port or 443, ip=ips[0])
+    # Every address passed the check. Pin IPv4 when there is one: Cloud Run has
+    # no IPv6 egress by default.
+    ip = next((item for item in ips if ipaddress.ip_address(item).version == 4), ips[0])
+    return PinnedUrl(base_url=base_url, host=host, port=port or 443, ip=ip)
 
 
 def default_resolve(host: str) -> list[str]:
