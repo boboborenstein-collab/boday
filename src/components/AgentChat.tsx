@@ -16,6 +16,7 @@ import {
   canSend,
   chatOnOpen,
   loadChat,
+  loadPanel,
   panelMessage,
   reduce,
   saveChat,
@@ -92,26 +93,31 @@ export function AgentChat() {
     const seenGeneration = generation.current
     setLoading(true)
     ;(async () => {
-      let sessionUser: { id: string; email: string | null } | null = null
-      if (isSupabaseConfigured()) {
-        const { data } = await getSupabase().auth.getSession()
-        if (data.session?.user) {
-          sessionUser = { id: data.session.user.id, email: data.session.user.email ?? null }
-        }
+      const result = await loadPanel({
+        getSessionUser: async () => {
+          if (!isSupabaseConfigured()) return null
+          const { data } = await getSupabase().auth.getSession()
+          const user = data.session?.user
+          return user ? { id: user.id, email: user.email ?? null } : null
+        },
+        loadEnv: loadUserPrefsEnvelope,
+        isCancelled: () => cancelled,
+        generationChanged: () => generation.current !== seenGeneration,
+      })
+      if (!result) return
+      const { account } = result
+      setSignedIn(account.signedIn)
+      setEmail(account.email)
+      setUserId(account.userId)
+      setPrefs(account.prefs)
+      setWindows(account.windows)
+      if (result.restoreChat) {
+        const stored = account.userId ? loadChat(localStorage, account.userId) : EMPTY
+        const loaded = chatOnOpen(chatRef.current, stored, loadedFor.current, account.userId)
+        chatRef.current = loaded
+        setChat(loaded)
       }
-      const env = await loadUserPrefsEnvelope()
-      if (cancelled || generation.current !== seenGeneration) return
-      const id = sessionUser?.id ?? null
-      setSignedIn(sessionUser !== null)
-      setEmail(sessionUser?.email ?? null)
-      setUserId(id)
-      setPrefs(env.ai ?? null)
-      setWindows(env.cache?.windows ?? [])
-      const stored = id ? loadChat(localStorage, id) : EMPTY
-      const loaded = chatOnOpen(chatRef.current, stored, loadedFor.current, id)
-      loadedFor.current = id
-      chatRef.current = loaded
-      setChat(loaded)
+      loadedFor.current = account.userId
       setLoading(false)
     })()
     return () => {

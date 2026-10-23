@@ -1,4 +1,5 @@
 import type { RunResponse } from './agentContract'
+import type { AgentAiPrefs, UserPrefsEnvelope } from './userPrefs'
 
 export interface ChatMessage {
   id: string
@@ -159,6 +160,43 @@ export function chatOnOpen(
   const sameUser = previousUserId !== null && previousUserId === nextUserId
   if (sameUser && current && (current.sending || current.messages.length > 0)) return current
   return stored
+}
+
+export interface PanelAccount {
+  signedIn: boolean
+  userId: string | null
+  email: string | null
+  prefs: AgentAiPrefs | null
+  windows: { start: string; end: string; title: string }[]
+}
+
+/**
+ * Read the account and prefs for an opening panel. Returns null only when the panel closed
+ * meanwhile; otherwise loading must end. New chat during the load keeps the account but
+ * skips restoring the stored thread. A failed read leaves the panel signed out.
+ */
+export async function loadPanel(deps: {
+  getSessionUser: () => Promise<{ id: string; email: string | null } | null>
+  loadEnv: () => Promise<UserPrefsEnvelope>
+  isCancelled: () => boolean
+  generationChanged: () => boolean
+}): Promise<{ account: PanelAccount; restoreChat: boolean } | null> {
+  let account: PanelAccount = { signedIn: false, userId: null, email: null, prefs: null, windows: [] }
+  try {
+    const user = await deps.getSessionUser()
+    const env = await deps.loadEnv()
+    account = {
+      signedIn: user !== null,
+      userId: user?.id ?? null,
+      email: user?.email ?? null,
+      prefs: env.ai ?? null,
+      windows: env.cache?.windows ?? [],
+    }
+  } catch {
+    // Signed out is the safe reading of a failed load.
+  }
+  if (deps.isCancelled()) return null
+  return { account, restoreChat: !deps.generationChanged() }
 }
 
 /** A model reply belongs to the turn that sent it. New chat bumps the generation. */

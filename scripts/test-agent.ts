@@ -31,6 +31,7 @@ import {
   acceptModelReply,
 } from '../src/lib/agentChat.ts'
 import { approveMessage, rejectMessage, undoMessage } from '../src/lib/agentActions.ts'
+import * as chatLib from '../src/lib/agentChat.ts'
 import {
   hasUsableModel,
   keyFieldPlaceholder,
@@ -597,7 +598,7 @@ check('nlp create stays', palette.includes('Create:') && palette.includes('label
 const today = readFileSync('src/views/TodayView.tsx', 'utf8')
 check('plan-my-day button untouched', today.includes('Ask BoDay'))
 const chat = readFileSync('src/components/AgentChat.tsx', 'utf8')
-check('chat uses the gates', chat.includes('canSend') && chat.includes('hasUsableModel') && chat.includes('buildAgentSnapshot') && chat.includes('approveMessage') && chat.includes('await loadUserPrefsEnvelope()') && chat.includes('access_token') && !chat.includes('fetch('))
+check('chat uses the gates', chat.includes('canSend') && chat.includes('hasUsableModel') && chat.includes('buildAgentSnapshot') && chat.includes('approveMessage') && chat.includes('loadEnv: loadUserPrefsEnvelope') && chat.includes('access_token') && !chat.includes('fetch('))
 const diff = readFileSync('src/components/AgentDiffCard.tsx', 'utf8')
 check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Deletes', 'Approve', 'Reject', 'Undo'].every((s) => diff.includes(s)))
 
@@ -690,6 +691,32 @@ const typedAi = (typedSave.calls.merge[0] as { ai?: { keyCiphertext?: unknown } 
 check('fix1: a typed key replaces the stored key', typedAi?.keyCiphertext === 'CIPH-NEW' && JSON.stringify(typedSave.calls.merge).includes('sk-ant-new') === false)
 const settingsHtml = renderToStaticMarkup(createElement(AgentSettings, { email: 'friend@example.com' }))
 check('fix1: Save renders disabled before prefs load', /<button[^>]*disabled=""[^>]*>Save<\/button>/.test(settingsHtml))
+
+// Fix 2: the panel always leaves "Loading…", even when New chat lands mid-load.
+const loadPanel = lib(chatLib, 'loadPanel')
+const panelUser = { id: 'u1', email: 'friend@example.com' }
+const panelEnv = { ai: savedKeyAi, cache: { windows: [{ start: 's', end: 'e', title: 'Candle lighting' }] } }
+let panelGeneration = 0
+const midLoad = loadPanel ? await loadPanel({
+  getSessionUser: async () => panelUser,
+  loadEnv: async () => { panelGeneration += 1; return panelEnv },
+  isCancelled: () => false,
+  generationChanged: () => panelGeneration !== 0,
+}) : null
+check('fix2: New chat during load still finishes loading', midLoad !== null && midLoad.account.signedIn === true && midLoad.account.prefs?.keyCiphertext === 'CIPH-SAVED' && midLoad.account.windows.length === 1)
+check('fix2: New chat during load does not restore the old thread', midLoad?.restoreChat === false)
+const plainLoad = loadPanel ? await loadPanel({
+  getSessionUser: async () => panelUser, loadEnv: async () => panelEnv, isCancelled: () => false, generationChanged: () => false,
+}) : null
+check('fix2: a normal open restores the thread', plainLoad?.restoreChat === true && plainLoad.account.userId === 'u1')
+const brokenLoad = loadPanel ? await loadPanel({
+  getSessionUser: async () => { throw new Error('offline') }, loadEnv: async () => panelEnv, isCancelled: () => false, generationChanged: () => false,
+}) : null
+check('fix2: a failed session read still finishes loading', brokenLoad !== null && brokenLoad.account.signedIn === false)
+const closedLoad = loadPanel ? await loadPanel({
+  getSessionUser: async () => panelUser, loadEnv: async () => panelEnv, isCancelled: () => true, generationChanged: () => false,
+}) : 'missing'
+check('fix2: a closed panel ignores the late load', closedLoad === null)
 
 console.log('')
 if (failures === 0) {
