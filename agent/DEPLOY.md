@@ -26,21 +26,71 @@ Region `us-west1` (the closest free-tier region to the Supabase project in us-we
 
 Port `8080`. Cloud Run's default TCP startup probe is the health check. Do not configure an HTTP probe: `GET /health` needs a JWT.
 
-Map these env names as Cloud Run secrets:
+### Secrets
 
-- `AGENT_ENCRYPTION_KEY` — standard base64 of 32 bytes
-- `SUPABASE_JWKS_URL` — `https://cgsjsbsxuzawvgunrpqi.supabase.co/auth/v1/.well-known/jwks.json`
-- `SUPABASE_JWT_SECRET` — only if JWKS is not used; if both are set, JWKS wins
-- `SUPABASE_JWT_ISSUER` — `https://cgsjsbsxuzawvgunrpqi.supabase.co/auth/v1`
-- `ADMIN_EMAIL`
+Store these in Secret Manager and map them with `--set-secrets`. Secret Manager's free tier covers 6 active secret versions, and this list uses 5, or 6 with `SUPABASE_JWT_SECRET`.
+
+- `AGENT_ENCRYPTION_KEY` — standard base64 of 32 bytes; see "Encryption key" below
 - `ANTHROPIC_API_KEY`
-- `BODAY_LOCAL_BASE_URL`
-- `BODAY_LOCAL_MODEL`
 - `CF_ACCESS_CLIENT_ID`
 - `CF_ACCESS_CLIENT_SECRET`
 - `AGENT_TRACES_DSN`
+- `SUPABASE_JWT_SECRET` — only if JWKS is not used; if both are set, JWKS wins
+
+Create each one once, and let the service account read it. `PROJECT_NUMBER` is on the GCP dashboard:
+
+```sh
+printf '%s' '<value>' | gcloud secrets create anthropic-api-key --data-file=-
+gcloud secrets add-iam-policy-binding anthropic-api-key \
+  --member=serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com \
+  --role=roles/secretmanager.secretAccessor
+```
+
+### Config
+
+Plain environment variables. None of them is secret.
+
+- `SUPABASE_JWKS_URL` — `https://cgsjsbsxuzawvgunrpqi.supabase.co/auth/v1/.well-known/jwks.json`
+- `SUPABASE_JWT_ISSUER` — `https://cgsjsbsxuzawvgunrpqi.supabase.co/auth/v1`
+- `ADMIN_EMAIL`
+- `BODAY_LOCAL_BASE_URL`
+- `BODAY_LOCAL_MODEL`
 - `AGENT_ALLOWED_ORIGINS` — `https://boday.boapps.workers.dev,http://localhost:5173`
-- `PORT` — Cloud Run sets this; the image defaults to 8080
+- `PORT` — Cloud Run sets this itself; do not set it. The image defaults to 8080.
+
+### Encryption key
+
+The key must be exactly 32 random bytes in standard base64, with no trailing newline, or the service will not start:
+
+```sh
+openssl rand -base64 32 | tr -d '\n' | gcloud secrets create agent-encryption-key --data-file=-
+```
+
+Grant the service account access to it as above. Never commit the key or paste it into a chat.
+
+### Deploy command
+
+Run from the repo root. Cloud Build builds `agent/Dockerfile`, so nothing is built on the Mac:
+
+```sh
+gcloud run deploy boday-agent \
+  --source agent \
+  --region=us-west1 --memory=512Mi --cpu=1 --max-instances=1 --timeout=120 \
+  --allow-unauthenticated \
+  --set-secrets=AGENT_ENCRYPTION_KEY=agent-encryption-key:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest,CF_ACCESS_CLIENT_ID=cf-access-client-id:latest,CF_ACCESS_CLIENT_SECRET=cf-access-client-secret:latest,AGENT_TRACES_DSN=agent-traces-dsn:latest \
+  --set-env-vars='^;^SUPABASE_JWKS_URL=https://cgsjsbsxuzawvgunrpqi.supabase.co/auth/v1/.well-known/jwks.json;SUPABASE_JWT_ISSUER=https://cgsjsbsxuzawvgunrpqi.supabase.co/auth/v1;ADMIN_EMAIL=<admin email>;BODAY_LOCAL_BASE_URL=<tunnel https URL>;BODAY_LOCAL_MODEL=<model id>;AGENT_ALLOWED_ORIGINS=https://boday.boapps.workers.dev,http://localhost:5173'
+```
+
+The `^;^` prefix makes `;` the separator, so the comma inside `AGENT_ALLOWED_ORIGINS` stays in the value. Run the same command again to deploy a new version.
+
+### Rotating the key
+
+Rotating the key makes every saved API key unreadable. Ciphertexts are bound to the key and there is no second key to fall back on. Rotate only if the key may have leaked.
+
+1. Add a new version: `openssl rand -base64 32 | tr -d '\n' | gcloud secrets versions add agent-encryption-key --data-file=-`
+2. Deploy again with the deploy command, so a new revision reads `:latest`.
+3. Destroy the old version, so it can no longer decrypt anything and stays out of the free-tier count: `gcloud secrets versions destroy <old version> --secret=agent-encryption-key`
+4. Tell users to save their key again in Settings. Until they do, runs answer `400 KEY_DECRYPT_FAILED` ("The saved API key could not be read. Save it again in Settings."). That includes the owner.
 
 ## owner step — the Mac
 

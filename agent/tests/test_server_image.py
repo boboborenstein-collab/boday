@@ -43,3 +43,22 @@ def test_image_and_runbook_match_the_spec():
     ):
         assert snippet in doc
     assert "sk-ant-" not in doc
+
+
+def test_runbook_covers_deploy_and_key_rotation():
+    ignore = Path(".dockerignore").read_text().split()
+    assert "**/__pycache__" in ignore
+    doc = Path("DEPLOY.md").read_text()
+    for snippet in (
+        "gcloud run deploy",
+        "--source agent",
+        "--set-secrets",
+        "openssl rand -base64 32",
+        "Rotating the key",
+        "KEY_DECRYPT_FAILED",
+    ):
+        assert snippet in doc
+    secrets = doc.split("### Secrets", 1)[1].split("###", 1)[0]
+    assert "`PORT`" not in secrets
+    config = doc.split("### Config", 1)[1].split("##", 1)[0]
+    assert "`PORT`" in config
