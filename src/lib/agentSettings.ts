@@ -1,6 +1,6 @@
 import { ADMIN_EMAIL } from './invites'
 import { AgentError } from './agentContract'
-import type { AgentAiPrefs, UserPrefsEnvelope, UserPrefsLoad } from './userPrefs'
+import type { AgentAiPrefs, PrefsWrite, UserPrefsEnvelope, UserPrefsLoad } from './userPrefs'
 
 export type AiProvider = AgentAiPrefs['provider']
 
@@ -116,7 +116,7 @@ export async function saveAiSettings({
   form: Omit<AiSettingsForm, 'ciphertextFromEncrypt'>
   readCurrent: () => Promise<UserPrefsLoad>
   encrypt: (plaintext: string) => Promise<string>
-  merge: (patch: Partial<UserPrefsEnvelope>) => Promise<unknown>
+  merge: (patch: Partial<UserPrefsEnvelope>) => Promise<PrefsWrite>
 }): Promise<SaveOutcome> {
   try {
     const current = await readCurrent()
@@ -127,7 +127,8 @@ export async function saveAiSettings({
     const typed = form.provider !== 'auto' && form.plaintext.trim() !== ''
     const ciphertextFromEncrypt = typed ? await encrypt(form.plaintext) : null
     const prefs = nextAiPrefs(current.env.ai ?? null, { ...form, ciphertextFromEncrypt })
-    await merge({ ai: prefs })
+    const written = await merge({ ai: prefs })
+    if (!written.ok) return { ok: false, message: written.message }
     return { ok: true, prefs, message: 'Saved.' }
   } catch (error) {
     return { ok: false, message: error instanceof AgentError ? error.message : "Couldn't reach BoDay AI." }

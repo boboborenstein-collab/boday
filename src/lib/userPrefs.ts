@@ -50,12 +50,6 @@ function mergeEnvelope(
   return merged
 }
 
-async function sessionUserId(): Promise<string | null> {
-  if (!isSupabaseConfigured()) return null
-  const { data } = await getSupabase().auth.getSession()
-  return data.session?.user.id ?? null
-}
-
 /** The slice of the Supabase client that prefs reads use (a fake in tests). */
 export interface PrefsClient {
   auth: { getSession(): Promise<{ data: { session: { user: { id: string } } | null } }> }
@@ -65,8 +59,15 @@ export interface PrefsClient {
         maybeSingle(): PromiseLike<{ data: { data?: unknown } | null; error: unknown }>
       }
     }
+    upsert(row: { id: string; user_id: string; data: UserPrefsEnvelope }): PromiseLike<{ error: unknown }>
   }
+  rpc(fn: string, args: { pref_id: string; patch: Partial<UserPrefsEnvelope> }): PromiseLike<{ error: unknown }>
 }
+
+export type PrefsWrite = { ok: true } | { ok: false; message: string }
+
+const WRITE_FAILED = "Couldn't save your settings. Try again."
+
 
 export type UserPrefsLoad =
   | { ok: true; env: UserPrefsEnvelope }
@@ -101,30 +102,43 @@ export async function loadUserPrefsEnvelope(): Promise<UserPrefsEnvelope> {
   return result.ok ? result.env : {}
 }
 
-/** Deep-merge a patch into user_prefs.data (RPC when available). */
-export async function mergeUserPrefsData(patch: Partial<UserPrefsEnvelope>): Promise<void> {
-  const userId = await sessionUserId()
-  if (!userId) return
+/**
+ * Merge a patch into user_prefs.data (RPC when available) and say whether it was written.
+ * The fallback read-modify-write refuses to run when the read fails, so it can never
+ * replace the whole row with just the patch.
+ */
+export async function mergeUserPrefsData(
+  patch: Partial<UserPrefsEnvelope>,
+  client: PrefsClient | null = defaultPrefsClient(),
+): Promise<PrefsWrite> {
+  if (!client) return { ok: false, message: 'Sign in required.' }
+  try {
+    const { data: auth } = await client.auth.getSession()
+    const userId = auth.session?.user.id
+    if (!userId) return { ok: false, message: 'Sign in required.' }
 
-  const payload = { ...patch }
-  if (payload.snoozes) {
-    payload.snoozes = pruneSnoozes(payload.snoozes)
+    const payload = { ...patch }
+    if (payload.snoozes) {
+      payload.snoozes = pruneSnoozes(payload.snoozes)
+    }
+
+    const { error: rpcErr } = await client.rpc('merge_user_prefs', {
+      pref_id: userId,
+      patch: payload,
+    })
+    if (!rpcErr) return { ok: true }
+
+    const existing = await loadUserPrefsResult(client)
+    if (!existing.ok) return { ok: false, message: WRITE_FAILED }
+    const { error } = await client.from('user_prefs').upsert({
+      id: userId,
+      user_id: userId,
+      data: mergeEnvelope(existing.env, payload),
+    })
+    return error ? { ok: false, message: WRITE_FAILED } : { ok: true }
+  } catch {
+    return { ok: false, message: WRITE_FAILED }
   }
-
-  const supabase = getSupabase()
-  const { error: rpcErr } = await supabase.rpc('merge_user_prefs', {
-    pref_id: userId,
-    patch: payload,
-  })
-
-  if (!rpcErr) return
-
-  const existing = await loadUserPrefsEnvelope()
-  await supabase.from('user_prefs').upsert({
-    id: userId,
-    user_id: userId,
-    data: mergeEnvelope(existing, payload),
-  })
 }
 
 export async function ensureCalendarToken(): Promise<string | null> {

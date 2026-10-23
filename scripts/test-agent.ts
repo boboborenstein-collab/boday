@@ -756,6 +756,43 @@ const afterCardUndo = liveLog.length
 check('fix4: the toast Undo after the card Undo is a silent no-op', priorityNow() === 3 && liveLog.length === afterCardUndo, liveLog.slice(afterCardUndo).join(' '))
 check('fix4: the card shows the proposal undone', live.messages[1].proposalStatus === 'undone')
 
+// Fix 5: a failed prefs write is reported, never shown as "Saved."
+function fakeWriteClient(opts: { rpcError?: boolean; upsertError?: boolean; loadError?: boolean }) {
+  const upserts: unknown[] = []
+  const read = fakePrefsClient({ row: { quiet: { enabled: true } }, error: opts.loadError ? { message: 'down' } : null })
+  return {
+    upserts,
+    client: {
+      auth: read.auth,
+      rpc: async () => ({ error: opts.rpcError ? { message: 'no rpc' } : null }),
+      from: () => ({
+        ...read.from(),
+        upsert: async (row: unknown) => { upserts.push(row); return { error: opts.upsertError ? { message: 'denied' } : null } },
+      }),
+    },
+  }
+}
+const mergeAt = prefsLib.mergeUserPrefsData as (patch: unknown, client?: unknown) => Promise<{ ok?: boolean; message?: string } | void>
+const rpcOk = fakeWriteClient({})
+check('fix5: a merge that worked says so', (await mergeAt({ ai: savedKeyAi }, rpcOk.client))?.ok === true)
+const bothFail = fakeWriteClient({ rpcError: true, upsertError: true })
+const bothFailResult = await mergeAt({ ai: savedKeyAi }, bothFail.client)
+check('fix5: a failed upsert is reported', bothFailResult?.ok === false && typeof bothFailResult.message === 'string')
+const blindWrite = fakeWriteClient({ rpcError: true, loadError: true })
+const blindResult = await mergeAt({ ai: savedKeyAi }, blindWrite.client)
+check('fix5: the fallback never overwrites prefs it could not read', blindResult?.ok === false && blindWrite.upserts.length === 0)
+const fallbackOk = fakeWriteClient({ rpcError: true })
+const fallbackResult = await mergeAt({ ai: savedKeyAi }, fallbackOk.client)
+const fallbackRow = fallbackOk.upserts[0] as { data?: { quiet?: unknown; ai?: unknown } } | undefined
+check('fix5: the fallback keeps the other prefs', fallbackResult?.ok === true && !!fallbackRow?.data?.quiet && !!fallbackRow?.data?.ai)
+const refusedSave = saveAi ? await saveAi({
+  form: { provider: 'claude', model: 'claude-haiku-5-5', baseUrl: '', plaintext: '' },
+  readCurrent: async () => ({ ok: true, env: { ai: savedKeyAi } }),
+  encrypt: async () => 'unused',
+  merge: async () => ({ ok: false, message: "Couldn't save your settings. Try again." }),
+}) : null
+check('fix5: Settings shows the write error, not "Saved."', refusedSave?.ok === false && refusedSave.message === "Couldn't save your settings. Try again.")
+
 console.log('')
 if (failures === 0) {
   console.log('✅ ALL AGENT ASSERTIONS PASSED\n')
