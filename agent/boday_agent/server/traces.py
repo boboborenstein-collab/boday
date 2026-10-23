@@ -6,6 +6,21 @@ from typing import Protocol
 
 from boday_agent.tracing import Trace, redact
 
+MAX_TRACE_BYTES = 262_144
+_STRING_LIMIT = 2000
+_CUT = "…[truncated]"
+_SUMMARY_KEYS = (
+    "run_id",
+    "started_at",
+    "provider",
+    "selection_reason",
+    "prompt_version",
+    "request",
+    "outcome",
+    "error",
+    "totals",
+)
+
 
 class TraceSink(Protocol):
     def write(self, trace: Trace, user_id: str) -> None: ...
@@ -20,7 +35,7 @@ class MemorySink:
     def write(self, trace: Trace, user_id: str) -> None:
         self.rows[trace.run_id] = {
             "user_id": user_id,
-            "data": redact(trace.model_dump(mode="json")),
+            "data": bounded(redact(trace.model_dump(mode="json"))),
         }
 
     def append_feedback(self, run_id: str, user_id: str, event: dict) -> bool:
@@ -37,7 +52,7 @@ class PostgresSink:
         self._connect = connect
 
     def write(self, trace: Trace, user_id: str) -> None:
-        payload = json.dumps(redact(trace.model_dump(mode="json")))
+        payload = json.dumps(bounded(redact(trace.model_dump(mode="json"))))
         self._run(
             "insert into public.agent_traces (id, user_id, data) values (%s, %s, %s::jsonb)",
             (trace.run_id, user_id, payload),
@@ -64,6 +79,37 @@ class PostgresSink:
                 cur.close()
         finally:
             conn.close()
+
+
+def bounded(data: dict) -> dict:
+    """Fit a trace under MAX_TRACE_BYTES, marking anything cut.
+
+    First long strings are shortened. If that is not enough, only the summary
+    fields are kept, with empty events, warnings, and feedback.
+    """
+    size = _size(data)
+    if size <= MAX_TRACE_BYTES:
+        return data
+    marker = {"originalBytes": size}
+    cut = {**_cut_strings(data), "truncated": marker}
+    if _size(cut) <= MAX_TRACE_BYTES:
+        return cut
+    summary = _cut_strings({key: data.get(key) for key in _SUMMARY_KEYS})
+    return {**summary, "events": [], "parse_warnings": [], "feedback": [], "truncated": marker}
+
+
+def _size(data: dict) -> int:
+    return len(json.dumps(data).encode())
+
+
+def _cut_strings(obj):
+    if isinstance(obj, str):
+        return obj if len(obj) <= _STRING_LIMIT else obj[:_STRING_LIMIT] + _CUT
+    if isinstance(obj, dict):
+        return {key: _cut_strings(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [_cut_strings(item) for item in obj]
+    return obj
 
 
 def postgres_connect(dsn: str):

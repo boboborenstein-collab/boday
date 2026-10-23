@@ -461,3 +461,23 @@ def test_request_log_line_shows_under_uvicorn_default_logging(tmp_path):
         proc.wait(timeout=10)
     err.seek(0)
     assert re.search(r"GET /health 401 -", err.read())
+
+
+@pytest.mark.parametrize("where", ["message", "history"])
+def test_a_nul_in_the_text_is_400_before_any_model_call(monkeypatch, where):
+    # Postgres jsonb cannot store \u0000, so the trace write would fail after the paid run.
+    def boom(*args, **kwargs):
+        raise AssertionError("provider built")
+
+    monkeypatch.setattr(app_module, "build_provider", boom)
+    body = _run_body()
+    if where == "message":
+        body["message"] = "move it\x00"
+    else:
+        body["history"] = [{"role": "user", "text": "hi\x00"}]
+    res = _client().post("/agent/run", json=body, headers=_auth())
+    assert res.status_code == 400
+    assert res.json() == error_body(
+        "INVALID_REQUEST",
+        "Check the message, snapshot, and model settings.",
+    )

@@ -8,6 +8,13 @@ _AUTO_OWNER_ONLY = "Auto is only available on the owner's account."
 _MODEL_NOT_CONFIGURED = "Connect a model to enable BoDay AI."
 
 
+def _no_nul(value: str) -> str:
+    # Postgres jsonb cannot store \u0000, so the trace write would fail after the run.
+    if "\x00" in value:
+        raise ValueError("text must not contain NUL")
+    return value
+
+
 def error_body(code: str, message: str) -> dict:
     return {"error": {"code": code, "message": message}}
 
@@ -21,6 +28,8 @@ class HistoryItem(BaseModel):
     proposal_status: Literal["pending", "approved", "rejected", "applied", "undone"] | None = (
         Field(default=None, alias="proposalStatus")
     )
+
+    _text_has_no_nul = field_validator("text")(_no_nul)
 
 
 class RunSettings(BaseModel):
@@ -37,6 +46,8 @@ class RunRequest(BaseModel):
     history: list[HistoryItem]
     snapshot: dict
     settings: RunSettings
+
+    _message_has_no_nul = field_validator("message")(_no_nul)
 
     @field_validator("snapshot", mode="before")
     @classmethod

@@ -4,8 +4,17 @@ import types
 from datetime import UTC, datetime
 from pathlib import Path
 
-from boday_agent.server.traces import MemorySink, PostgresSink, feedback_event, postgres_connect
-from boday_agent.tracing import Trace
+import pytest
+
+from boday_agent.providers.base import Usage
+from boday_agent.server.traces import (
+    MAX_TRACE_BYTES,
+    MemorySink,
+    PostgresSink,
+    feedback_event,
+    postgres_connect,
+)
+from boday_agent.tracing import ModelCallEvent, Trace
 
 
 def test_memory_sink_redacts_and_feedback_is_user_scoped(tmp_path):
@@ -124,3 +133,64 @@ def test_postgres_connect_disables_prepared_statements(monkeypatch):
     monkeypatch.setitem(sys.modules, "psycopg", fake)
     postgres_connect("postgresql://agent_tracer.ref@pooler.example:6543/postgres")()
     assert seen["prepare_threshold"] is None and seen["connect_timeout"] == 5
+
+
+def _trace(**fields):
+    trace = Trace(
+        run_id="run-big",
+        started_at="2026-10-21T18:00:00Z",
+        provider={"provider": "openai_compat"},
+        selection_reason="explicit",
+        prompt_version="abc",
+        request={"message": "hi", "history_length": 0, "task_count": 0, "snapshot_hash": "h"},
+        **fields,
+    )
+    trace.finalize("failed", "step limit reached", 1)
+    return trace
+
+
+def _big_call(step):
+    return ModelCallEvent(
+        step=step, provider="openai_compat", model="m", usage=Usage(), cost_usd=0.0,
+        price_known=False, latency_ms=1.0, stop_reason="tool_use", text="y" * 100_000,
+        tool_calls=[], raw={"blob": "x" * 400_000},
+    )
+
+
+def _stored(sink_kind, trace):
+    if sink_kind == "memory":
+        sink = MemorySink()
+        sink.write(trace, "user-1")
+        return json.dumps(sink.rows[trace.run_id]["data"])
+    cur = FakeCursor()
+    PostgresSink(connect=lambda: FakeConn(cur)).write(trace, "user-1")
+    return cur.calls[0][1][2]
+
+
+@pytest.mark.parametrize("sink_kind", ["memory", "postgres"])
+def test_a_small_trace_is_stored_whole(sink_kind):
+    data = json.loads(_stored(sink_kind, _trace()))
+    assert "truncated" not in data and data["outcome"] == "failed"
+
+
+@pytest.mark.parametrize("sink_kind", ["memory", "postgres"])
+def test_long_strings_are_cut_to_fit_the_cap(sink_kind):
+    trace = _trace(events=[_big_call(i) for i in range(1, 9)])
+    blob = _stored(sink_kind, trace)
+    assert len(blob.encode()) <= MAX_TRACE_BYTES
+    data = json.loads(blob)
+    assert data["truncated"]["originalBytes"] > 8 * 500_000
+    assert len(data["events"]) == 8 and data["events"][0]["text"].endswith("[truncated]")
+    assert data["run_id"] == "run-big" and data["totals"]["model_calls"] == 8
+
+
+@pytest.mark.parametrize("sink_kind", ["memory", "postgres"])
+def test_a_trace_too_big_after_cutting_strings_keeps_a_summary(sink_kind):
+    trace = _trace(parse_warnings=[f"task {i}: bad priority" for i in range(40_000)])
+    blob = _stored(sink_kind, trace)
+    assert len(blob.encode()) <= MAX_TRACE_BYTES
+    data = json.loads(blob)
+    assert data["truncated"]["originalBytes"] > MAX_TRACE_BYTES
+    assert data["request"]["message"] == "hi" and data["outcome"] == "failed"
+    assert data["events"] == [] and data["parse_warnings"] == []
+    assert data["feedback"] == []  # append_agent_feedback still has an array to extend
