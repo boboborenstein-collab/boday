@@ -99,7 +99,7 @@ export function reduce(state: ChatState, event: ChatEvent): ChatState {
     return {
       ...state,
       messages: state.messages.map((message) => {
-        if (message.id !== event.messageId) return message
+        if (message.id !== event.messageId || message.proposalStatus !== 'pending') return message
         const selected = message.selectedTaskIds ?? []
         const next = selected.includes(event.taskId)
           ? selected.filter((id) => id !== event.taskId)

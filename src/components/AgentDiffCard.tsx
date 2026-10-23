@@ -30,7 +30,7 @@ export function AgentDiffCard({
         <section className="text-success">
           <h3 className="text-[11px] font-semibold uppercase tracking-wide">Creates</h3>
           {model.creates.map((row) => (
-            <DiffRowView key={row.taskId} row={row} onToggle={onToggle} />
+            <DiffRowView key={row.taskId} row={row} disabled={!pending} onToggle={onToggle} />
           ))}
         </section>
       )}
@@ -38,7 +38,7 @@ export function AgentDiffCard({
         <section className="text-p3">
           <h3 className="text-[11px] font-semibold uppercase tracking-wide">Updates</h3>
           {model.updates.map((row) => (
-            <DiffRowView key={row.taskId} row={row} onToggle={onToggle} />
+            <DiffRowView key={row.taskId} row={row} disabled={!pending} onToggle={onToggle} />
           ))}
         </section>
       )}
@@ -46,7 +46,7 @@ export function AgentDiffCard({
         <section>
           <h3 className="text-[11px] font-semibold uppercase tracking-wide text-danger">Deletes</h3>
           {model.deletes.map((row) => (
-            <DiffRowView key={row.taskId} row={row} onToggle={onToggle} />
+            <DiffRowView key={row.taskId} row={row} disabled={!pending} onToggle={onToggle} />
           ))}
         </section>
       )}
@@ -83,13 +83,22 @@ export function AgentDiffCard({
   )
 }
 
-function DiffRowView({ row, onToggle }: { row: DiffRow; onToggle: (taskId: string) => void }) {
+function DiffRowView({
+  row,
+  disabled,
+  onToggle,
+}: {
+  row: DiffRow
+  disabled: boolean
+  onToggle: (taskId: string) => void
+}) {
   return (
     <label className="mt-1 flex items-start gap-2 text-xs text-text">
       <input
         type="checkbox"
         className="mt-0.5"
         checked={row.checked}
+        disabled={disabled}
         onChange={() => onToggle(row.taskId)}
       />
       <span>

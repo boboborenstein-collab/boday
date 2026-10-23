@@ -47,6 +47,7 @@ import * as prefsLib from '../src/lib/userPrefs.ts'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { AgentSettings } from '../src/components/AgentSettings.tsx'
+import { AgentDiffCard } from '../src/components/AgentDiffCard.tsx'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = '') {
@@ -792,6 +793,26 @@ const refusedSave = saveAi ? await saveAi({
   merge: async () => ({ ok: false, message: "Couldn't save your settings. Try again." }),
 }) : null
 check('fix5: Settings shows the write error, not "Saved."', refusedSave?.ok === false && refusedSave.message === "Couldn't save your settings. Try again.")
+
+// Fix 6: a resolved proposal's checkboxes are frozen.
+const cardMessage = (status: string) => ({
+  id: 'card', role: 'assistant', text: 'ok', outcome: 'proposed', changes: [liveUpdate],
+  proposalStatus: status, selectedTaskIds: ['dentist'], appliedTaskIds: status === 'pending' ? undefined : ['dentist'],
+})
+const renderCard = (status: string) => renderToStaticMarkup(createElement(AgentDiffCard, {
+  message: cardMessage(status) as never, tasks: [{ id: 'dentist', title: 'Dentist' }],
+  onToggle: () => {}, onApprove: () => {}, onReject: () => {}, onUndo: () => {},
+}))
+const checkboxes = (html: string) => html.match(/<input[^>]*type="checkbox"[^>]*>/g) ?? []
+for (const status of ['applied', 'rejected', 'undone']) {
+  const boxes = checkboxes(renderCard(status))
+  check(`fix6: ${status} checkboxes are disabled`, boxes.length === 1 && boxes.every((b) => b.includes('disabled=""')), boxes.join(' '))
+}
+check('fix6: pending checkboxes stay editable', checkboxes(renderCard('pending')).every((b) => !b.includes('disabled=')))
+check('fix6: no Approve once applied', !renderCard('applied').includes('>Approve<') && renderCard('applied').includes('>Undo<'))
+let frozen: { messages: Record<string, unknown>[]; sending: boolean } = { messages: [cardMessage('applied')], sending: false }
+frozen = reduce(frozen, { type: 'toggle', messageId: 'card', taskId: 'dentist' })
+check('fix6: toggling a resolved proposal changes nothing', (frozen.messages[0].selectedTaskIds as string[]).join() === 'dentist')
 
 console.log('')
 if (failures === 0) {
