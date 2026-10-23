@@ -29,6 +29,7 @@ import { loadUserPrefsEnvelope } from '../lib/userPrefs'
 import type { AgentAiPrefs } from '../lib/userPrefs'
 import { getSupabase, isSupabaseConfigured } from '../lib/supabaseClient'
 import { AgentDiffCard } from './AgentDiffCard'
+import { randomId } from '../lib/randomId'
 
 const EMPTY: ChatState = { messages: [], sending: false }
 
@@ -135,7 +136,7 @@ export function AgentChat() {
   }
 
   function deps(): AgentActionDeps {
-    const opts = { nowIso: new Date().toISOString(), newId: () => crypto.randomUUID() }
+    const opts = { nowIso: new Date().toISOString(), newId: () => randomId() }
     return {
       apply: (changes, ids) =>
         useStore.getState().applyAgentProposal(changes as Record<string, unknown>[], ids, opts),
@@ -167,7 +168,7 @@ export function AgentChat() {
     if (!canSend(gates)) return
     if (panelMessage({ online, serviceConfigured, signedIn, hasModel: modelReady })) return
     const sentGeneration = generation.current
-    dispatch({ type: 'send', id: crypto.randomUUID(), text: text.trim() })
+    dispatch({ type: 'send', id: randomId(), text: text.trim() })
     const base = serviceUrl()
     if (!base) return
     const client = createAgentClient({ baseUrl: base, fetchImpl: globalThis.fetch })
@@ -175,7 +176,7 @@ export function AgentChat() {
       const token = await readAccessToken()
       if (!acceptModelReply(generation.current, sentGeneration)) return
       if (!token) {
-        dispatch({ type: 'fail', id: crypto.randomUUID(), text: 'Sign in required.' })
+        dispatch({ type: 'fail', id: randomId(), text: 'Sign in required.' })
         return
       }
       const ai = prefsRef.current ?? {
@@ -200,11 +201,11 @@ export function AgentChat() {
         token,
       )
       if (!acceptModelReply(generation.current, sentGeneration)) return
-      dispatch({ type: 'assistant', id: crypto.randomUUID(), response })
+      dispatch({ type: 'assistant', id: randomId(), response })
     } catch (error) {
       if (!acceptModelReply(generation.current, sentGeneration)) return
       const textOut = error instanceof AgentError ? error.message : "Couldn't reach BoDay AI."
-      dispatch({ type: 'fail', id: crypto.randomUUID(), text: textOut })
+      dispatch({ type: 'fail', id: randomId(), text: textOut })
     }
   }
 

@@ -814,6 +814,17 @@ let frozen: { messages: Record<string, unknown>[]; sending: boolean } = { messag
 frozen = reduce(frozen, { type: 'toggle', messageId: 'card', taskId: 'dentist' })
 check('fix6: toggling a resolved proposal changes nothing', (frozen.messages[0].selectedTaskIds as string[]).join() === 'dentist')
 
+// Fix 7: ids work over plain http, where crypto.randomUUID does not exist.
+const idLib = await import('../src/lib/randomId.ts').catch(() => ({})) as Record<string, unknown>
+const randomId = lib(idLib, 'randomId')
+const uuidShape = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+const httpCrypto = { getRandomValues: <T extends ArrayBufferView>(a: T) => globalThis.crypto.getRandomValues(a as never) as T }
+const idA = randomId?.(httpCrypto)
+const idB = randomId?.(httpCrypto)
+check('fix7: a v4 id without randomUUID', typeof idA === 'string' && uuidShape.test(idA) && idA !== idB, String(idA))
+check('fix7: randomUUID is used when present', randomId?.({ ...httpCrypto, randomUUID: () => 'from-randomUUID' }) === 'from-randomUUID')
+check('fix7: the panel has no bare crypto.randomUUID call', !readFileSync('src/components/AgentChat.tsx', 'utf8').includes('crypto.randomUUID'))
+
 console.log('')
 if (failures === 0) {
   console.log('✅ ALL AGENT ASSERTIONS PASSED\n')
