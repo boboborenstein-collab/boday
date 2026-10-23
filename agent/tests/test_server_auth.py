@@ -117,5 +117,70 @@ def test_cached_jwks_keeps_the_last_good_copy():
     assert jwks()["keys"][0]["kid"] == "1" and len(calls) == 1
     clock[0] = 601.0
     assert jwks()["keys"][0]["kid"] == "1" and len(calls) == 2
+    clock[0] = 631.0  # the failed attempt at 601 holds off the next one for 30s
     jwks.refresh()
     assert jwks()["keys"][0]["kid"] == "3"
+
+
+def _counting_jwks(keys, clock, fail_at=()):
+    calls = []
+
+    def get(url, timeout):
+        calls.append(clock[0])
+        if len(calls) in fail_at:
+            raise httpx.ConnectError("down")
+        return httpx.Response(200, json={"keys": keys}, request=httpx.Request("GET", url))
+
+    jwks = cached_jwks("https://example.supabase.co/jwks", get=get, clock=lambda: clock[0])
+    return jwks, calls
+
+
+def test_unknown_kids_refetch_the_jwks_at_most_once_per_30s():
+    ec_key = ec.generate_private_key(ec.SECP256R1())
+    ec_jwk = {**json.loads(ECAlgorithm.to_jwk(ec_key.public_key())), "kid": "ec1", "alg": "ES256"}
+    clock = [0.0]
+    jwks, calls = _counting_jwks([ec_jwk], clock)
+    v = TokenVerifier(hs256_secret=None, jwks_get=jwks, issuer=ISSUER)
+    for i in range(20):
+        with pytest.raises(AuthError):
+            v.verify(_jwks_token(ec_key, "ES256", f"junk-{i}"))
+    assert len(calls) == 1
+    clock[0] = 29.0
+    with pytest.raises(AuthError):
+        v.verify(_jwks_token(ec_key, "ES256", "junk-x"))
+    assert len(calls) == 1
+    clock[0] = 30.0
+    with pytest.raises(AuthError):
+        v.verify(_jwks_token(ec_key, "ES256", "junk-y"))
+    assert len(calls) == 2
+    assert v.verify(_jwks_token(ec_key, "ES256", "ec1")).id == "user-9"
+    assert len(calls) == 2
+
+
+def test_failed_jwks_fetches_count_toward_the_30s_limit():
+    clock = [0.0]
+    jwks, calls = _counting_jwks([{"kid": "a"}], clock, fail_at=(2, 3))
+    assert jwks()["keys"][0]["kid"] == "a"
+    clock[0] = 601.0  # past the TTL; this fetch fails and the stale copy is served
+    assert jwks()["keys"][0]["kid"] == "a" and len(calls) == 2
+    for t in (602.0, 615.0, 630.0):
+        clock[0] = t
+        assert jwks()["keys"][0]["kid"] == "a"
+        jwks.refresh()
+    assert len(calls) == 2
+    clock[0] = 631.0
+    jwks()  # fails again, still serves the stale copy
+    assert len(calls) == 3
+
+
+def test_a_first_fetch_failure_is_throttled_too():
+    clock = [0.0]
+    jwks, calls = _counting_jwks([{"kid": "a"}], clock, fail_at=(1,))
+    with pytest.raises(AuthError):
+        jwks()
+    clock[0] = 10.0
+    with pytest.raises(AuthError):
+        jwks()
+    assert len(calls) == 1
+    clock[0] = 30.0
+    assert jwks()["keys"][0]["kid"] == "a" and len(calls) == 2

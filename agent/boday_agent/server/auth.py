@@ -95,14 +95,25 @@ def cached_jwks(
     url: str,
     *,
     ttl_s: float = 600,
+    min_interval_s: float = 30,
     timeout_s: float = 3.0,
     get=None,
     clock: Callable[[], float] = time.monotonic,
 ) -> Callable[[], dict]:
-    state: dict = {"data": None, "at": None}
+    # "tried" is the last fetch attempt, failed or not. Attempts are at least
+    # min_interval_s apart, so junk kids or a Supabase outage cannot turn each
+    # request into a JWKS fetch.
+    state: dict = {"data": None, "at": None, "tried": None}
     fetch = get or httpx.get
 
     def load() -> dict:
+        now = clock()
+        tried = state["tried"]
+        if tried is not None and now - tried < min_interval_s:
+            if state["data"] is None:
+                raise AuthError()
+            return state["data"]
+        state["tried"] = now
         try:
             response = fetch(url, timeout=timeout_s)
             response.raise_for_status()
@@ -114,7 +125,7 @@ def cached_jwks(
                 raise AuthError() from None
             return state["data"]
         state["data"] = data
-        state["at"] = clock()
+        state["at"] = now
         return data
 
     def jwks() -> dict:
