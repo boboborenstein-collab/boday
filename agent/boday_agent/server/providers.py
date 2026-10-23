@@ -14,6 +14,7 @@ from boday_agent.server.ssrf import UrlRejected, check_base_url, pinning_transpo
 _DEFAULT_MODEL = "claude-haiku-5-5"
 _KEY_MESSAGE = "The saved API key could not be read. Save it again in Settings."
 _URL_MESSAGE = "That URL can't be used."
+_PROBE_TIMEOUT_S = 10.0
 
 
 class ProviderBuildError(Exception):
@@ -99,7 +100,9 @@ def probe_connection(
         plaintext = _plaintext(encryptor, settings.key_ciphertext, user_id)
         assert plaintext
         model = settings.model or _DEFAULT_MODEL
-        client = anthropic_client or anthropic.Anthropic(api_key=plaintext, max_retries=0)
+        client = anthropic_client or anthropic.Anthropic(
+            api_key=plaintext, max_retries=0, timeout=_PROBE_TIMEOUT_S
+        )
         try:
             client.models.list()
         except Exception:

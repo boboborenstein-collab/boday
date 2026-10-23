@@ -171,3 +171,29 @@ def test_claude_probe_lists_models_and_does_not_create_a_message():
         "detail": "anthropic models endpoint ok",
     }
     assert calls == ["list"]
+
+
+def test_claude_probe_gives_up_after_10s(monkeypatch):
+    # The SDK's default timeout is 600s, which would hold a thread-pool worker.
+    import anthropic
+
+    from boday_agent.server import providers
+
+    real = anthropic.Anthropic
+    made = []
+
+    def spy(**kwargs):
+        client = real(**kwargs)
+        client.models.list = lambda: object()  # no network
+        made.append(client)
+        return client
+
+    monkeypatch.setattr(providers.anthropic, "Anthropic", spy)
+    enc = Encryptor(b"k" * 32)
+    settings = RunSettings(
+        provider="claude",
+        key_ciphertext=enc.encrypt("sk-ant-example", user_id="user-a"),
+    )
+    out = probe_connection(settings, **_kw(user_id="user-a", encryptor=enc))
+    assert out["ok"] is True
+    assert made[0].timeout == 10.0 and made[0].max_retries == 0
