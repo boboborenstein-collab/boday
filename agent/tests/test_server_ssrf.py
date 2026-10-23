@@ -66,6 +66,9 @@ def test_pins_a_public_https_host_and_a_public_ip_literal():
         ("https://llm.example/v1", ["64:ff9b::a00:1"]),
         ("https://llm.example/v1", ["64:ff9b::a9fe:a9fe"]),
         ("https://llm.example/v1", ["2002:a00:1::"]),
+        ("https://llm.example/v1", ["::127.0.0.1"]),  # IPv4-compatible, ::/96
+        ("https://llm.example/v1", ["::a9fe:a9fe"]),  # IPv4-compatible 169.254.169.254
+        ("https://llm.example/v1", ["64:ff9b:1::808:808"]),  # local-use NAT64, /48
         ("https://llm.example/v1", ["203.0.113.10"]),
         ("https://llm.example/v1", ["198.18.0.1"]),
         ("https://llm.example/v1", ["240.0.0.1"]),

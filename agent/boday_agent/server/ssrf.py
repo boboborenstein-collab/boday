@@ -10,8 +10,12 @@ from urllib.parse import urlsplit
 import httpcore
 import httpx
 
-_NAT64 = (
-    ipaddress.ip_network("64:ff9b::/96"),
+_NAT64 = ipaddress.ip_network("64:ff9b::/96")
+# Refused whatever they embed: IPv4-compatible addresses (::/96, deprecated),
+# and local-use NAT64, whose IPv4 position depends on the prefix length
+# (RFC 6052), so it cannot be unwrapped reliably.
+_BLOCKED_V6 = (
+    ipaddress.ip_network("::/96"),
     ipaddress.ip_network("64:ff9b:1::/48"),
 )
 
@@ -188,23 +192,24 @@ def _allowed(ip: object) -> bool:
         addr = ipaddress.ip_address(ip)
     except ValueError:
         return False
-    return all(_public(item) for item in _subjects(addr))
+    if isinstance(addr, ipaddress.IPv6Address) and any(addr in net for net in _BLOCKED_V6):
+        return False
+    # The address itself and every IPv4 address it wraps must be public.
+    return _public(addr) and all(_public(item) for item in _embedded(addr))
 
 
-def _subjects(addr: ipaddress.IPv4Address | ipaddress.IPv6Address):
+def _embedded(addr: ipaddress.IPv4Address | ipaddress.IPv6Address):
     if isinstance(addr, ipaddress.IPv4Address):
-        return (addr,)
+        return ()
     if addr.ipv4_mapped is not None:
         return (addr.ipv4_mapped,)
     if addr.sixtofour is not None:
         return (addr.sixtofour,)
     if addr.teredo is not None:
         return addr.teredo
-    packed = addr.packed
-    for network in _NAT64:
-        if addr in network:
-            return (ipaddress.IPv4Address(packed[-4:]),)
-    return (addr,)
+    if addr in _NAT64:
+        return (ipaddress.IPv4Address(addr.packed[-4:]),)
+    return ()
 
 
 def _public(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
