@@ -176,6 +176,29 @@ try {
 }
 check('plain 500', plainErr?.code === 'HTTP' && plainErr.message === "Couldn't reach BoDay AI.")
 
+const joined: string[] = []
+const routeClient = createAgentClient({
+  baseUrl: 'https://x/',
+  fetchImpl: (async (url: string) => {
+    joined.push(url)
+    return new Response(
+      JSON.stringify({ error: { code: 'ROUTE_NOT_FOUND', message: 'Something went wrong. Try again.' } }),
+      { status: 404 },
+    )
+  }) as typeof fetch,
+})
+let routeErr: AgentError | null = null
+try {
+  await routeClient.run(contractRun, 'token-x')
+} catch (e) {
+  routeErr = e as AgentError
+}
+check('trailing slash joins as one path', joined[0] === 'https://x/agent/run')
+check(
+  'route not found shows its message',
+  routeErr?.code === 'ROUTE_NOT_FOUND' && routeErr.message === 'Something went wrong. Try again.',
+)
+
 const offline = createAgentClient({
   baseUrl: 'https://agent.example',
   fetchImpl: (async () => {
