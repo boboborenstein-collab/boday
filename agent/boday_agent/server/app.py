@@ -268,7 +268,19 @@ def create_app(
 
 
 def app_from_env() -> FastAPI:
+    _configure_logging()
     return create_app(ServerConfig.from_env())
+
+
+def _configure_logging() -> None:
+    # uvicorn configures only its own loggers. Without a handler here the root
+    # logger's WARNING level drops the per-request INFO lines.
+    if _log.handlers:
+        return
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(levelname)s:     %(name)s %(message)s"))
+    _log.addHandler(handler)
+    _log.setLevel(logging.INFO)
 
 
 def _authorize(request: Request):
@@ -309,8 +321,9 @@ class ErrorMiddleware:
             _log.error("unhandled %s", type(exc).__name__)
             await _send_json(send, 500, error_body("INTERNAL_ERROR", _INTERNAL))
             status = 500
+        # request.state writes into scope["state"], a plain dict.
         state = scope.get("state")
-        user_id = getattr(state, "user_id", None) if state is not None else None
+        user_id = state.get("user_id") if isinstance(state, dict) else None
         _log.info(
             "%s %s %s %s",
             scope.get("method", "-"),

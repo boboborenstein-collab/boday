@@ -1,10 +1,15 @@
 import inspect
 import json
+import logging
+import os
 import re
+import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 
+import httpx
 import jwt
 import pytest
 from fastapi.testclient import TestClient
@@ -417,3 +422,42 @@ def test_agent_test_reports_the_mac_without_a_trace(monkeypatch):
     assert sink.rows == {}
     forbidden = client.post("/agent/test", json=body, headers=_auth(email="friend@example.com"))
     assert forbidden.status_code == 403
+
+
+def test_request_log_line_names_the_user(caplog):
+    caplog.set_level(logging.INFO, logger="boday_agent.server")
+    client = _client()
+    assert client.get("/health", headers=_auth(sub="user-7")).status_code == 200
+    lines = [r.getMessage() for r in caplog.records if r.name == "boday_agent.server"]
+    assert "GET /health 200 user-7" in lines
+
+
+def test_request_log_line_shows_under_uvicorn_default_logging(tmp_path):
+    # uvicorn configures only its own loggers; the root logger stays at WARNING.
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    env = {**os.environ, "SUPABASE_JWT_SECRET": "test-secret"}
+    for name in ("AGENT_TRACES_DSN", "SUPABASE_JWKS_URL"):
+        env.pop(name, None)
+    err = (tmp_path / "stderr.txt").open("w+")
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "--factory",
+         "boday_agent.server.app:app_from_env", "--port", str(port)],
+        stdout=subprocess.DEVNULL, stderr=err, env=env,
+    )
+    try:
+        deadline = time.monotonic() + 20
+        while True:
+            try:
+                status = httpx.get(f"http://127.0.0.1:{port}/health", timeout=1).status_code
+                break
+            except httpx.TransportError:
+                assert time.monotonic() < deadline, "uvicorn did not start"
+                time.sleep(0.2)
+        assert status == 401
+    finally:
+        proc.terminate()
+        proc.wait(timeout=10)
+    err.seek(0)
+    assert re.search(r"GET /health 401 -", err.read())
