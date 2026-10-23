@@ -41,6 +41,11 @@ import {
   traceSummary,
   onProviderPicked,
 } from '../src/lib/agentSettings.ts'
+import * as settingsLib from '../src/lib/agentSettings.ts'
+import * as prefsLib from '../src/lib/userPrefs.ts'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { AgentSettings } from '../src/components/AgentSettings.tsx'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = '') {
@@ -624,6 +629,67 @@ check('a reply from the current turn is kept', acceptModelReply(2, 2) === true)
 check('provider switch clears a typed key', onProviderPicked('custom').password === '' && onProviderPicked('claude').provider === 'claude')
 check('panel uses the flight helpers', chat.includes('chatOnOpen') && chat.includes('acceptModelReply'))
 check('settings clears the key on radio change', settings.includes('onProviderPicked'))
+
+// ---- Review fixes (PR #9). Namespace imports so a missing helper is a ✗, not a crash.
+const lib = (mod: Record<string, unknown>, name: string) =>
+  (typeof mod[name] === 'function' ? mod[name] : null) as ((...args: any[]) => any) | null
+
+// Fix 1: Save never wipes a saved key it could not read.
+const savedKeyAi = { provider: 'claude', model: 'claude-haiku-5-5', baseUrl: null, keyCiphertext: 'CIPH-SAVED' }
+function fakePrefsClient(opts: { session?: boolean; row?: unknown; error?: unknown; throws?: boolean }) {
+  const result = () => {
+    if (opts.throws) throw new Error('network')
+    return { data: opts.row === undefined ? null : { data: opts.row }, error: opts.error ?? null }
+  }
+  const query = {
+    select: () => query,
+    eq: () => query,
+    maybeSingle: async () => result(),
+    single: async () => result(),
+  }
+  return {
+    auth: { getSession: async () => ({ data: { session: opts.session === false ? null : { user: { id: 'u1' } } } }) },
+    from: () => query,
+    rpc: async () => ({ error: null }),
+  }
+}
+const loadResult = lib(prefsLib, 'loadUserPrefsResult')
+const loadErr = loadResult ? await loadResult(fakePrefsClient({ error: { message: 'boom' } })) : null
+check('fix1: a prefs load error is reported, not treated as empty', loadErr?.ok === false)
+const loadThrow = loadResult ? await loadResult(fakePrefsClient({ throws: true })) : null
+check('fix1: a thrown prefs load is reported', loadThrow?.ok === false)
+const loadNone = loadResult ? await loadResult(fakePrefsClient({})) : null
+check('fix1: no prefs row loads as empty', loadNone?.ok === true && JSON.stringify(loadNone.env) === '{}')
+const loadSigned = loadResult ? await loadResult(fakePrefsClient({ session: false })) : null
+check('fix1: signed out is not a successful load', loadSigned?.ok === false)
+const canSave = lib(settingsLib, 'canSaveSettings')
+check('fix1: Save is off while loading and after a failed load',
+  !!canSave && canSave({ status: 'loading' }) === false && canSave({ status: 'failed', message: 'x' }) === false && canSave({ status: 'loaded', prefs: null }) === true)
+
+const saveAi = lib(settingsLib, 'saveAiSettings')
+async function runSave(read: unknown, form: Record<string, unknown>) {
+  const calls = { encrypt: [] as string[], merge: [] as unknown[] }
+  if (!saveAi) return { calls, outcome: null }
+  const outcome = await saveAi({
+    form: { provider: 'claude', model: 'claude-haiku-5-5', baseUrl: '', plaintext: '', ...form },
+    readCurrent: async () => read,
+    encrypt: async (plaintext: string) => { calls.encrypt.push(plaintext); return 'CIPH-NEW' },
+    merge: async (patch: unknown) => { calls.merge.push(patch); return { ok: true } },
+  })
+  return { calls, outcome }
+}
+const failedSave = await runSave({ ok: false, reason: 'error' }, {})
+check('fix1: Save writes nothing when the fresh read fails', !!saveAi && failedSave.outcome?.ok === false && failedSave.calls.merge.length === 0)
+const keepSave = await runSave({ ok: true, env: { ai: savedKeyAi } }, { model: 'claude-sonnet-5-5' })
+const keptAi = (keepSave.calls.merge[0] as { ai?: { keyCiphertext?: unknown; model?: unknown } } | undefined)?.ai
+check('fix1: Save with no typed key keeps the stored key', keptAi?.keyCiphertext === 'CIPH-SAVED' && keptAi?.model === 'claude-sonnet-5-5' && keepSave.calls.encrypt.length === 0)
+const switchSave = await runSave({ ok: true, env: { ai: savedKeyAi } }, { provider: 'custom', baseUrl: 'https://llm.example/v1' })
+check('fix1: switching provider removes the stored key', (switchSave.calls.merge[0] as { ai?: { keyCiphertext?: unknown } } | undefined)?.ai?.keyCiphertext === null)
+const typedSave = await runSave({ ok: true, env: { ai: savedKeyAi } }, { plaintext: 'sk-ant-new' })
+const typedAi = (typedSave.calls.merge[0] as { ai?: { keyCiphertext?: unknown } } | undefined)?.ai
+check('fix1: a typed key replaces the stored key', typedAi?.keyCiphertext === 'CIPH-NEW' && JSON.stringify(typedSave.calls.merge).includes('sk-ant-new') === false)
+const settingsHtml = renderToStaticMarkup(createElement(AgentSettings, { email: 'friend@example.com' }))
+check('fix1: Save renders disabled before prefs load', /<button[^>]*disabled=""[^>]*>Save<\/button>/.test(settingsHtml))
 
 console.log('')
 if (failures === 0) {

@@ -1,5 +1,6 @@
 import { ADMIN_EMAIL } from './invites'
-import type { AgentAiPrefs } from './userPrefs'
+import { AgentError } from './agentContract'
+import type { AgentAiPrefs, UserPrefsEnvelope, UserPrefsLoad } from './userPrefs'
 
 export type AiProvider = AgentAiPrefs['provider']
 
@@ -78,6 +79,58 @@ export function nextAiPrefs(current: AgentAiPrefs | null, form: AiSettingsForm):
     model: form.model,
     baseUrl: form.baseUrl || null,
     keyCiphertext,
+  }
+}
+
+export type SettingsLoad =
+  | { status: 'loading' }
+  | { status: 'failed'; message: string }
+  | { status: 'loaded'; prefs: AgentAiPrefs | null }
+
+const LOAD_FAILED = "Couldn't load your AI settings. Try again later."
+
+export function settingsLoadFrom(result: UserPrefsLoad): SettingsLoad {
+  if (result.ok) return { status: 'loaded', prefs: result.env.ai ?? null }
+  return { status: 'failed', message: result.reason === 'signed-out' ? 'Sign in required.' : LOAD_FAILED }
+}
+
+/** Save is only safe once the stored settings were read; an empty form would wipe the saved key. */
+export function canSaveSettings(load: SettingsLoad): boolean {
+  return load.status === 'loaded'
+}
+
+export type SaveOutcome =
+  | { ok: true; prefs: AgentAiPrefs; message: string }
+  | { ok: false; message: string }
+
+/**
+ * Re-read the stored settings, then write `ai`. The merge RPC replaces `ai` whole, so the
+ * stored key is carried over unless a new key was typed or the provider changed.
+ */
+export async function saveAiSettings({
+  form,
+  readCurrent,
+  encrypt,
+  merge,
+}: {
+  form: Omit<AiSettingsForm, 'ciphertextFromEncrypt'>
+  readCurrent: () => Promise<UserPrefsLoad>
+  encrypt: (plaintext: string) => Promise<string>
+  merge: (patch: Partial<UserPrefsEnvelope>) => Promise<unknown>
+}): Promise<SaveOutcome> {
+  try {
+    const current = await readCurrent()
+    if (!current.ok) {
+      const failed = settingsLoadFrom(current)
+      return { ok: false, message: failed.status === 'failed' ? failed.message : LOAD_FAILED }
+    }
+    const typed = form.provider !== 'auto' && form.plaintext.trim() !== ''
+    const ciphertextFromEncrypt = typed ? await encrypt(form.plaintext) : null
+    const prefs = nextAiPrefs(current.env.ai ?? null, { ...form, ciphertextFromEncrypt })
+    await merge({ ai: prefs })
+    return { ok: true, prefs, message: 'Saved.' }
+  } catch (error) {
+    return { ok: false, message: error instanceof AgentError ? error.message : "Couldn't reach BoDay AI." }
   }
 }
 

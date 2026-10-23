@@ -56,22 +56,49 @@ async function sessionUserId(): Promise<string | null> {
   return data.session?.user.id ?? null
 }
 
-export async function loadUserPrefsEnvelope(): Promise<UserPrefsEnvelope> {
-  const userId = await sessionUserId()
-  if (!userId) return {}
-  try {
-    const { data, error } = await getSupabase()
-      .from('user_prefs')
-      .select('data')
-      .eq('id', userId)
-      .single()
-    if (error || !data?.data) return {}
-    const env = data.data as UserPrefsEnvelope
-    if (env.snoozes) env.snoozes = pruneSnoozes(env.snoozes)
-    return env
-  } catch {
-    return {}
+/** The slice of the Supabase client that prefs reads use (a fake in tests). */
+export interface PrefsClient {
+  auth: { getSession(): Promise<{ data: { session: { user: { id: string } } | null } }> }
+  from(table: string): {
+    select(columns: string): {
+      eq(column: string, value: string): {
+        maybeSingle(): PromiseLike<{ data: { data?: unknown } | null; error: unknown }>
+      }
+    }
   }
+}
+
+export type UserPrefsLoad =
+  | { ok: true; env: UserPrefsEnvelope }
+  | { ok: false; reason: 'signed-out' | 'error' }
+
+function defaultPrefsClient(): PrefsClient | null {
+  return isSupabaseConfigured() ? (getSupabase() as unknown as PrefsClient) : null
+}
+
+/** Read user_prefs and say whether the read worked. A missing row is an empty envelope. */
+export async function loadUserPrefsResult(
+  client: PrefsClient | null = defaultPrefsClient(),
+): Promise<UserPrefsLoad> {
+  if (!client) return { ok: false, reason: 'signed-out' }
+  try {
+    const { data: auth } = await client.auth.getSession()
+    const userId = auth.session?.user.id
+    if (!userId) return { ok: false, reason: 'signed-out' }
+    const { data, error } = await client.from('user_prefs').select('data').eq('id', userId).maybeSingle()
+    if (error) return { ok: false, reason: 'error' }
+    const env = (data?.data ?? {}) as UserPrefsEnvelope
+    if (env.snoozes) env.snoozes = pruneSnoozes(env.snoozes)
+    return { ok: true, env }
+  } catch {
+    return { ok: false, reason: 'error' }
+  }
+}
+
+/** Best-effort read: any failure reads as an empty envelope. */
+export async function loadUserPrefsEnvelope(): Promise<UserPrefsEnvelope> {
+  const result = await loadUserPrefsResult()
+  return result.ok ? result.env : {}
 }
 
 /** Deep-merge a patch into user_prefs.data (RPC when available). */

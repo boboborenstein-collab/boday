@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react'
 import { agentBaseUrl, createAgentClient } from '../lib/agentClient'
 import { AgentError } from '../lib/agentContract'
 import {
+  canSaveSettings,
   keyFieldPlaceholder,
   macStatus,
-  nextAiPrefs,
   onProviderPicked,
+  saveAiSettings,
+  settingsLoadFrom,
   settingsViewModel,
   type AiProvider,
+  type SettingsLoad,
 } from '../lib/agentSettings'
-import { mergeUserPrefsData, loadUserPrefsEnvelope } from '../lib/userPrefs'
-import type { AgentAiPrefs } from '../lib/userPrefs'
+import { mergeUserPrefsData, loadUserPrefsResult } from '../lib/userPrefs'
 import { getSupabase, isSupabaseConfigured } from '../lib/supabaseClient'
 import { TraceViewer } from './TraceViewer'
 
@@ -28,7 +30,8 @@ async function readAccessToken(): Promise<string | null> {
 }
 
 export function AgentSettings({ email }: { email: string | null }) {
-  const [prefs, setPrefs] = useState<AgentAiPrefs | null>(null)
+  const [load, setLoad] = useState<SettingsLoad>({ status: 'loading' })
+  const [saving, setSaving] = useState(false)
   const [provider, setProvider] = useState<AiProvider>('claude')
   const [model, setModel] = useState('claude-haiku-5-5')
   const [baseUrl, setBaseUrl] = useState('')
@@ -39,11 +42,11 @@ export function AgentSettings({ email }: { email: string | null }) {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const env = await loadUserPrefsEnvelope()
+      const next = settingsLoadFrom(await loadUserPrefsResult())
       if (cancelled) return
-      const loaded = env.ai ?? null
-      const view = settingsViewModel({ email, prefs: loaded })
-      setPrefs(loaded)
+      setLoad(next)
+      if (next.status !== 'loaded') return
+      const view = settingsViewModel({ email, prefs: next.prefs })
       setProvider(view.provider)
       setModel(view.model)
       setBaseUrl(view.baseUrl)
@@ -53,66 +56,53 @@ export function AgentSettings({ email }: { email: string | null }) {
     }
   }, [email])
 
+  const prefs = load.status === 'loaded' ? load.prefs : null
   const view = settingsViewModel({ email, prefs, formProvider: provider })
   const choices: AiProvider[] = view.showAuto ? ['auto', 'claude', 'custom'] : ['claude', 'custom']
 
-  async function clientOrStatus() {
+  /** The service client, or an AgentError whose message the status line can show. */
+  async function serviceClient() {
     const base = serviceUrl()
-    if (!base) {
-      setStatus("BoDay AI isn't configured on this build.")
-      return null
-    }
+    if (!base) throw new AgentError('NOT_CONFIGURED', "BoDay AI isn't configured on this build.")
     const token = await readAccessToken()
-    if (!token) {
-      setStatus('Sign in required.')
-      return null
-    }
+    if (!token) throw new AgentError('UNAUTHORIZED', 'Sign in required.')
     return { client: createAgentClient({ baseUrl: base, fetchImpl: globalThis.fetch }), token }
   }
 
-  async function ciphertextForTest(): Promise<string | null | undefined> {
+  async function ciphertextForTest(): Promise<string | null> {
     if (!password.trim()) {
       return provider === prefs?.provider ? (prefs?.keyCiphertext ?? null) : null
     }
-    const ready = await clientOrStatus()
-    if (!ready) return undefined
+    const ready = await serviceClient()
     const encrypted = await ready.client.encrypt({ plaintext: password }, ready.token)
     return encrypted.ciphertext
   }
 
   async function save() {
+    if (!canSaveSettings(load) || saving) return
     setStatus(null)
-    try {
-      let ciphertextFromEncrypt: string | null = null
-      if (password.trim()) {
-        const ready = await clientOrStatus()
-        if (!ready) return
-        const encrypted = await ready.client.encrypt({ plaintext: password }, ready.token)
-        ciphertextFromEncrypt = encrypted.ciphertext
-      }
-      const ai = nextAiPrefs(prefs, {
-        provider,
-        model: model || null,
-        baseUrl,
-        plaintext: password,
-        ciphertextFromEncrypt,
-      })
-      await mergeUserPrefsData({ ai })
-      setPrefs(ai)
-      setPassword('')
-      setStatus('Saved.')
-    } catch (error) {
-      setStatus(error instanceof AgentError ? error.message : "Couldn't reach BoDay AI.")
-    }
+    setSaving(true)
+    const outcome = await saveAiSettings({
+      form: { provider, model: model || null, baseUrl, plaintext: password },
+      readCurrent: () => loadUserPrefsResult(),
+      encrypt: async (plaintext) => {
+        const ready = await serviceClient()
+        return (await ready.client.encrypt({ plaintext }, ready.token)).ciphertext
+      },
+      merge: (patch) => mergeUserPrefsData(patch),
+    })
+    setSaving(false)
+    setStatus(outcome.message)
+    if (!outcome.ok) return
+    setLoad({ status: 'loaded', prefs: outcome.prefs })
+    setPassword('')
   }
 
   async function testConnection() {
     setStatus(null)
     try {
       const keyCiphertext = await ciphertextForTest()
-      if (keyCiphertext === undefined) return
-      const ready = await clientOrStatus()
-      if (!ready) return
+      const ready = await serviceClient()
       const result = await ready.client.test(
         {
           settings: {
@@ -183,7 +173,8 @@ export function AgentSettings({ email }: { email: string | null }) {
           <button
             type="button"
             onClick={() => void save()}
-            className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent"
+            disabled={!canSaveSettings(load) || saving}
+            className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent disabled:opacity-40"
           >
             Save
           </button>
@@ -195,6 +186,7 @@ export function AgentSettings({ email }: { email: string | null }) {
             Test connection
           </button>
         </div>
+        {load.status === 'failed' && <p className="text-xs text-danger">{load.message}</p>}
         {status && <p className="text-xs text-muted">{status}</p>}
         {view.showAuto && <p className="text-xs text-faint">{macStatus(testDetail)}</p>}
         <TraceViewer />
