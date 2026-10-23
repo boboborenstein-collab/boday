@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { agentBaseUrl, createAgentClient } from '../lib/agentClient'
 import { AgentError } from '../lib/agentContract'
 import {
+  aiFormReduce,
   canSaveSettings,
+  initialAiForm,
   keyFieldPlaceholder,
   macStatus,
-  onProviderPicked,
   saveAiSettings,
   settingsLoadFrom,
   settingsViewModel,
@@ -33,10 +34,8 @@ async function readAccessToken(): Promise<string | null> {
 export function AgentSettings({ email }: { email: string | null }) {
   const [load, setLoad] = useState<SettingsLoad>({ status: 'loading' })
   const [saving, setSaving] = useState(false)
-  const [provider, setProvider] = useState<AiProvider>('claude')
-  const [model, setModel] = useState('claude-haiku-5-5')
-  const [baseUrl, setBaseUrl] = useState('')
-  const [password, setPassword] = useState('')
+  const [form, dispatch] = useReducer(aiFormReduce, initialAiForm)
+  const { provider, model, baseUrl, password } = form
   const [status, setStatus] = useState<string | null>(null)
   const [testDetail, setTestDetail] = useState<string | null>(null)
 
@@ -47,10 +46,7 @@ export function AgentSettings({ email }: { email: string | null }) {
       if (cancelled) return
       setLoad(next)
       if (next.status !== 'loaded') return
-      const view = settingsViewModel({ email, prefs: next.prefs })
-      setProvider(view.provider)
-      setModel(view.model)
-      setBaseUrl(view.baseUrl)
+      dispatch({ type: 'loaded', view: settingsViewModel({ email, prefs: next.prefs }) })
     })()
     return () => {
       cancelled = true
@@ -97,7 +93,7 @@ export function AgentSettings({ email }: { email: string | null }) {
     setStatus(outcome.message)
     if (!outcome.ok) return
     setLoad({ status: 'loaded', prefs: outcome.prefs })
-    setPassword('')
+    dispatch({ type: 'saved' })
   }
 
   async function testConnection() {
@@ -135,11 +131,7 @@ export function AgentSettings({ email }: { email: string | null }) {
                 type="radio"
                 name="agent-provider"
                 checked={provider === choice}
-                onChange={() => {
-                  const picked = onProviderPicked(choice)
-                  setProvider(picked.provider)
-                  setPassword(picked.password)
-                }}
+                onChange={() => dispatch({ type: 'provider', provider: choice })}
               />
               {choice === 'auto' ? 'Auto' : choice === 'claude' ? 'Claude' : 'Custom'}
             </label>
@@ -148,7 +140,7 @@ export function AgentSettings({ email }: { email: string | null }) {
         {provider === 'custom' && (
           <input
             value={baseUrl}
-            onChange={(event) => setBaseUrl(event.target.value)}
+            onChange={(event) => dispatch({ type: 'field', field: 'baseUrl', value: event.target.value })}
             placeholder="https://llm.example/v1"
             className={inputCls}
           />
@@ -156,7 +148,7 @@ export function AgentSettings({ email }: { email: string | null }) {
         {provider !== 'auto' && (
           <input
             value={model}
-            onChange={(event) => setModel(event.target.value)}
+            onChange={(event) => dispatch({ type: 'field', field: 'model', value: event.target.value })}
             placeholder="Model"
             className={inputCls}
           />
@@ -167,7 +159,7 @@ export function AgentSettings({ email }: { email: string | null }) {
             name="ai-api-key"
             value={password}
             autoComplete="new-password"
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => dispatch({ type: 'field', field: 'password', value: event.target.value })}
             placeholder={keyFieldPlaceholder(view.hasKey)}
             className={inputCls}
           />

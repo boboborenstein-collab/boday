@@ -63,9 +63,32 @@ export function keyFieldPlaceholder(hasKey: boolean): string {
   return hasKey ? 'saved ✓' : 'API key'
 }
 
-/** A typed key belongs to the provider it was typed for. Switching clears it. */
-export function onProviderPicked(choice: AiProvider): { provider: AiProvider; password: string } {
-  return { provider: choice, password: '' }
+export interface AiFormState {
+  provider: AiProvider
+  model: string
+  baseUrl: string
+  password: string
+}
+
+export type AiFormAction =
+  | { type: 'loaded'; view: SettingsView }
+  | { type: 'provider'; provider: AiProvider }
+  | { type: 'field'; field: 'model' | 'baseUrl' | 'password'; value: string }
+  | { type: 'saved' }
+
+export const initialAiForm: AiFormState = { provider: 'claude', model: DEFAULT_MODEL, baseUrl: '', password: '' }
+
+/** Settings → AI form. A typed key belongs to the provider it was typed for: switching clears it. */
+export function aiFormReduce(state: AiFormState, action: AiFormAction): AiFormState {
+  if (action.type === 'loaded') {
+    const { provider, model, baseUrl } = action.view
+    return { provider, model, baseUrl, password: '' }
+  }
+  if (action.type === 'provider') {
+    return action.provider === state.provider ? state : { ...state, provider: action.provider, password: '' }
+  }
+  if (action.type === 'field') return { ...state, [action.field]: action.value }
+  return { ...state, password: '' }
 }
 
 /** The API key as pasted, without surrounding whitespace; blank means no key. */

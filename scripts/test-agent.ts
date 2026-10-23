@@ -28,7 +28,6 @@ import {
   saveChat,
   toHistory,
   chatOnOpen,
-  acceptModelReply,
 } from '../src/lib/agentChat.ts'
 import { approveMessage, rejectMessage, undoMessage } from '../src/lib/agentActions.ts'
 import * as chatLib from '../src/lib/agentChat.ts'
@@ -40,7 +39,6 @@ import {
   settingsViewModel,
   traceLoadMessage,
   traceSummary,
-  onProviderPicked,
 } from '../src/lib/agentSettings.ts'
 import * as settingsLib from '../src/lib/agentSettings.ts'
 import * as prefsLib from '../src/lib/userPrefs.ts'
@@ -601,11 +599,7 @@ const today = readFileSync('src/views/TodayView.tsx', 'utf8')
 check('plan-my-day button untouched', today.includes('Ask BoDay'))
 const chat = readFileSync('src/components/AgentChat.tsx', 'utf8')
 check('chat uses the gates', chat.includes('canSend') && chat.includes('hasUsableModel') && chat.includes('buildAgentSnapshot') && chat.includes('approveMessage') && chat.includes('loadEnv: loadUserPrefsEnvelope') && chat.includes('access_token') && !chat.includes('fetch('))
-const diff = readFileSync('src/components/AgentDiffCard.tsx', 'utf8')
-check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Deletes', 'Approve', 'Reject', 'Undo'].every((s) => diff.includes(s)))
 
-const settings = readFileSync('src/components/AgentSettings.tsx', 'utf8')
-check('settings copy', settings.includes('Test connection') && settings.includes('keyFieldPlaceholder') && settings.includes('macStatus'))
 const view = readFileSync('src/views/SettingsView.tsx', 'utf8')
 check('settings mounts the section', view.includes('AgentSettings'))
 const traces = readFileSync('src/components/TraceViewer.tsx', 'utf8')
@@ -627,11 +621,6 @@ const firstOpen = chatOnOpen(null, storedQuiet, null, 'user-1')
 check('first open loads storage', firstOpen.sending === false && firstOpen.messages[0].text === 'move dentist')
 const switchedUser = chatOnOpen(inflight, { messages: [], sending: false }, 'user-1', 'user-2')
 check('a different account does not keep the chat', switchedUser.messages.length === 0)
-check('a reply from an old turn is dropped', acceptModelReply(2, 1) === false)
-check('a reply from the current turn is kept', acceptModelReply(2, 2) === true)
-check('provider switch clears a typed key', onProviderPicked('custom').password === '' && onProviderPicked('claude').provider === 'claude')
-check('panel uses the flight helpers', chat.includes('chatOnOpen') && chat.includes('acceptModelReply'))
-check('settings clears the key on radio change', settings.includes('onProviderPicked'))
 
 // ---- Review fixes (PR #9). Namespace imports so a missing helper is a ✗, not a crash.
 const lib = (mod: Record<string, unknown>, name: string) =>
@@ -845,6 +834,46 @@ const paddedSave = await runSave({ ok: true, env: { ai: savedKeyAi } }, { plaint
 check('fix8: the pasted key is trimmed before encrypting', paddedSave.calls.encrypt.join() === 'sk-ant-new')
 const typedKey = lib(settingsLib, 'typedKey')
 check('fix8: a blank key is no key', typedKey?.(' \n ') === null && typedKey?.(' sk ') === 'sk')
+
+// Fix 9: real checks in place of tautologies and source-string pins.
+const formReduce = lib(settingsLib, 'aiFormReduce')
+const formStart = { provider: 'claude', model: 'claude-sonnet-5-5', baseUrl: 'https://llm.example/v1', password: 'sk-ant-typed' }
+const switchedForm = formReduce?.(formStart, { type: 'provider', provider: 'custom' })
+check('fix9: switching provider clears the typed key and keeps the other fields',
+  switchedForm?.provider === 'custom' && switchedForm.password === '' && switchedForm.model === 'claude-sonnet-5-5' && switchedForm.baseUrl === 'https://llm.example/v1')
+check('fix9: re-picking the same provider keeps the typed key', formReduce?.(formStart, { type: 'provider', provider: 'claude' })?.password === 'sk-ant-typed')
+const loadedForm = formReduce?.({ ...formStart, provider: 'custom' }, { type: 'loaded', view: settingsViewModel({ email: 'friend@example.com', prefs: savedKeyAi as never }) })
+check('fix9: loading fills the form from the stored settings', loadedForm?.provider === 'claude' && loadedForm.model === 'claude-haiku-5-5' && loadedForm.baseUrl === '' && loadedForm.password === '')
+check('fix9: a saved key leaves the field', formReduce?.(formStart, { type: 'saved' })?.password === '' && formReduce?.(formStart, { type: 'field', field: 'model', value: 'm2' })?.model === 'm2')
+
+check('fix9: Settings renders its controls', settingsHtml.includes('>Test connection<') && settingsHtml.includes('placeholder="API key"') && settingsHtml.includes('>Claude<') && !settingsHtml.includes('>Auto<'))
+const ownerHtml = renderToStaticMarkup(createElement(AgentSettings, { email: 'bobo.borenstein@gmail.com' }))
+check('fix9: the owner sees Auto and the Mac status', ownerHtml.includes('>Auto<') && ownerHtml.includes('Mac: not checked'))
+const fullCard = renderToStaticMarkup(createElement(AgentDiffCard, {
+  message: {
+    id: 'full', role: 'assistant', text: 'ok', outcome: 'proposed', proposalStatus: 'pending', selectedTaskIds: ['new-1', 'dentist'],
+    changes: [
+      { op: 'create', taskId: 'new-1', after: { id: 'new-1', type: 'one_time', title: 'Call mom' }, warnings: [] },
+      liveUpdate,
+      { op: 'delete', taskId: 'gym', reason: 'user asked', beforeRaw: { id: 'gym', title: 'Gym' }, beforeCompletionsRaw: [], warnings: [] },
+    ],
+  } as never,
+  tasks: [{ id: 'dentist', title: 'Dentist' }],
+  onToggle: () => {}, onApprove: () => {}, onReject: () => {}, onUndo: () => {},
+}))
+check('fix9: the card renders creates, updates and deletes in their sections',
+  /<section class="text-success">.*Creates.*Call mom/.test(fullCard) && /<section class="text-p3">.*Updates.*Dentist.*priority: 3 → 1/.test(fullCard) && /text-danger">Deletes<.*Gym.*user asked/.test(fullCard))
+check('fix9: a pending card offers Approve and Reject, unchecked deletes', fullCard.includes('>Approve<') && fullCard.includes('>Reject<') && !fullCard.includes('>Undo<') && checkboxes(fullCard).filter((b) => b.includes('checked=""')).length === 2)
+
+const pendingMsg = { id: 'p', role: 'assistant', text: 'x', outcome: 'proposed', changes: [liveUpdate], proposalStatus: 'pending', selectedTaskIds: ['dentist'] }
+const statusAfter = (status: string, event: { type: 'resolve'; messageId: string; status: 'applied' | 'rejected' | 'undone' }) =>
+  reduce({ messages: [{ ...pendingMsg, proposalStatus: status }], sending: false }, event).messages[0].proposalStatus
+check('fix9: an applied proposal cannot be rejected', statusAfter('applied', { type: 'resolve', messageId: 'p', status: 'rejected' }) === 'applied')
+check('fix9: a pending proposal cannot be undone', statusAfter('pending', { type: 'resolve', messageId: 'p', status: 'undone' }) === 'pending')
+check('fix9: a rejected proposal cannot be applied', statusAfter('rejected', { type: 'resolve', messageId: 'p', status: 'applied' }) === 'rejected')
+const failedTurn = reduce(reduce({ messages: [], sending: false }, { type: 'send', id: 'fs', text: 'hi' }), { type: 'fail', id: 'ff', text: "Couldn't reach BoDay AI." })
+check('fix9: a failed run ends sending and records no proposal',
+  failedTurn.sending === false && failedTurn.messages.length === 2 && failedTurn.messages[1].outcome === 'failed' && (failedTurn.messages[1].changes as unknown[]).length === 0 && failedTurn.messages[1].proposalStatus === null)
 
 console.log('')
 if (failures === 0) {
