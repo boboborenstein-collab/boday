@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '../store/useStore'
 import { ADMIN_EMAIL } from '../lib/invites'
@@ -30,6 +30,7 @@ import type { AgentAiPrefs } from '../lib/userPrefs'
 import { getSupabase, isSupabaseConfigured } from '../lib/supabaseClient'
 import { AgentDiffCard } from './AgentDiffCard'
 import { randomId } from '../lib/randomId'
+import { createStickyScroll } from '../lib/stickyScroll'
 
 const EMPTY: ChatState = { messages: [], sending: false }
 
@@ -64,6 +65,9 @@ export function AgentChat() {
   const prefsRef = useRef(prefs)
   const windowsRef = useRef(windows)
   const emailRef = useRef(email)
+  const listRef = useRef<HTMLDivElement>(null)
+  const sticky = useRef(createStickyScroll())
+  const forceScroll = useRef(false)
   chatRef.current = chat
   userIdRef.current = userId
   prefsRef.current = prefs
@@ -119,12 +123,21 @@ export function AgentChat() {
         setChat(loaded)
       }
       loadedFor.current = account.userId
+      forceScroll.current = true
       setLoading(false)
     })()
     return () => {
       cancelled = true
     }
   }, [open])
+
+  // Follow new messages; the panel opening and the user's own send always jump to the end.
+  useLayoutEffect(() => {
+    const box = listRef.current
+    if (!open || loading || !box) return
+    sticky.current.onContent(box, { force: forceScroll.current })
+    forceScroll.current = false
+  }, [open, loading, chat.messages.length, chat.sending])
 
   function dispatch(event: ChatEvent) {
     const next = reduce(chatRef.current, event)
@@ -168,6 +181,7 @@ export function AgentChat() {
     if (!canSend(gates)) return
     if (panelMessage({ online, serviceConfigured, signedIn, hasModel: modelReady })) return
     const sentGeneration = generation.current
+    forceScroll.current = true
     dispatch({ type: 'send', id: randomId(), text: text.trim() })
     const base = serviceUrl()
     if (!base) return
@@ -258,7 +272,11 @@ export function AgentChat() {
                 </button>
               </div>
             </header>
-            <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
+            <div
+              ref={listRef}
+              onScroll={() => listRef.current && sticky.current.onScroll(listRef.current)}
+              className="flex-1 space-y-3 overflow-y-auto px-4 py-3"
+            >
               {loading && <p className="text-sm text-muted">Loading…</p>}
               {!loading && gate && <p className="text-sm text-muted">{gate}</p>}
               {!loading && chat.messages.length === 0 && !chat.sending && (

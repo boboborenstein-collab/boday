@@ -970,6 +970,29 @@ check('r3 fix2: a failed link shows the error and no URL', calFailedHtml.include
 const calOkHtml = CalendarLink ? renderToStaticMarkup(createElement(CalendarLink as never, { link: { ok: true, url: 'https://w.example/cal/tok-existing.ics' } })) : ''
 check('r3 fix2: a good link shows the URL and Copy', calOkHtml.includes('value="https://w.example/cal/tok-existing.ics"') && /<button[^>]*>Copy<\/button>/.test(calOkHtml) && !/disabled=""[^>]*>Copy/.test(calOkHtml))
 
+// Round 3, fix 3: the thread follows new messages unless the reader scrolled up.
+const scrollLib = await import('../src/lib/stickyScroll.ts').catch(() => ({})) as Record<string, unknown>
+const makeSticky = lib(scrollLib, 'createStickyScroll')
+const box = { scrollTop: 0, scrollHeight: 1000, clientHeight: 400 }
+const sticky = makeSticky?.()
+sticky?.onContent(box, { force: true })
+check('r3 fix3: opening the panel shows the newest message', box.scrollTop >= box.scrollHeight - box.clientHeight)
+box.scrollHeight = 1300
+sticky?.onContent(box)
+check('r3 fix3: a reply while at the bottom scrolls to it', box.scrollTop >= box.scrollHeight - box.clientHeight)
+box.scrollTop = 200
+sticky?.onScroll(box)
+box.scrollHeight = 1600
+sticky?.onContent(box)
+check('r3 fix3: a reply while reading older messages does not jump', !!sticky && box.scrollTop === 200)
+sticky?.onContent(box, { force: true })
+check('r3 fix3: sending a message scrolls to it', !!sticky && box.scrollTop >= box.scrollHeight - box.clientHeight)
+box.scrollTop = box.scrollHeight - box.clientHeight - 30
+sticky?.onScroll(box)
+box.scrollHeight = 1900
+sticky?.onContent(box)
+check('r3 fix3: scrolling back near the bottom follows again', !!sticky && box.scrollTop >= box.scrollHeight - box.clientHeight)
+
 console.log('')
 if (failures === 0) {
   console.log('✅ ALL AGENT ASSERTIONS PASSED\n')
