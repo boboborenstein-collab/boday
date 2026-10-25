@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test:logic": "tsx scripts/test-logic.ts",
+    "test:agent": "tsx --tsconfig tsconfig.app.json scripts/test-agent.ts",
     "gen:icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {

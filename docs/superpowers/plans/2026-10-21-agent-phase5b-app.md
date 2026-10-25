@@ -315,7 +315,7 @@ The plaintext API key is never stored and is never sent except as `plaintext` to
 
 The shim installs a `localStorage` on `globalThis` and `global` before any store import. `scripts/test-agent.ts` imports `./agent-test-shim.ts` as its first import. The harness matches `scripts/test-logic.ts`: `check(name, cond)`, a failure count, exit 0 or 1.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Use the `POST /agent/run` request example and the success response example from the API contract section as the fixtures `contractRun` and `contractResponse` (paste them, do not retype the fields).
 
@@ -349,10 +349,10 @@ check('error message', denied.code === 'MODEL_NOT_CONFIGURED' && denied.message 
 
 Add a call that returns status 500 with a plain-text body and checks the message is `Couldn't reach BoDay AI.` Add `encrypt`, `feedback`, and `test` calls and check the paths `/encrypt`, `/feedback`, and `/agent/test`.
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL (modules missing).
-- [ ] **Step 3: Implement** the two modules and the harness. Do not add a dependency. `parseRunResponse` throws `AgentError` (`code: 'HTTP'`) when required keys are missing.
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: agent HTTP client against the phase 5 contract"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL (modules missing).
+- [x] **Step 3: Implement** the two modules and the harness. Do not add a dependency. `parseRunResponse` throws `AgentError` (`code: 'HTTP'`) when required keys are missing.
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: agent HTTP client against the phase 5 contract"`.
 
 ---
 
@@ -367,7 +367,7 @@ Add a call that returns status 500 with a plain-text body and checks the message
 - `buildAgentSnapshot({ tasks, completions, quietWindows, now, timeZone })` returns a plain object whose keys are exactly `tasks`, `completions`, `quietWindows`, `now`, `timezone`. `now` is `now.toISOString()`. `tasks` and `completions` are the same arrays, not remapped, so unknown fields stay. `quietWindows` is the array passed in (possibly empty).
 - `UserPrefsEnvelope.cache` is `{ fetchedAt?: string; windows?: { start: string; end: string; title: string }[] }`. `ai` is `AgentAiPrefs | undefined` with `provider`, `model`, `baseUrl`, `keyCiphertext` (each `model` / `baseUrl` / `keyCiphertext` is `string | null`). `mergeUserPrefsData` already replaces a top-level key other than `snoozes`; do not special-case `ai`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const task = { id: 'dentist', type: 'one_time', title: 'Dentist', someFutureField: { x: 1 } }
@@ -385,10 +385,10 @@ check('future field kept', snap.tasks[0].someFutureField.x === 1)
 check('no secrets', JSON.stringify(snap).includes('sk-') === false)
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement.** This task only types the envelope and builds the object. `loadUserPrefsEnvelope()` is `async` (it reads `user_prefs` from Supabase), so the chat panel in Task 6 awaits it: `const env = await loadUserPrefsEnvelope()`, then `env.cache?.windows ?? []` and `env.ai ?? null`. The time zone comes from `Intl.DateTimeFormat().resolvedOptions().timeZone`. The window shape matches what the push worker writes (`worker-push/src/index.ts`, `cache: { fetchedAt, windows }`).
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: build the agent snapshot from local tasks"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement.** This task only types the envelope and builds the object. `loadUserPrefsEnvelope()` is `async` (it reads `user_prefs` from Supabase), so the chat panel in Task 6 awaits it: `const env = await loadUserPrefsEnvelope()`, then `env.cache?.windows ?? []` and `env.ai ?? null`. The time zone comes from `Intl.DateTimeFormat().resolvedOptions().timeZone`. The window shape matches what the push worker writes (`worker-push/src/index.ts`, `cache: { fetchedAt, windows }`).
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: build the agent snapshot from local tasks"`.
 
 ---
 
@@ -426,7 +426,7 @@ check('no secrets', JSON.stringify(snap).includes('sk-') === false)
   - One-time, `before.status` `done`: set `completed: true`. If `beforeCompletionRaw` has the key `completedAt`, set the task's `completedAt` to that value exactly (it may be `null`); if it is `{}`, remove the `completedAt` key. Do not use `nowIso`.
 - Store, same file as the other actions, not persisted: `setRecurringStatus(taskId, date, status)`, `setOneTimeStatus(id, completed)`, `applyAgentProposal(changes, selectedTaskIds, opts): ApplyResult`, `undoAgentProposal(changes, appliedTaskIds, opts): ApplyResult`, `agentOpen: boolean`, `agentSeed: string | null`, `openAgent(seed?: string)`, `closeAgent()`. The proposal actions call the pure functions and `set` only when `ok` is true. `partialize` is unchanged.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Import `useStore` from `../src/store/useStore.ts` after the shim import. The default persist storage writes synchronously, so read `localStorage` on the next line.
 
@@ -507,10 +507,10 @@ check('raw restored', restored.ok && restored.tasks[0].someFutureField.x === 1 &
 - `openAgent('hello')` then `JSON.parse(localStorage.getItem('cadence-v1')).state.agentOpen === undefined`, and the key `cadence-v1` exists.
 - `setOneTimeStatus('dentist', true)` twice keeps the first `completedAt`.
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** the pure helpers and the store actions. Apply builds the next arrays itself; it does not call `addTask` or `deleteTask`. One `set` inside `applyAgentProposal` / `undoAgentProposal` is what `src/lib/sync.ts` already subscribes to.
-- [ ] **Step 4: Run** — `npm run test:agent && npm run test:logic` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: atomic apply and undo for agent proposals"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** the pure helpers and the store actions. Apply builds the next arrays itself; it does not call `addTask` or `deleteTask`. One `set` inside `applyAgentProposal` / `undoAgentProposal` is what `src/lib/sync.ts` already subscribes to.
+- [x] **Step 4: Run** — `npm run test:agent && npm run test:logic` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: atomic apply and undo for agent proposals"`.
 
 ---
 
@@ -542,7 +542,7 @@ check('raw restored', restored.ok && restored.tasks[0].someFutureField.x === 1 &
   - `rejectMessage(deps, message)`: only from `pending`. `dispatch` `rejected`, then fire-and-forget `feedback` `reject` with `taskIds: []`. Tasks are not touched.
   - `undoMessage(deps, message)`: only from `applied`. Calls `undo(message.changes, message.appliedTaskIds)`. On `{ ok: false }`: `toast(result.message)`, status stays `applied`. On `{ ok: true }`: `dispatch` `undone`, `toast('Undone.')`, then fire-and-forget `feedback` `undo` with `taskIds: message.appliedTaskIds`. The toast's Undo and the diff card's Undo both call this function, and a second call after `undone` does nothing.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 let state = { messages: [], sending: false }
@@ -608,10 +608,10 @@ check('stale approve stays pending', chat.messages[3].proposalStatus === 'pendin
 
 `update` and `contractResponse` are the values defined earlier in this file. An unhandled rejection from `feedback` would crash `tsx`, so the test also proves the `.catch`.
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** `agentChat.ts` and `agentActions.ts`. Storage failures are ignored (a full `localStorage` must not crash the panel). `agentActions.ts` imports neither the store nor the client; everything comes in through `deps`.
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: agent chat state, history, and offline gate"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** `agentChat.ts` and `agentActions.ts`. Storage failures are ignored (a full `localStorage` must not crash the panel). `agentActions.ts` imports neither the store nor the client; everything comes in through `deps`.
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: agent chat state, history, and offline gate"`.
 
 ---
 
@@ -631,7 +631,7 @@ check('stale approve stays pending', chat.messages[3].proposalStatus === 'pendin
 - `traceSummary(row)`: `id`, `createdAt` from `created_at`, `outcome` from `data.outcome` or `unknown`, `costUsd` from `data.totals.cost_usd` or null. Each `model_call` event becomes `{ label: 'model', detail: '<model> · <stop_reason>' }`. Each `tool_call` becomes `{ label: name, detail: 'ok' }` or the `error_code`.
 - `traceLoadMessage(failed: boolean): string | null` — failed → `Traces aren't available yet.`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const owner = settingsViewModel({ email: 'bobo.borenstein@gmail.com', prefs: null })
@@ -663,10 +663,10 @@ check('trace summary', summary.outcome === 'proposed' && summary.events[1].detai
 check('trace error hidden', traceLoadMessage(true) === "Traces aren't available yet.")
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** `agentSettings.ts`. Import `ADMIN_EMAIL`; do not copy the address into a second constant.
-- [ ] **Step 4: Run** — `npm run test:agent` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: agent settings model and trace summary"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** `agentSettings.ts`. Import `ADMIN_EMAIL`; do not copy the address into a second constant.
+- [x] **Step 4: Run** — `npm run test:agent` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: agent settings model and trace summary"`.
 
 ---
 
@@ -689,7 +689,7 @@ check('trace error hidden', traceLoadMessage(true) === "Traces aren't available 
 - `CommandPalette` keeps the NLP `Create: "<query>"` row and its `BoDay AI` group exactly as they are. When `agentPaletteItem` is non-null it is the only row of a new group labelled `BoDay Agent`, placed right after the existing `BoDay AI` group. Insert it into the `all` array right after `aiAction` too, so arrow keys and Enter follow the rendered order. A disabled row does not call `openAgent`. An enabled row calls `close()` and `openAgent(query)`.
 - `ToastContainer` passes `event.detail` through `normalizeToast` and, when `actionLabel` is set, renders a button with that label that runs `detail.onAction` and then dismisses the toast. Existing string events still render and still dismiss at 5 seconds.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Import `diffModel` from `../src/lib/agentChat.ts`. Reuse the `update` and `dentist` values from the Task 3 tests in this same file. `readFileSync` comes from `node:fs`.
 
@@ -715,10 +715,10 @@ const diff = readFileSync('src/components/AgentDiffCard.tsx', 'utf8')
 check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Deletes', 'Approve', 'Reject', 'Undo'].every((s) => diff.includes(s)))
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement** the components. Match the header button classes already on Search (`rounded-full`, `border-border`, `text-xs`). Use `motion` the way `CommandPalette` does for the scrim. Wire `online` / `offline` window events to the `online` flag; start from `navigator.onLine`. `serviceConfigured` is `agentBaseUrl(import.meta.env) !== null`. `signedIn` is true only when `isSupabaseConfigured()` and `getSession()` returns a session with a user. `hasModel` is `hasUsableModel(email, prefs)`. When `panelMessage` returns a string, show that string and do not call the client. New chat clears the reducer and `chatKey(userId)` and does not call undo. The snapshot passed to `client.run` comes from `buildAgentSnapshot` with the store's tasks and completions, the awaited envelope's `cache?.windows ?? []`, `new Date()`, and `Intl.DateTimeFormat().resolvedOptions().timeZone`. Imports in `scripts/test-agent.ts` use the `.ts` suffix, same as `scripts/test-logic.ts`.
-- [ ] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: BoDay Agent panel, diff card, and palette entry"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement** the components. Match the header button classes already on Search (`rounded-full`, `border-border`, `text-xs`). Use `motion` the way `CommandPalette` does for the scrim. Wire `online` / `offline` window events to the `online` flag; start from `navigator.onLine`. `serviceConfigured` is `agentBaseUrl(import.meta.env) !== null`. `signedIn` is true only when `isSupabaseConfigured()` and `getSession()` returns a session with a user. `hasModel` is `hasUsableModel(email, prefs)`. When `panelMessage` returns a string, show that string and do not call the client. New chat clears the reducer and `chatKey(userId)` and does not call undo. The snapshot passed to `client.run` comes from `buildAgentSnapshot` with the store's tasks and completions, the awaited envelope's `cache?.windows ?? []`, `new Date()`, and `Intl.DateTimeFormat().resolvedOptions().timeZone`. Imports in `scripts/test-agent.ts` use the `.ts` suffix, same as `scripts/test-logic.ts`.
+- [x] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: BoDay Agent panel, diff card, and palette entry"`.
 
 ---
 
@@ -742,7 +742,7 @@ check('diff colors and actions', ['text-success', 'text-p3', 'text-danger', 'Del
 VITE_AGENT_URL=
 ```
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const settings = readFileSync('src/components/AgentSettings.tsx', 'utf8')
@@ -755,10 +755,10 @@ const env = readFileSync('.env.example', 'utf8')
 check('env example', env.includes('VITE_AGENT_URL=') && env.includes('VITE_SUPABASE_URL='))
 ```
 
-- [ ] **Step 2: Run** — `npm run test:agent` → FAIL.
-- [ ] **Step 3: Implement.** Section markup matches `ShabbatSettings` (`text-xs font-semibold uppercase tracking-wide text-faint`). Do not put the API key in `localStorage` or in the chat state.
-- [ ] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "app: Settings AI section and trace list"`.
+- [x] **Step 2: Run** — `npm run test:agent` → FAIL.
+- [x] **Step 3: Implement.** Section markup matches `ShabbatSettings` (`text-xs font-semibold uppercase tracking-wide text-faint`). Do not put the API key in `localStorage` or in the chat state.
+- [x] **Step 4: Run** — `npm run test:agent && npm run typecheck` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "app: Settings AI section and trace list"`.
 
 ---
 
@@ -766,8 +766,8 @@ check('env example', env.includes('VITE_AGENT_URL=') && env.includes('VITE_SUPAB
 
 **Files:** none new, unless the pass finds a bug. Fix it in the component that owns it and add a failing `check` first.
 
-- [ ] **Step 1: Run the scripts** — `npm run test:agent && npm run test:logic && npm run typecheck` → PASS.
-- [ ] **Step 2: Browser pass.** `npm run dev`. Walk these with the devtools network panel open. There is no service in this track, so the network assertion is that BoDay Agent does not request `/agent/run` while offline or while `VITE_AGENT_URL` is empty.
+- [x] **Step 1: Run the scripts** — `npm run test:agent && npm run test:logic && npm run typecheck` → PASS.
+- [x] **Step 2: Browser pass.** `npm run dev`. Walk these with the devtools network panel open. There is no service in this track, so the network assertion is that BoDay Agent does not request `/agent/run` while offline or while `VITE_AGENT_URL` is empty.
 
   At 375px and at 1280px:
   - Header shows BoDay Agent beside Search (icon only at 375px, icon plus `BoDay Agent` at 1280px). The bottom nav still has Today, Tasks, the add button, Calendar, Stats, Settings.
@@ -781,6 +781,6 @@ check('env example', env.includes('VITE_AGENT_URL=') && env.includes('VITE_SUPAB
 
   `VITE_AGENT_URL` pointing at a real service is an **owner step**. Do not block the PR on it. Apply, undo, and the diff lines are covered by `npm run test:agent`.
 - [ ] **Step 3: Owner step — production URL.** Leave unchecked. The owner puts `VITE_AGENT_URL=<Cloud Run URL from the phase 5a deploy, no trailing slash>` in the repo-root `.env` on the Mac and runs `npm run build && npx wrangler deploy`. Nothing is set on Cloudflare; the value is baked in at build time.
-- [ ] **Step 4: Commit any fixes, push, open the PR**
+- [x] **Step 4: Commit any fixes, push, open the PR**
 
 PR into `main`, title `Agent phase 5b: app chat UI`. Do not merge. In the body, name the browser cases you could not run.

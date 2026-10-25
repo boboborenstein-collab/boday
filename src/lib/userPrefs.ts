@@ -2,9 +2,22 @@ import { getSupabase, isSupabaseConfigured } from './supabaseClient'
 
 export type SnoozeMap = Record<string, string>
 
+export interface UserPrefsCache {
+  fetchedAt?: string
+  windows?: { start: string; end: string; title: string }[]
+}
+
+export interface AgentAiPrefs {
+  provider: 'auto' | 'claude' | 'custom'
+  model: string | null
+  baseUrl: string | null
+  keyCiphertext: string | null
+}
+
 export interface UserPrefsEnvelope {
   quiet?: unknown
-  cache?: unknown
+  cache?: UserPrefsCache
+  ai?: AgentAiPrefs
   calendarToken?: string
   snoozes?: SnoozeMap
 }
@@ -37,62 +50,116 @@ function mergeEnvelope(
   return merged
 }
 
-async function sessionUserId(): Promise<string | null> {
-  if (!isSupabaseConfigured()) return null
-  const { data } = await getSupabase().auth.getSession()
-  return data.session?.user.id ?? null
+/** The slice of the Supabase client that prefs reads use (a fake in tests). */
+export interface PrefsClient {
+  auth: { getSession(): Promise<{ data: { session: { user: { id: string } } | null } }> }
+  from(table: string): {
+    select(columns: string): {
+      eq(column: string, value: string): {
+        maybeSingle(): PromiseLike<{ data: { data?: unknown } | null; error: unknown }>
+      }
+    }
+    upsert(row: { id: string; user_id: string; data: UserPrefsEnvelope }): PromiseLike<{ error: unknown }>
+  }
+  rpc(fn: string, args: { pref_id: string; patch: Partial<UserPrefsEnvelope> }): PromiseLike<{ error: unknown }>
 }
 
-export async function loadUserPrefsEnvelope(): Promise<UserPrefsEnvelope> {
-  const userId = await sessionUserId()
-  if (!userId) return {}
+export type PrefsWrite = { ok: true } | { ok: false; message: string }
+
+const WRITE_FAILED = "Couldn't save your settings. Try again."
+
+
+export type UserPrefsLoad =
+  | { ok: true; env: UserPrefsEnvelope }
+  | { ok: false; reason: 'signed-out' | 'error' }
+
+function defaultPrefsClient(): PrefsClient | null {
+  return isSupabaseConfigured() ? (getSupabase() as unknown as PrefsClient) : null
+}
+
+/** Read user_prefs and say whether the read worked. A missing row is an empty envelope. */
+export async function loadUserPrefsResult(
+  client: PrefsClient | null = defaultPrefsClient(),
+): Promise<UserPrefsLoad> {
+  if (!client) return { ok: false, reason: 'signed-out' }
   try {
-    const { data, error } = await getSupabase()
-      .from('user_prefs')
-      .select('data')
-      .eq('id', userId)
-      .single()
-    if (error || !data?.data) return {}
-    const env = data.data as UserPrefsEnvelope
+    const { data: auth } = await client.auth.getSession()
+    const userId = auth.session?.user.id
+    if (!userId) return { ok: false, reason: 'signed-out' }
+    const { data, error } = await client.from('user_prefs').select('data').eq('id', userId).maybeSingle()
+    if (error) return { ok: false, reason: 'error' }
+    const env = (data?.data ?? {}) as UserPrefsEnvelope
     if (env.snoozes) env.snoozes = pruneSnoozes(env.snoozes)
-    return env
+    return { ok: true, env }
   } catch {
-    return {}
+    return { ok: false, reason: 'error' }
   }
 }
 
-/** Deep-merge a patch into user_prefs.data (RPC when available). */
-export async function mergeUserPrefsData(patch: Partial<UserPrefsEnvelope>): Promise<void> {
-  const userId = await sessionUserId()
-  if (!userId) return
-
-  const payload = { ...patch }
-  if (payload.snoozes) {
-    payload.snoozes = pruneSnoozes(payload.snoozes)
-  }
-
-  const supabase = getSupabase()
-  const { error: rpcErr } = await supabase.rpc('merge_user_prefs', {
-    pref_id: userId,
-    patch: payload,
-  })
-
-  if (!rpcErr) return
-
-  const existing = await loadUserPrefsEnvelope()
-  await supabase.from('user_prefs').upsert({
-    id: userId,
-    user_id: userId,
-    data: mergeEnvelope(existing, payload),
-  })
+/** Best-effort read: any failure reads as an empty envelope. */
+export async function loadUserPrefsEnvelope(): Promise<UserPrefsEnvelope> {
+  const result = await loadUserPrefsResult()
+  return result.ok ? result.env : {}
 }
 
-export async function ensureCalendarToken(): Promise<string | null> {
-  const env = await loadUserPrefsEnvelope()
-  if (env.calendarToken) return env.calendarToken
-  const token = uuid().replace(/-/g, '')
-  await mergeUserPrefsData({ calendarToken: token })
-  return token
+/**
+ * Merge a patch into user_prefs.data (RPC when available) and say whether it was written.
+ * The fallback read-modify-write refuses to run when the read fails, so it can never
+ * replace the whole row with just the patch.
+ */
+export async function mergeUserPrefsData(
+  patch: Partial<UserPrefsEnvelope>,
+  client: PrefsClient | null = defaultPrefsClient(),
+): Promise<PrefsWrite> {
+  if (!client) return { ok: false, message: 'Sign in required.' }
+  try {
+    const { data: auth } = await client.auth.getSession()
+    const userId = auth.session?.user.id
+    if (!userId) return { ok: false, message: 'Sign in required.' }
+
+    const payload = { ...patch }
+    if (payload.snoozes) {
+      payload.snoozes = pruneSnoozes(payload.snoozes)
+    }
+
+    const { error: rpcErr } = await client.rpc('merge_user_prefs', {
+      pref_id: userId,
+      patch: payload,
+    })
+    if (!rpcErr) return { ok: true }
+
+    const existing = await loadUserPrefsResult(client)
+    if (!existing.ok) return { ok: false, message: WRITE_FAILED }
+    const { error } = await client.from('user_prefs').upsert({
+      id: userId,
+      user_id: userId,
+      data: mergeEnvelope(existing.env, payload),
+    })
+    return error ? { ok: false, message: WRITE_FAILED } : { ok: true }
+  } catch {
+    return { ok: false, message: WRITE_FAILED }
+  }
+}
+
+export type CalendarTokenResult = { ok: true; token: string } | { ok: false; message: string }
+
+const CALENDAR_LOAD_FAILED = "Couldn't load your calendar link. Try again later."
+
+/**
+ * The calendar feed token. A new one is minted only when user_prefs was read and had none,
+ * and is returned only once saved; a failed read must never replace the subscribed token.
+ */
+export async function ensureCalendarToken(
+  client: PrefsClient | null = defaultPrefsClient(),
+  newToken: () => string = () => uuid().replace(/-/g, ''),
+): Promise<CalendarTokenResult> {
+  const read = await loadUserPrefsResult(client)
+  if (!read.ok) return { ok: false, message: CALENDAR_LOAD_FAILED }
+  if (read.env.calendarToken) return { ok: true, token: read.env.calendarToken }
+  const token = newToken()
+  const written = await mergeUserPrefsData({ calendarToken: token }, client)
+  if (!written.ok) return { ok: false, message: CALENDAR_LOAD_FAILED }
+  return { ok: true, token }
 }
 
 export async function setSnooze(taskId: string, dateStr: string, untilIso: string): Promise<void> {
