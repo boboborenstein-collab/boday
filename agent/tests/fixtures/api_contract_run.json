@@ -1,0 +1,38 @@
+{
+  "message": "move my dentist to tomorrow",
+  "history": [
+    {
+      "role": "assistant",
+      "text": "Moved dentist to Wednesday.",
+      "proposal": [
+        {
+          "op": "update",
+          "taskId": "dentist",
+          "patch": {"scheduledDate": "2026-10-21"},
+          "beforeFields": {"scheduledDate": "2026-10-22"},
+          "warnings": []
+        }
+      ],
+      "proposalStatus": "applied"
+    }
+  ],
+  "snapshot": {
+    "tasks": [],
+    "completions": [],
+    "quietWindows": [
+      {
+        "start": "2026-10-23T17:52:00-04:00",
+        "end": "2026-10-24T18:51:00-04:00",
+        "title": "Candle lighting"
+      }
+    ],
+    "now": "2026-10-21T18:00:00Z",
+    "timezone": "America/New_York"
+  },
+  "settings": {
+    "provider": "claude",
+    "model": "claude-haiku-5-5",
+    "baseUrl": null,
+    "keyCiphertext": "<ciphertext from POST /encrypt>"
+  }
+}

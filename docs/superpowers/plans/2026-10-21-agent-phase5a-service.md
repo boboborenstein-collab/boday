@@ -318,7 +318,7 @@ The spec's repo sketch puts `api.py` and `crypto.py` next to `loop.py`, and a Po
   - `EncryptRequest` with `plaintext: str` (1..500).
   - `run_settings_error(settings: RunSettings, *, is_owner: bool) -> tuple[int, str, str] | None` — `None` when the settings are usable. Otherwise `(status, code, message)` from the contract table: non-owner `auto` → 403 `AUTO_OWNER_ONLY`; `claude` with no ciphertext, or `custom` missing `baseUrl` or `model` → 403 `MODEL_NOT_CONFIGURED`. Does not decrypt and does not resolve DNS.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Copy the `POST /agent/run` request example and the HTTP 200 response example from the API contract section into the two fixture files, byte for byte inside the JSON (pretty-printed the same way).
 
@@ -360,10 +360,10 @@ def test_response_fixture_has_the_contract_keys():
     }
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_contract.py -q` → FAIL (`contract` is not a module).
-- [ ] **Step 3: Implement** `contract.py` as in Interfaces. Validators reject a non-dict snapshot and the length limits. No FastAPI in this task.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: phase 5a HTTP contract models"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_contract.py -q` → FAIL (`contract` is not a module).
+- [x] **Step 3: Implement** `contract.py` as in Interfaces. Validators reject a non-dict snapshot and the length limits. No FastAPI in this task.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: phase 5a HTTP contract models"`.
 
 ---
 
@@ -382,7 +382,7 @@ def test_response_fixture_has_the_contract_keys():
   - `decrypt(self, ciphertext: str, *, user_id: str) -> str` — the inverse. Any failure (bad base64, wrong version byte, truncated blob, bad tag, wrong user id) raises `DecryptError` and nothing else.
   - `encryptor_from_b64(value: str) -> Encryptor` — decodes standard base64 and requires 32 bytes.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_round_trip_is_bound_to_the_user_and_not_deterministic():
@@ -413,10 +413,10 @@ def test_key_length():
     assert isinstance(encryptor_from_b64(base64.b64encode(b"k" * 32).decode()), Encryptor)
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_crypto.py -q` → FAIL.
-- [ ] **Step 3: Implement.** `uv add cryptography`. Use `AESGCM` from `cryptography.hazmat`. Catch every crypto and decoding exception and raise `DecryptError("ciphertext rejected")` from None, so the original message cannot leak.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: AES-GCM key encryption bound to the user id"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_crypto.py -q` → FAIL.
+- [x] **Step 3: Implement.** `uv add cryptography`. Use `AESGCM` from `cryptography.hazmat`. Catch every crypto and decoding exception and raise `DecryptError("ciphertext rejected")` from None, so the original message cannot leak.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: AES-GCM key encryption bound to the user id"`.
 
 ---
 
@@ -436,7 +436,7 @@ def test_key_length():
   - `verify(self, header_value: str | None) -> User`. Accepts `Bearer <jwt>` with one space. Requires `sub` (non-empty string), `aud == "authenticated"`, an `exp` in the future (`now()` is unix seconds; default `time.time`), and `iss == issuer` when `issuer` is set. A `kid` that is not in the JWKS, any other shape, algorithm, signature, issuer, or audience raises `AuthError`.
   - `cached_jwks(url: str, *, ttl_s: float = 600, timeout_s: float = 3.0, get=None, clock=time.monotonic) -> Callable[[], dict]` — the production `jwks_get`. Fetches `url` with `httpx.get(url, timeout=timeout_s)` (or the injected `get`), keeps the JSON for `ttl_s` seconds, and on a fetch error keeps serving the last good copy. With no good copy yet, a fetch error raises `AuthError`. `verify` calls `jwks_get` once per token and, when the `kid` is missing, asks for one forced refresh (`jwks_get.refresh()`, an attribute on the returned callable) before rejecting.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def _hs(secret, **claims):
@@ -505,10 +505,10 @@ def test_cached_jwks_keeps_the_last_good_copy():
 
 Test imports: `jwt`, `httpx`, `json`, `pytest`, `from cryptography.hazmat.primitives.asymmetric import ec, rsa`, `from jwt.algorithms import ECAlgorithm, RSAAlgorithm`, and `AuthError`, `TokenVerifier`, `User`, `cached_jwks`, `is_owner` from `boday_agent.server.auth`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_auth.py -q` → FAIL.
-- [ ] **Step 3: Implement.** `uv add "pyjwt[crypto]"`. Read the header with `jwt.get_unverified_header` only to find `kid` and `alg`. In JWKS mode, reject unless `alg` is `ES256` or `RS256`, then call `jwt.decode(token, key, algorithms=[alg], audience="authenticated", issuer=issuer)` where `alg` is one of those two and `key` comes from the JWKS entry with that `kid`. In HS256 mode, `algorithms=["HS256"]`. Never pass an HS algorithm in JWKS mode, and never pass ES/RS in HS mode. Wrap every PyJWT error in `AuthError("unauthorized")` from None.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: verify Supabase access tokens"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_auth.py -q` → FAIL.
+- [x] **Step 3: Implement.** `uv add "pyjwt[crypto]"`. Read the header with `jwt.get_unverified_header` only to find `kid` and `alg`. In JWKS mode, reject unless `alg` is `ES256` or `RS256`, then call `jwt.decode(token, key, algorithms=[alg], audience="authenticated", issuer=issuer)` where `alg` is one of those two and `key` comes from the JWKS entry with that `kid`. In HS256 mode, `algorithms=["HS256"]`. Never pass an HS algorithm in JWKS mode, and never pass ES/RS in HS mode. Wrap every PyJWT error in `AuthError("unauthorized")` from None.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: verify Supabase access tokens"`.
 
 ---
 
@@ -536,7 +536,7 @@ Test imports: `jwt`, `httpx`, `json`, `pytest`, `from cryptography.hazmat.primit
   - `pinning_transport(pinned: PinnedUrl, *, max_response_bytes: int = 2_097_152) -> httpx.BaseTransport` returns `CappedTransport(PinnedHTTPTransport(pinned), max_response_bytes)`. Every client built over it uses `follow_redirects=False` (the httpx default; never turn it on). Build a separate transport for the `select_provider` health check, because `select_provider` closes the client it opens.
   - `default_resolve(host: str) -> list[str]` — `socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)`, the address of each entry, used only outside unit tests. Not used by the tests below.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 PUBLIC = "8.8.8.8"  # a truly global address; resolve is stubbed, so no socket opens
@@ -663,10 +663,10 @@ def test_backend_refuses_a_different_host():
 
 Test imports: `socket`, `time`, `httpx`, `pytest`, `OpenAICompatProvider` from `boday_agent.providers.openai_compat`, `ProviderError` and `UserText` from `boday_agent.providers.base`, and everything Task 4 produces from `boday_agent.server.ssrf`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_ssrf.py -q` → FAIL (`test_redirect_is_not_followed` is the one that already passes).
-- [ ] **Step 3: Implement** as in Interfaces. Classify with `ipaddress.ip_address`. Wrap `resolve` in a daemon thread and `join(resolve_timeout_s)`. `PinnedHTTPTransport` swaps `self._pool` as described; do not reimplement httpx's request conversion. Do not turn redirects on anywhere this transport is used.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: SSRF guard pins the resolved address"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_ssrf.py -q` → FAIL (`test_redirect_is_not_followed` is the one that already passes).
+- [x] **Step 3: Implement** as in Interfaces. Classify with `ipaddress.ip_address`. Wrap `resolve` in a daemon thread and `join(resolve_timeout_s)`. `PinnedHTTPTransport` swaps `self._pool` as described; do not reimplement httpx's request conversion. Do not turn redirects on anywhere this transport is used.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: SSRF guard pins the resolved address"`.
 
 ---
 
@@ -690,7 +690,7 @@ Test imports: `socket`, `time`, `httpx`, `pytest`, `OpenAICompatProvider` from `
     - `custom`: `GET {base}/models` through the pinning transport, timeout 5s. 200 → `{ok: true, provider: "openai_compat", model, detail: "models endpoint returned 200"}`. Otherwise `ok: false` and `detail` `models endpoint returned <status>` or `models endpoint unreachable`. No request to `/chat/completions`.
     - `auto`: the same GET against the local URL with the CF headers and no user key, timeout 2s. Shapes are the ones in the API contract (`auto: local reachable` / `auto: local unreachable ...`). Do not call Anthropic.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Use `Encryptor(b"k" * 32)` and `httpx.MockTransport`. Script `resolve` to return `8.8.8.8` for `llm.example`.
 
@@ -752,10 +752,10 @@ def test_probe_never_posts_a_completion():
 
 Add two shorter tests beside these: auto with `local_base_url=None` returns the Anthropic fallback and a reason starting `auto: local unreachable`, and a Claude `probe_connection` against a stub client calls `models.list` and does not call `messages.create`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_providers.py -q` → FAIL.
-- [ ] **Step 3: Implement** as in Interfaces. `AnthropicProvider` stores the key on `client.api_key` when it constructs `anthropic.Anthropic`; assert against the object the constructor actually keeps (the existing attribute is `client`). Do not modify `providers/`.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: build a provider from per-user settings"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_providers.py -q` → FAIL.
+- [x] **Step 3: Implement** as in Interfaces. `AnthropicProvider` stores the key on `client.api_key` when it constructs `anthropic.Anthropic`; assert against the object the constructor actually keeps (the existing attribute is `client`). Do not modify `providers/`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: build a provider from per-user settings"`.
 
 ---
 
@@ -865,7 +865,7 @@ grant execute on function public.append_agent_feedback(text, text, jsonb) to age
 
 Do not put a password in this file. The owner sets one later.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_memory_sink_redacts_and_feedback_is_user_scoped(tmp_path):
@@ -923,10 +923,10 @@ def test_postgres_connect_disables_prepared_statements(monkeypatch):
 
 `FakeCursor.calls` is a list of `(sql, params)`; `fetchone()` returns `(True,)`. `FakeConn` returns that cursor from `cursor()` and records `close`. Test imports include `sys`, `types`, `json`, `datetime` / `UTC`, `Trace` from `boday_agent.tracing`, and `MemorySink`, `PostgresSink`, `feedback_event`, `postgres_connect` from `boday_agent.server.traces`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_traces.py -q` → FAIL.
-- [ ] **Step 3: Implement** the sinks and commit the SQL above. `uv add "psycopg[binary]"`. `PostgresSink` and `postgres_connect` import psycopg inside the function body so tests that never construct them do not need a server (and so the monkeypatched `sys.modules["psycopg"]` is what the test sees). `write` passes `json.dumps(redact(...))` as the third parameter.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: trace table, tracer role, and sink"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_traces.py -q` → FAIL.
+- [x] **Step 3: Implement** the sinks and commit the SQL above. `uv add "psycopg[binary]"`. `PostgresSink` and `postgres_connect` import psycopg inside the function body so tests that never construct them do not need a server (and so the monkeypatched `sys.modules["psycopg"]` is what the test sees). `write` passes `json.dumps(redact(...))` as the third parameter.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: trace table, tracer role, and sink"`.
 
 ---
 
@@ -949,7 +949,7 @@ def test_postgres_connect_disables_prepared_statements(monkeypatch):
 - CORS: `allow_origins=config.allowed_origins`, methods `GET`, `POST`, `OPTIONS`, headers `Authorization` and `Content-Type`, `allow_credentials=False`. An origin that is not on the list gets no `access-control-allow-origin` header.
 - Logs (logger name `boday_agent.server`): method, path, status, user id. Never the body, the headers, the ciphertext, or an exception message.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_health_requires_a_jwt():
@@ -1017,10 +1017,10 @@ def test_encrypt_without_a_key_is_503():
 
 `_config(**overrides)` builds `ServerConfig` with `jwt_secret="test-secret"`, `admin_email="bobo.borenstein@gmail.com"`, `allowed_origins=["http://localhost:5173"]`, and `max_body_bytes=4_194_304`. `_client(**overrides)` passes `_config(...)`, a `MemorySink` unless `sink` is given, an `Encryptor(KEY)` unless overridden (`encryptor=None` means no key), `resolve=lambda h: ["8.8.8.8"]`, and a `TokenVerifier` over that secret, then wraps the app in `TestClient`. `_auth(sub="user-1", email="bobo.borenstein@gmail.com")` is the HS256 bearer helper from Task 3. `app_module` is `boday_agent.server.app` imported as a module. `KEY` is `b"k" * 32`. `test_every_route_handler_is_sync` also covers the Task 8 and Task 9 routes once they exist; it passes with the two routes of this task.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL.
-- [ ] **Step 3: Implement.** `uv add fastapi uvicorn`. Middleware as in Interfaces. The CORS middleware answers `OPTIONS` before auth, so a preflight with no `Authorization` header still returns 200 for an allowed origin. Register an exception handler for `RequestValidationError` that returns 400 `INVALID_REQUEST`. `app.py` imports `Encryptor` by name (the monkeypatch in the 500 test patches `app_module.Encryptor.encrypt`). `POST /encrypt` uses the caller from `verifier.verify`. No `/agent/run` yet.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: FastAPI shell, health, and encrypt"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL.
+- [x] **Step 3: Implement.** `uv add fastapi uvicorn`. Middleware as in Interfaces. The CORS middleware answers `OPTIONS` before auth, so a preflight with no `Authorization` header still returns 200 for an allowed origin. Register an exception handler for `RequestValidationError` that returns 400 `INVALID_REQUEST`. `app.py` imports `Encryptor` by name (the monkeypatch in the 500 test patches `app_module.Encryptor.encrypt`). `POST /encrypt` uses the caller from `verifier.verify`. No `/agent/run` yet.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: FastAPI shell, health, and encrypt"`.
 
 ---
 
@@ -1042,7 +1042,7 @@ def test_encrypt_without_a_key_is_503():
   7. `sink.write(result.trace, user.id)`. On any exception, 500 `TRACE_WRITE_FAILED` and do not include `changes` or `text`.
   8. Return 200 with `traceId`, `outcome`, `text`, `changes` (the list from the result, not a re-parsed strict model), `question`, `options`, `parseWarnings` from `result.trace.parse_warnings`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Monkeypatch `boday_agent.server.app.build_provider` to return `(FakeProvider([...]), "explicit")` and a `MemorySink`. The happy-path script is one `fake_text("Moved dentist to Wednesday.")` after the tools the fixture needs, or a single `fake_text` when the snapshot has no matching task so the outcome is `answered`. Drive a proposal by scripting `fake_tools` then `fake_text`, using a snapshot copied from `agent/examples/demo_snapshot.json` with its `now` set to `2026-10-21T18:00:00Z`.
 
@@ -1151,10 +1151,10 @@ def test_other_users_ciphertext_is_rejected(caplog):
 
 `test_other_users_ciphertext_is_rejected` does not monkeypatch `build_provider`.
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL on the new tests.
-- [ ] **Step 3: Implement** the flow in Interfaces. History mapping is `HistoryTurn(role=item.role, text=item.text, proposal=item.proposal, proposal_status=item.proposal_status)`. Catch `ProviderBuildError` and `ValidationError` only around the steps that raise them.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check . && uv run boday-eval validate` → PASS. `validate` must still report the suite valid; this task does not edit cases.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: POST /agent/run over the existing loop"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_app.py -q` → FAIL on the new tests.
+- [x] **Step 3: Implement** the flow in Interfaces. History mapping is `HistoryTurn(role=item.role, text=item.text, proposal=item.proposal, proposal_status=item.proposal_status)`. Catch `ProviderBuildError` and `ValidationError` only around the steps that raise them.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check . && uv run boday-eval validate` → PASS. `validate` must still report the suite valid; this task does not edit cases.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: POST /agent/run over the existing loop"`.
 
 ---
 
@@ -1168,7 +1168,7 @@ def test_other_users_ciphertext_is_rejected(caplog):
 - `POST /feedback` reads `FeedbackRequest`, builds `feedback_event` with `datetime.now(UTC)`, calls `sink.append_feedback`. `True` → `{"ok": true}`. `False` → 404 `NOT_FOUND`.
 - `POST /agent/test` runs `run_settings_error` and then `probe_connection`. `ProviderBuildError` → 400 with that code. A returned dict → HTTP 200 even when `ok` is false.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def _trace(run_id):
@@ -1200,10 +1200,10 @@ def test_agent_test_reports_the_mac_without_a_trace(monkeypatch):
     assert forbidden.status_code == 403
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_app.py::test_feedback_appends_for_the_owner_only tests/test_server_app.py::test_agent_test_reports_the_mac_without_a_trace -q` → FAIL.
-- [ ] **Step 3: Implement** the two routes. `datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")` is the `at` value (injectable clock on `create_app` so the test can pin it; default the real clock). The feedback test compares `event` and `taskIds` and asserts `at` matches `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
-- [ ] **Step 5: Commit + push** — `git commit -m "agent: feedback and test-connection routes"`.
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_app.py::test_feedback_appends_for_the_owner_only tests/test_server_app.py::test_agent_test_reports_the_mac_without_a_trace -q` → FAIL.
+- [x] **Step 3: Implement** the two routes. `datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")` is the `at` value (injectable clock on `create_app` so the test can pin it; default the real clock). The feedback test compares `event` and `taskIds` and asserts `at` matches `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS.
+- [x] **Step 5: Commit + push** — `git commit -m "agent: feedback and test-connection routes"`.
 
 ---
 
@@ -1218,7 +1218,7 @@ def test_agent_test_reports_the_mac_without_a_trace(monkeypatch):
 - `agent/.dockerignore` excludes `.venv`, `tests`, `evals`, `traces`, `.env`, and `__pycache__`.
 - `agent/DEPLOY.md` is the owner runbook. It contains the strings the test below checks, the secret names from the contract, and the steps marked owner step. It contains no secret values.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_image_and_runbook_match_the_spec():
@@ -1265,8 +1265,8 @@ def test_image_and_runbook_match_the_spec():
     assert "sk-ant-" not in doc
 ```
 
-- [ ] **Step 2: Run** — `uv run pytest tests/test_server_image.py -q` → FAIL.
-- [ ] **Step 3: Write the three files.** Dockerfile and dockerignore as in Interfaces. `DEPLOY.md` sections, in this order:
+- [x] **Step 2: Run** — `uv run pytest tests/test_server_image.py -q` → FAIL.
+- [x] **Step 3: Write the three files.** Dockerfile and dockerignore as in Interfaces. `DEPLOY.md` sections, in this order:
   1. What it is: stateless Cloud Run service, snapshot in, proposal out, no task-table access.
   2. **owner step** — billing account on the GCP project. Free tier quoted from the spec: 2M requests, 180k vCPU-s, 360k GiB-s per month. Budget alert at $1.
   3. **owner step** — run `agent/sql/agent_traces.sql` in the Supabase SQL editor (it is safe to run again). Then `alter role agent_tracer password '...'` in that editor; the password is not written into the repo. The direct database host is IPv6-only on the free plan and Cloud Run sends IPv4, so use the Supavisor pooler: `AGENT_TRACES_DSN` is `postgresql://agent_tracer.cgsjsbsxuzawvgunrpqi:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres` (transaction mode; copy the exact host from Supabase → Connect). The pooler user name is the role name, a dot, and the project ref. `postgres_connect` already turns prepared statements off for this mode. Schedule the 30-day delete once `pg_cron` is enabled (the comment at the end of the SQL file).
@@ -1274,9 +1274,9 @@ def test_image_and_runbook_match_the_spec():
   5. **owner step** — the Mac. Ollama starts at login. `cloudflared` serves a hostname under `expense-app.uk` (the spec's example is `llm.expense-app.uk`). Cloudflare Access service token; the Cloud Run service sends `CF-Access-Client-Id` and `CF-Access-Client-Secret`. Put the public `https` base URL (ending in `/v1` if Ollama is mounted there) in `BODAY_LOCAL_BASE_URL` and the chosen model id in `BODAY_LOCAL_MODEL`. Do not pick the model in this repo.
   6. **owner step** — the app. Builds run on the owner's Mac, not on Cloudflare, so put `VITE_AGENT_URL=<Cloud Run URL, no trailing slash>` in the repo-root `.env` (gitignored) and then run `npm run build && npx wrangler deploy`. Artifact Registry cleanup policy so the repository stays under 0.5 GB.
   7. Local run without deploy: `uv run uvicorn --factory boday_agent.server.app:app_from_env --reload`. With `AGENT_TRACES_DSN` empty it uses `MemorySink`. `create_app` raises at startup unless `SUPABASE_JWT_SECRET` or `SUPABASE_JWKS_URL` is set. Without `AGENT_ENCRYPTION_KEY`, `/encrypt` returns 503 and saved keys cannot be read.
-- [ ] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS. Do not run `docker build` and do not run `gcloud`.
+- [x] **Step 4: Run** — `uv run pytest -q && uv run ruff check .` → PASS. Do not run `docker build` and do not run `gcloud`.
 - [ ] **Step 5: Owner step — deploy.** Leave unchecked. The owner runs the SQL, sets the secrets, and deploys from `DEPLOY.md`.
-- [ ] **Step 6: Commit, push, open the PR**
+- [x] **Step 6: Commit, push, open the PR**
 
 ```bash
 git add agent/Dockerfile agent/.dockerignore agent/DEPLOY.md agent/tests/test_server_image.py
