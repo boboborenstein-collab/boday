@@ -31,6 +31,7 @@ import {
 } from '../src/lib/agentChat.ts'
 import { approveMessage, rejectMessage, undoMessage } from '../src/lib/agentActions.ts'
 import * as chatLib from '../src/lib/agentChat.ts'
+import * as actionsLib from '../src/lib/agentActions.ts'
 import {
   hasUsableModel,
   keyFieldPlaceholder,
@@ -897,6 +898,39 @@ check('fix9: a rejected proposal cannot be applied', statusAfter('rejected', { t
 const failedTurn = reduce(reduce({ messages: [], sending: false }, { type: 'send', id: 'fs', text: 'hi' }), { type: 'fail', id: 'ff', text: "Couldn't reach BoDay AI." })
 check('fix9: a failed run ends sending and records no proposal',
   failedTurn.sending === false && failedTurn.messages.length === 2 && failedTurn.messages[1].outcome === 'failed' && (failedTurn.messages[1].changes as unknown[]).length === 0 && failedTurn.messages[1].proposalStatus === null)
+
+// Round 3, fix 1: the second click of a double-click on Approve never lands as an Undo.
+useStore.setState({
+  tasks: [{ id: 'dentist', type: 'one_time', title: 'Dentist', priority: 3, scheduledDate: '2026-10-22', completed: false, createdAt: '2026-09-01T12:00:00Z' }] as never,
+  completions: [],
+})
+let dbl: { messages: Record<string, unknown>[]; sending: boolean } = { messages: [], sending: false }
+dbl = reduce(dbl, { type: 'send', id: 'du1', text: 'bump dentist' })
+dbl = reduce(dbl, { type: 'assistant', id: 'da1', response: { ...contractResponse, outcome: 'proposed', changes: [liveUpdate] } })
+let clock = 1_000_000
+const dblToasts: string[] = []
+let dblToastUndo: (() => void) | null = null
+const dblDeps = {
+  ...liveDeps,
+  dispatch: (e: { type: string }) => { dbl = reduce(dbl, e as never) },
+  toast: (d: string | { message: string; onAction?: () => void }) => { dblToasts.push(typeof d === 'string' ? d : d.message); if (typeof d !== 'string' && d.onAction) dblToastUndo = d.onAction },
+  current: (id: string) => dbl.messages.find((m) => m.id === id),
+  now: () => clock,
+}
+const cardUndo = lib(actionsLib, 'cardUndo') ?? ((deps: unknown, m: unknown) => undoMessage(deps as never, m as never))
+const dblCopy = dbl.messages[1]
+approveMessage(dblDeps as never, dblCopy as never)
+clock += 120
+cardUndo(dblDeps, dblCopy)
+check('r3 fix1: a double-click on Approve stays applied', priorityNow() === 1 && dbl.messages[1].proposalStatus === 'applied' && !dblToasts.includes('Undone.'), dblToasts.join(' '))
+clock += 700
+cardUndo(dblDeps, dbl.messages[1])
+check('r3 fix1: a deliberate card Undo still works', priorityNow() === 3 && dbl.messages[1].proposalStatus === 'undone')
+dbl = reduce(dbl, { type: 'send', id: 'du2', text: 'again' })
+dbl = reduce(dbl, { type: 'assistant', id: 'da2', response: { ...contractResponse, outcome: 'proposed', changes: [liveUpdate] } })
+approveMessage(dblDeps as never, dbl.messages[3] as never)
+;(dblToastUndo as (() => void) | null)?.()
+check('r3 fix1: the toast Undo is not delayed', priorityNow() === 3 && dbl.messages[3].proposalStatus === 'undone')
 
 console.log('')
 if (failures === 0) {

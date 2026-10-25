@@ -14,6 +14,8 @@ export interface ChatMessage {
   proposalStatus?: 'pending' | 'applied' | 'rejected' | 'undone' | null
   selectedTaskIds?: string[]
   appliedTaskIds?: string[]
+  /** Epoch ms when the proposal was applied; the card's Undo stays inert briefly after. */
+  appliedAt?: number
 }
 
 export interface ChatState {
@@ -26,7 +28,7 @@ export type ChatEvent =
   | { type: 'assistant'; id: string; response: RunResponse }
   | { type: 'fail'; id: string; text: string }
   | { type: 'toggle'; messageId: string; taskId: string }
-  | { type: 'resolve'; messageId: string; status: 'applied' | 'rejected' | 'undone' }
+  | { type: 'resolve'; messageId: string; status: 'applied' | 'rejected' | 'undone'; at?: number }
   | { type: 'new' }
 
 export interface HistoryTurn {
@@ -120,6 +122,7 @@ export function reduce(state: ChatState, event: ChatEvent): ChatState {
           ...message,
           proposalStatus: event.status,
           appliedTaskIds: event.status === 'applied' ? [...(message.selectedTaskIds ?? [])] : message.appliedTaskIds,
+          appliedAt: event.status === 'applied' ? event.at : message.appliedAt,
         }
       }),
     }

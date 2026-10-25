@@ -7,8 +7,8 @@ import { AgentError } from '../lib/agentContract'
 import { buildAgentSnapshot } from '../lib/agentSnapshot'
 import {
   approveMessage,
+  cardUndo,
   rejectMessage,
-  undoMessage,
   type AgentActionDeps,
 } from '../lib/agentActions'
 import {
@@ -276,7 +276,7 @@ export function AgentChat() {
                       onToggle={(taskId) => dispatch({ type: 'toggle', messageId: message.id, taskId })}
                       onApprove={() => approveMessage(deps(), message)}
                       onReject={() => rejectMessage(deps(), message)}
-                      onUndo={() => undoMessage(deps(), message)}
+                      onUndo={() => cardUndo(deps(), message)}
                     />
                   )}
                   {message.outcome === 'asked' &&

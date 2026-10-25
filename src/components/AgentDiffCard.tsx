@@ -70,13 +70,15 @@ export function AgentDiffCard({
         </div>
       )}
       {applied && (
-        <button
-          type="button"
-          onClick={onUndo}
-          className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted"
-        >
-          Undo
-        </button>
+        <div className="flex justify-end pt-1">
+          <button
+            type="button"
+            onClick={onUndo}
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted"
+          >
+            Undo
+          </button>
+        </div>
       )}
       {settled && <p className="text-xs capitalize text-faint">{message.proposalStatus}</p>}
     </div>

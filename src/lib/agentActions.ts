@@ -18,6 +18,15 @@ export interface AgentActionDeps {
   toast: (detail: string | { message: string; actionLabel: string; onAction?: () => void }) => void
   /** The message as it is now. Clicks hold the copy from render time, which can be stale. */
   current: (messageId: string) => ChatMessage | undefined
+  /** Clock for the card Undo guard; defaults to Date.now. */
+  now?: () => number
+}
+
+/** The card's Undo ignores clicks this long after Approve, so a double-click can't undo. */
+export const UNDO_ARM_MS = 600
+
+function nowMs(deps: AgentActionDeps): number {
+  return deps.now ? deps.now() : Date.now()
 }
 
 function fireFeedback(deps: AgentActionDeps, body: FeedbackBody): void {
@@ -38,7 +47,7 @@ export function approveMessage(deps: AgentActionDeps, clicked: ChatMessage): voi
     deps.toast(result.message)
     return
   }
-  deps.dispatch({ type: 'resolve', messageId: message.id, status: 'applied' })
+  deps.dispatch({ type: 'resolve', messageId: message.id, status: 'applied', at: nowMs(deps) })
   const applied: ChatMessage = { ...message, proposalStatus: 'applied', appliedTaskIds: [...selected] }
   deps.toast({
     message: 'Applied.',
@@ -67,4 +76,12 @@ export function undoMessage(deps: AgentActionDeps, clicked: ChatMessage): void {
   deps.dispatch({ type: 'resolve', messageId: message.id, status: 'undone' })
   deps.toast('Undone.')
   fireFeedback(deps, { runId: message.traceId ?? '', event: 'undo', taskIds: applied })
+}
+
+/** Undo from the diff card. Inert for UNDO_ARM_MS after Approve; the toast's Undo is not. */
+export function cardUndo(deps: AgentActionDeps, clicked: ChatMessage): void {
+  const message = latest(deps, clicked)
+  if (message.proposalStatus !== 'applied') return
+  if (typeof message.appliedAt === 'number' && nowMs(deps) - message.appliedAt < UNDO_ARM_MS) return
+  undoMessage(deps, message)
 }
