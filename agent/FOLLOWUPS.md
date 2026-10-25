@@ -44,3 +44,9 @@ Deferred items from the phase 1 final review, grouped by the phase that should p
 
 - The body is parsed before auth, so an unauthenticated request with a bad body gets 400 `INVALID_REQUEST` instead of 401. This follows from the plan's design: FastAPI validates a body parameter before the handler runs. Fix by doing auth in a `Depends(...)` that raises, or by parsing the body by hand after `_authorize` (`boday_agent/server/app.py`).
 - A NUL can still reach the trace from model output or from task titles inside tool results. jsonb rejects `\u0000`, so that run ends in `TRACE_WRITE_FAILED`. Request text is already rejected. Strip `\x00` in `traces.bounded` or in `redact` (`boday_agent/server/traces.py`).
+- The `HTTPException` handler maps any status it does not recognise to `INTERNAL_ERROR` but keeps the original status code, while the contract ties `INTERNAL_ERROR` to 500. No current route raises such a status. Return 500 in that branch (`http_exception` in `boday_agent/server/app.py`).
+
+## Phase 5b (from the PR #9 review; app side)
+
+- Diff colours only on the section headings; the palette "Ask" row only fills in the message box; trace ids not shown in the trace list; chat history sent to the service grows without limit.
+- The generation guard (drop replies to a chat that was cleared) has no meaningful test.

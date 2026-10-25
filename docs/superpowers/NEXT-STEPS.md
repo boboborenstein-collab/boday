@@ -10,7 +10,7 @@ and the plan for your track.
   implementation plans" section of `CLAUDE.md` / `AGENTS.md`.
 - **Known follow-ups:** `agent/FOLLOWUPS.md`
 
-## Status (2026-10-21, after round 1)
+## Status (2026-10-24, after round 2)
 
 | Phase | What | Status |
 |---|---|---|
@@ -20,12 +20,13 @@ and the plan for your track.
 | — | FOLLOWUPS cleanup before baseline (Track E) | ✅ Done — PR #6 |
 | 3B code | Runner, metrics + report, judge, cassettes + CI replay (Track C) | ✅ Done — PR #7 |
 | 5 plans | Service + app plans (Track D) | ✅ Done — PR #5 |
-| 5a | FastAPI service | ⏭️ **Track F** (round 2) |
-| 5b | App chat UI | ⏭️ **Track G** (round 2) |
-| 3B baseline | Task B5 paid runs + write-up | ⏭️ Owner + Claude on the Mac, in parallel with F/G |
+| 5a | FastAPI service (built, not deployed) | ✅ Done — PR #8 |
+| 5b | App chat UI (built, not deployed) | ✅ Done — PR #9 |
+| 3B baseline | Task B5 paid runs + write-up | 🔄 Haiku + local Qwen done (branch `agent/phase3b-baseline`); Sonnet, judge calibration, write-up left |
+| 5 deploy | Cloud Run, Supabase migration, secrets, Cloudflare Access, app `VITE_AGENT_URL` | ⏸ Owner steps (`agent/DEPLOY.md`), when the owner is ready |
 | 4 | Iterate on eval failures | ⏸ After the baseline |
 
-## Round 2 — two parallel tracks (current)
+## Round 2 — two parallel tracks (done; kept for reference)
 
 | | Track F — Phase 5a service | Track G — Phase 5b app |
 |---|---|---|
