@@ -4,12 +4,13 @@ import { motion } from 'motion/react'
 import { useStore } from '../store/useStore'
 import { downloadExport, parseImport } from '../lib/dataTransfer'
 import { isSyncConfigured } from '../lib/sync'
-import { getCalendarSubscriptionUrl } from '../lib/calendarFeed'
+import { getCalendarSubscriptionUrl, type CalendarLinkResult } from '../lib/calendarFeed'
 import { isPushConfigured, subscribeToPush, unsubscribeFromPush } from '../lib/push'
 import { getSupabase } from '../lib/supabaseClient'
 import { ADMIN_EMAIL, createInvite, listInvites, type Invite } from '../lib/invites'
 import { ShabbatSettings } from '../components/ShabbatSettings'
 import { AgentSettings } from '../components/AgentSettings'
+import { CalendarLink } from '../components/CalendarLink'
 import {
   DownloadIcon,
   MoonIcon,
@@ -45,12 +46,13 @@ export function SettingsView() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
-  const [calUrl, setCalUrl] = useState<string | null>(null)
-  const [calCopied, setCalCopied] = useState(false)
+  const [calLink, setCalLink] = useState<CalendarLinkResult | null>(null)
 
   useEffect(() => {
     if (!isSyncConfigured()) return
-    getCalendarSubscriptionUrl().then(setCalUrl).catch(() => setCalUrl(null))
+    getCalendarSubscriptionUrl()
+      .then(setCalLink)
+      .catch(() => setCalLink({ ok: false, message: "Couldn't load your calendar link. Try again later." }))
   }, [])
 
   const [accountEmail, setAccountEmail] = useState<string | null>(null)
@@ -214,29 +216,9 @@ export function SettingsView() {
 
       <AgentSettings email={accountEmail} />
 
-      {isSyncConfigured() && calUrl && (
+      {isSyncConfigured() && calLink && (
         <Section title="Apple Calendar">
-          <p className="mb-2 text-xs text-faint">
-            Subscribe once in iPhone Settings → Calendar → Add Subscription Calendar.
-          </p>
-          <div className="flex gap-2">
-            <input
-              readOnly
-              value={calUrl}
-              className="flex-1 truncate rounded-lg border border-border bg-surface-2 px-2 py-2 text-[11px] text-muted"
-            />
-            <button
-              type="button"
-              onClick={async () => {
-                await navigator.clipboard.writeText(calUrl)
-                setCalCopied(true)
-                setTimeout(() => setCalCopied(false), 2000)
-              }}
-              className="shrink-0 rounded-lg border border-border px-3 py-2 text-xs font-medium"
-            >
-              {calCopied ? 'Copied' : 'Copy'}
-            </button>
-          </div>
+          <CalendarLink link={calLink} />
         </Section>
       )}
 

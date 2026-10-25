@@ -1,9 +1,11 @@
-import { ensureCalendarToken } from './userPrefs'
+import { ensureCalendarToken, type PrefsClient } from './userPrefs'
 
 const WORKER_URL = 'https://boday-push.boapps.workers.dev'
 
-export async function getCalendarSubscriptionUrl(): Promise<string | null> {
-  const token = await ensureCalendarToken()
-  if (!token) return null
-  return `${WORKER_URL}/cal/${token}.ics`
+export type CalendarLinkResult = { ok: true; url: string } | { ok: false; message: string }
+
+export async function getCalendarSubscriptionUrl(client?: PrefsClient | null): Promise<CalendarLinkResult> {
+  const result = await ensureCalendarToken(client)
+  if (!result.ok) return result
+  return { ok: true, url: `${WORKER_URL}/cal/${result.token}.ics` }
 }

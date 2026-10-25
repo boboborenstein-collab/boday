@@ -932,6 +932,44 @@ approveMessage(dblDeps as never, dbl.messages[3] as never)
 ;(dblToastUndo as (() => void) | null)?.()
 check('r3 fix1: the toast Undo is not delayed', priorityNow() === 3 && dbl.messages[3].proposalStatus === 'undone')
 
+// Round 3, fix 2: a failed prefs read never mints or saves a calendar token.
+function fakeCalClient(opts: { readError?: boolean; token?: string; writeError?: boolean }) {
+  const writes: unknown[] = []
+  const row = opts.token ? { calendarToken: opts.token, quiet: { enabled: true } } : { quiet: { enabled: true } }
+  const read = fakePrefsClient({ row, error: opts.readError ? { message: 'down' } : null })
+  return {
+    writes,
+    client: {
+      auth: read.auth,
+      rpc: async (_fn: string, args: unknown) => { writes.push(args); return { error: opts.writeError ? { message: 'denied' } : null } },
+      from: () => ({
+        ...read.from(),
+        upsert: async (r: unknown) => { writes.push(r); return { error: opts.writeError ? { message: 'denied' } : null } },
+      }),
+    },
+  }
+}
+const ensureCal = prefsLib.ensureCalendarToken as (client?: unknown, newToken?: () => string) => Promise<unknown>
+const calDown = fakeCalClient({ readError: true })
+const calDownResult = await ensureCal(calDown.client, () => 'minted') as { ok?: boolean } | string | null
+check('r3 fix2: a failed read gives no token', typeof calDownResult === 'object' && calDownResult?.ok === false, JSON.stringify(calDownResult))
+check('r3 fix2: a failed read writes nothing', calDown.writes.length === 0, JSON.stringify(calDown.writes))
+const calHave = fakeCalClient({ token: 'tok-existing' })
+const calHaveResult = await ensureCal(calHave.client, () => 'minted') as { ok?: boolean; token?: string }
+check('r3 fix2: an existing token is kept', calHaveResult?.ok === true && calHaveResult.token === 'tok-existing' && calHave.writes.length === 0)
+const calNone = fakeCalClient({})
+const calNoneResult = await ensureCal(calNone.client, () => 'minted') as { ok?: boolean; token?: string }
+check('r3 fix2: a token is created only when the read worked and there was none', calNoneResult?.ok === true && calNoneResult.token === 'minted' && calNone.writes.length === 1)
+const calNoWrite = fakeCalClient({ writeError: true })
+const calNoWriteResult = await ensureCal(calNoWrite.client, () => 'minted') as { ok?: boolean }
+check('r3 fix2: an unsaved new token is not shown', calNoWriteResult?.ok === false)
+const calView = await import('../src/components/CalendarLink.tsx').catch(() => ({})) as Record<string, unknown>
+const CalendarLink = calView.CalendarLink as ((props: unknown) => unknown) | undefined
+const calFailedHtml = CalendarLink ? renderToStaticMarkup(createElement(CalendarLink as never, { link: { ok: false, message: "Couldn't load your calendar link. Try again later." } })) : ''
+check('r3 fix2: a failed link shows the error and no URL', calFailedHtml.includes("load your calendar link") && !calFailedHtml.includes('/cal/') && /<button[^>]*disabled=""[^>]*>Copy<\/button>/.test(calFailedHtml), calFailedHtml)
+const calOkHtml = CalendarLink ? renderToStaticMarkup(createElement(CalendarLink as never, { link: { ok: true, url: 'https://w.example/cal/tok-existing.ics' } })) : ''
+check('r3 fix2: a good link shows the URL and Copy', calOkHtml.includes('value="https://w.example/cal/tok-existing.ics"') && /<button[^>]*>Copy<\/button>/.test(calOkHtml) && !/disabled=""[^>]*>Copy/.test(calOkHtml))
+
 console.log('')
 if (failures === 0) {
   console.log('✅ ALL AGENT ASSERTIONS PASSED\n')

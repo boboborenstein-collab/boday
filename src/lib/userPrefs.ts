@@ -141,12 +141,25 @@ export async function mergeUserPrefsData(
   }
 }
 
-export async function ensureCalendarToken(): Promise<string | null> {
-  const env = await loadUserPrefsEnvelope()
-  if (env.calendarToken) return env.calendarToken
-  const token = uuid().replace(/-/g, '')
-  await mergeUserPrefsData({ calendarToken: token })
-  return token
+export type CalendarTokenResult = { ok: true; token: string } | { ok: false; message: string }
+
+const CALENDAR_LOAD_FAILED = "Couldn't load your calendar link. Try again later."
+
+/**
+ * The calendar feed token. A new one is minted only when user_prefs was read and had none,
+ * and is returned only once saved; a failed read must never replace the subscribed token.
+ */
+export async function ensureCalendarToken(
+  client: PrefsClient | null = defaultPrefsClient(),
+  newToken: () => string = () => uuid().replace(/-/g, ''),
+): Promise<CalendarTokenResult> {
+  const read = await loadUserPrefsResult(client)
+  if (!read.ok) return { ok: false, message: CALENDAR_LOAD_FAILED }
+  if (read.env.calendarToken) return { ok: true, token: read.env.calendarToken }
+  const token = newToken()
+  const written = await mergeUserPrefsData({ calendarToken: token }, client)
+  if (!written.ok) return { ok: false, message: CALENDAR_LOAD_FAILED }
+  return { ok: true, token }
 }
 
 export async function setSnooze(taskId: string, dateStr: string, untilIso: string): Promise<void> {
