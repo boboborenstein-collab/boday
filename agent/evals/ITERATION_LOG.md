@@ -64,3 +64,16 @@ once per milestone so it stays honest.
 4. Case review for cluster 2, written up here before any case changes.
 5. Judge rubric for `adv-behind`: the test data does contain missed recurring
    tasks, so "do not invent other late tasks" scores correct answers 1.
+6. Owner notes from rating: advice should not silently drop an open task whose
+   time has passed (`adv-first-today` never mentions the 6:30 Torah study at
+   9:00); for the dentist/standup 9:00 clash, suggest the real fixes (move the
+   dentist time, or skip standup that one day) rather than another day, since
+   standup is daily.
+
+### Judge calibration
+
+Owner rated 18 Haiku dev advice answers (`calibration/haiku-advice-rated.csv`);
+16 had a judge score. Exact agreement 12.5%, within one 68.8%. Owner mean 4.8,
+judge mean 3.2: the judge is stricter across the board, and two rubric foci
+(`adv-behind`, `adv-week-realistic`) drive the largest gaps (judge 1–2, owner
+4–5). Fix the rubric before relying on advice scores; re-rate after.
