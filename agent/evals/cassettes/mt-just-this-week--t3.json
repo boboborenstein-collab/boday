@@ -1,0 +1,115 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01SPwZcP5ahTAT14sR6GV49u",
+          "name": "search_tasks",
+          "args": {
+            "query": "gym"
+          },
+          "raw_args": "{\"query\": \"gym\"}"
+        },
+        {
+          "id": "toolu_01Txi3N7tEFu6p8wWsxufpQj",
+          "name": "resolve_date",
+          "args": {
+            "expression": "tomorrow"
+          },
+          "raw_args": "{\"expression\": \"tomorrow\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 288,
+        "output_tokens": 173,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1160.4978330433369,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_014Jiyzv9zfiK4ACUJJYCChp",
+          "name": "get_task",
+          "args": {
+            "task_id": "gym"
+          },
+          "raw_args": "{\"task_id\": \"gym\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 711,
+        "output_tokens": 385,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2355.4735420038924,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01WjLWr4rfJjnwbC6nD3RpP2",
+          "name": "propose_set_status",
+          "args": {
+            "task_id": "gym",
+            "status": "skipped",
+            "date": "2026-10-21"
+          },
+          "raw_args": "{\"task_id\": \"gym\", \"status\": \"skipped\", \"date\": \"2026-10-21\"}"
+        },
+        {
+          "id": "toolu_01VyGeFnBbisTRSCgke5o7Yw",
+          "name": "propose_create_task",
+          "args": {
+            "title": "Gym",
+            "type": "one_time",
+            "scheduled_date": "2026-10-22",
+            "priority": 4,
+            "reminder_time": "07:00",
+            "tags": [
+              "health"
+            ]
+          },
+          "raw_args": "{\"title\": \"Gym\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-22\", \"priority\": 4, \"reminder_time\": \"07:00\", \"tags\": [\"health\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 1345,
+        "output_tokens": 467,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2403.8577909814194,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've proposed skipping today's (Wed 10/21) Gym session and adding a one-time Gym task for tomorrow (Thu 10/22) at 7:00. The regular Mon/Wed/Fri schedule stays in place after this week. The app flagged a possible duplicate because of the existing recurring Gym task, which is expected here, so please approve only if that's what you want.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 2016,
+        "output_tokens": 125,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1764.7102499613538,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

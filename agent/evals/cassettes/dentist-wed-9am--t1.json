@@ -1,0 +1,67 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01Bt9y6D89dRf2WBDdobdoRA",
+          "name": "search_tasks",
+          "args": {
+            "query": "dentist"
+          },
+          "raw_args": "{\"query\": \"dentist\"}"
+        },
+        {
+          "id": "toolu_01QToJ1cJ3JBopZubU6Zngoe",
+          "name": "resolve_date",
+          "args": {
+            "expression": "next wednesday at 9am"
+          },
+          "raw_args": "{\"expression\": \"next wednesday at 9am\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 277,
+        "output_tokens": 106,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1691.895459080115,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_018VXzoRdCUFcvZFtjzveFBu",
+          "name": "ask_user",
+          "args": {
+            "question": "Your dentist appointment is currently Thursday, Oct 22 at 9:00. Which Wednesday should I move it to?",
+            "options": [
+              "Wed, Oct 21 at 9:00 AM (this week)",
+              "Wed, Oct 28 at 9:00 AM (next week)"
+            ]
+          },
+          "raw_args": "{\"question\": \"Your dentist appointment is currently Thursday, Oct 22 at 9:00. Which Wednesday should I move it to?\", \"options\": [\"Wed, Oct 21 at 9:00 AM (this week)\", \"Wed, Oct 28 at 9:00 AM (next week)\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 669,
+        "output_tokens": 252,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2152.8290000278503,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

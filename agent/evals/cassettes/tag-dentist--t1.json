@@ -1,0 +1,74 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_011F5ESaTs3KYR5esHe1YSCn",
+          "name": "search_tasks",
+          "args": {
+            "query": "dentist"
+          },
+          "raw_args": "{\"query\": \"dentist\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 276,
+        "output_tokens": 51,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 765.4370419913903,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01GrABgJtdz7fh9V6bz6Zpnq",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "dentist",
+            "changes": {
+              "tags": [
+                "health",
+                "home"
+              ]
+            }
+          },
+          "raw_args": "{\"task_id\": \"dentist\", \"changes\": {\"tags\": [\"health\", \"home\"]}}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 448,
+        "output_tokens": 89,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 676.3290000380948,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've proposed adding the \"home\" tag to the Dentist appointment (Oct 22, keeping its existing \"health\" tag). Approve it in the app to save.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 589,
+        "output_tokens": 53,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 732.3188339360058,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

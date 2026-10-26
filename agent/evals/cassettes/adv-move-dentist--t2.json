@@ -1,0 +1,69 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_016Xk5SgvGnB351WPTyje46S",
+          "name": "search_tasks",
+          "args": {
+            "query": "dentist"
+          },
+          "raw_args": "{\"query\": \"dentist\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 271,
+        "output_tokens": 88,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1036.3189579220489,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01TB8tMXCxmfXh3YFXjkPSAj",
+          "name": "get_agenda",
+          "args": {
+            "start_date": "2026-10-20",
+            "end_date": "2026-10-27"
+          },
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-27\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 480,
+        "output_tokens": 84,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 905.6854589143768,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "The dentist appointment is Thursday, Oct 22 at 9:00, and it clashes with your 9:00 standup. Wednesday and Friday are lighter, but standup is at 9:00 every weekday, so moving the day alone won't clear it. I'd suggest keeping Thursday and giving the dentist reminder a different time, such as 8:30. Do you want me to propose that change, or a move to another day?",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 3366,
+        "output_tokens": 785,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 4702.673666062765,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

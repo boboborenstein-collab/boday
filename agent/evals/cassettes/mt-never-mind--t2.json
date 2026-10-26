@@ -1,0 +1,24 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "Okay, I've left the laundry task alone. Nothing was deleted, and I hadn't actually submitted a deletion proposal before you cancelled.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 319,
+        "output_tokens": 226,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1822.9819579282776,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

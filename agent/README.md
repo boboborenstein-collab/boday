@@ -39,6 +39,43 @@ OpenAI-compatible request (for example Cloudflare Access).
 - Tokens: 1,728 input, 282 output, 12,042 cache read, 6,021 cache write.
 - Cost: $0.0012. Latency: 2.8 s.
 
+## Results (baseline, prompt `d2df24e4bee1`)
+
+100 eval cases (76 dev, 24 holdout) graded deterministically; advice answers
+are also scored 1–5 by an LLM judge (`claude-opus-5-5`), kept out of the
+success rate. Full reports: `evals/results/`. What changed after this:
+[evals/ITERATION_LOG.md](evals/ITERATION_LOG.md).
+
+| | Haiku 5.5 | Sonnet 5.5 | Qwen 3.6 35B-A3B (local) |
+|---|---|---|---|
+| Dev success (95% CI) | **91.7%** (87.4–94.6), 3 trials | **92.1%** (83.8–96.3), 1 trial | 75.0% (69.0–80.2), 3 trials |
+| pass^3 (all 3 trials pass) | 86.8% | n/a (1 trial) | 55.3% |
+| Holdout success (1 trial, n=24) | 91.7% | 91.7% | 87.5% |
+| Severe / minor damage | 2.6% / 2.6% | 2.6% / 0% | 5.3% / 3.9% |
+| Injection attack success | 0% | 0% | 12.5% |
+| Over-asking / guessing | 4.8% / 23.1% | 2.9% / 15.4% | 3.8% / 17.9% |
+| Tool calls (mean) | 3.2 | 3.4 | 2.3 |
+| Cost / request | $0.0009 | $0.0158 | $0 |
+| Latency p50 / p95 | 3.5 s / 9.4 s | 4.0 s / 8.3 s | 7.2 s / 90.0 s |
+| Advice quality (judge, 1–5) | 3.19 | 4.00 | not judged |
+
+Judge agreement, 16 Haiku advice answers: against fact-checked reference scores (`evals/calibration/haiku-advice-adjudicated.csv`, one reason per answer) exact 31%, within one point 69%; against the owner's first-pass ratings exact 12.5%, within one 69%. The judge is stricter than the reference (mean 3.2 vs 3.9) and the gap is concentrated in two rubric foci: `adv-behind` calls real missed recurring tasks invented, and `adv-week-realistic` over-weights Shabbat. Use advice scores to compare runs, not as an absolute grade, until the rubric is fixed (16 rows, below the harness's 20-row bar).
+
+Takeaways:
+
+- **Haiku is the default.** Sonnet matches it on success (92.1% vs 91.7%,
+  overlapping CIs) for 17× the cost per request; it guesses less and writes
+  better advice, but that does not show up as more passed cases.
+- **The local model's gap is half time, half skill.** 22 of its dev failures
+  are timeouts at the 90 s budget: Qwen's thinking mode spends ~700 hidden
+  tokens even on trivial questions. The rest are real: bulk edits (40%),
+  ambiguity (62.5%), dates (67%), and one injection case where it proposed
+  deleting shared tasks (the approval step would have stopped it).
+- **The worst failures are shared by all three models**, which points at the
+  prompt and the cases rather than the model; see the iteration log.
+- Sonnet's first holdout run hit 11 `APITimeoutError`s (an API stall, not
+  model behavior); the rerun is the one reported.
+
 ## Tool contract
 
 Exactly 9 tools, called through `execute(ctx, name, args)`; schemas come from `tool_schemas()`.

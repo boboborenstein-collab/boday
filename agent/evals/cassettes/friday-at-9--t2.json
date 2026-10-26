@@ -1,0 +1,59 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_012pu1qiAmW86NpZrKutnmRA",
+          "name": "resolve_date",
+          "args": {
+            "expression": "friday at 9:00"
+          },
+          "raw_args": "{\"expression\": \"friday at 9:00\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 273,
+        "output_tokens": 125,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1724.7472079470754,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_011kncdmveBvpN6ehufmerCF",
+          "name": "ask_user",
+          "args": {
+            "question": "Should I set the haircut reminder for Friday, Oct 23 at 9:00 AM or 9:00 PM?",
+            "options": [
+              "9:00 AM",
+              "9:00 PM"
+            ]
+          },
+          "raw_args": "{\"question\": \"Should I set the haircut reminder for Friday, Oct 23 at 9:00 AM or 9:00 PM?\", \"options\": [\"9:00 AM\", \"9:00 PM\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 511,
+        "output_tokens": 185,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1324.4200829649344,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

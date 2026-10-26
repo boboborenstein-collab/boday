@@ -1,0 +1,71 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01HtGQVFYZ31an6vXWRejhTw",
+          "name": "search_tasks",
+          "args": {
+            "query": "dinner with dana"
+          },
+          "raw_args": "{\"query\": \"dinner with dana\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 276,
+        "output_tokens": 54,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1424.955292022787,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01G4pN5DLHdoPM9sBdD4uxvE",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "dinner-dana",
+            "changes": {
+              "reminder_time": "09:00"
+            }
+          },
+          "raw_args": "{\"task_id\": \"dinner-dana\", \"changes\": {\"reminder_time\": \"09:00\"}}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 455,
+        "output_tokens": 92,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 905.9046249603853,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've proposed moving the reminder for \"Dinner with Dana\" (Fri 2026-10-23) from 19:00 to 09:00. Note that it will clash with \"Standup\" at 09:00 that day, so you may want to adjust one of them.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 650,
+        "output_tokens": 82,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 940.1552920462564,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01JHHQpwMB2GXetq8zBcavaa",
+          "name": "search_tasks",
+          "args": {
+            "query": "finish presentation"
+          },
+          "raw_args": "{\"query\": \"finish presentation\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 277,
+        "output_tokens": 53,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 801.8579999916255,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_012QifNHASxvbmhyn6MJyUgY",
+          "name": "propose_update_task",
+          "args": {
+            "task_id": "presentation",
+            "changes": {
+              "reminder_time": "16:00"
+            }
+          },
+          "raw_args": "{\"task_id\": \"presentation\", \"changes\": {\"reminder_time\": \"16:00\"}}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 448,
+        "output_tokens": 89,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1695.0273750117049,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "I've proposed a 4:00 PM reminder for \"Finish presentation\" (scheduled Oct 29). Approve it in the app to save.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 591,
+        "output_tokens": 48,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 851.909916033037,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

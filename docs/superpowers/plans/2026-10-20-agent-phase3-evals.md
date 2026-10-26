@@ -451,14 +451,14 @@ def test_exhausted(tmp_path): ...
 
 **Cost gate:** before running, print the estimate from a 3-case dry run (`--case` three ids, `--trials 1`) × the suite size, and get the owner's go-ahead. Expected order of magnitude: Haiku 5.5 dev split × 3 trials ≈ under $1; Sonnet 5.5 ≈ $5–15; judge (Opus 5.5, advice cases only) ≈ under $1; local = $0.
 
-- [ ] **Step 1: Haiku 5.5, dev, 3 trials, with judge, recording cassettes for the CI subset**
+- [x] **Step 1: Haiku 5.5, dev, 3 trials, with judge, recording cassettes for the CI subset**
 
 ```bash
 uv run boday-eval run --provider anthropic --model claude-haiku-5-5 --split dev --trials 3 --judge --record
 ```
-- [ ] **Step 2: Sonnet 5.5, dev, 3 trials, with judge** (same command, `--model claude-sonnet-5-5`, no `--record`).
-- [ ] **Step 3: Local model, dev, 3 trials** — `--provider openai --base-url http://localhost:11434/v1 --model <best ~30B tool-calling model installed>`; record the exact model build in the stamp (from `ollama show`).
-- [ ] **Step 4: Holdout, 1 trial each** for the same three models (`--split holdout --trials 1`).
-- [ ] **Step 5: Calibrate the judge** — export Haiku's advice answers, owner rates 20–30 rows, import; agreement lands in `judge_calibration.json`.
-- [ ] **Step 6: Write it up** — copy the Haiku CI-subset results to `evals/results/ci_baseline.json`; add a "Results" section to `agent/README.md` (cross-model table: success ± CI, pass^3, severe/minor damage, injection attack success, over-asking, guessing, tool calls, cost/request, p50/p95 latency, advice quality + judge agreement); create `agent/evals/ITERATION_LOG.md` with a "Baseline" entry (date, commit, prompt version, the three result files, top 5 failure clusters with case ids).
-- [ ] **Step 7: Commit, push, open PR for Part B** — `git commit -m "evals: baseline (local vs Haiku 5.5 vs Sonnet 5.5)"`; `gh pr create --base main --title "Agent phase 3B: eval harness + baseline" --body "Part B of docs/superpowers/plans/2026-10-20-agent-phase3-evals.md."`
+- [x] **Step 2: Sonnet 5.5, dev, 3 trials, with judge** (done with 1 trial to save cost; see ITERATION_LOG) (same command, `--model claude-sonnet-5-5`, no `--record`).
+- [x] **Step 3: Local model, dev, 3 trials** — `--provider openai --base-url http://localhost:11434/v1 --model <best ~30B tool-calling model installed>`; record the exact model build in the stamp (from `ollama show`).
+- [x] **Step 4: Holdout, 1 trial each** for the same three models (`--split holdout --trials 1`).
+- [x] **Step 5: Calibrate the judge** — export Haiku's advice answers, owner rates 20–30 rows, import; agreement lands in `judge_calibration.json`.
+- [x] **Step 6: Write it up** — copy the Haiku CI-subset results to `evals/results/ci_baseline.json`; add a "Results" section to `agent/README.md` (cross-model table: success ± CI, pass^3, severe/minor damage, injection attack success, over-asking, guessing, tool calls, cost/request, p50/p95 latency, advice quality + judge agreement); create `agent/evals/ITERATION_LOG.md` with a "Baseline" entry (date, commit, prompt version, the three result files, top 5 failure clusters with case ids).
+- [x] **Step 7: Commit, push, open PR for Part B** — `git commit -m "evals: baseline (local vs Haiku 5.5 vs Sonnet 5.5)"`; `gh pr create --base main --title "Agent phase 3B: eval harness + baseline" --body "Part B of docs/superpowers/plans/2026-10-20-agent-phase3-evals.md."`

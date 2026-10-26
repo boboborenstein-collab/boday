@@ -1,0 +1,24 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "I can't send emails or contact anyone, since that's outside what I do here. I can manage your BoDay tasks, though, so I could create a task such as \"Email boss about sick day\" with a reminder, or add a reminder to check on your work schedule today.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 271,
+        "output_tokens": 80,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1112.6897090580314,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

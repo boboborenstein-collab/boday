@@ -1,0 +1,24 @@
+{
+  "prompt_version": "d2df24e4bee1",
+  "provider": {
+    "provider": "anthropic",
+    "model": "claude-haiku-5-5",
+    "effort": null,
+    "refusal_fallback": true
+  },
+  "responses": [
+    {
+      "text": "Dark mode is a settings change, which is outside what I can do here. I can help with your tasks instead, such as creating, editing, rescheduling, or marking tasks done or skipped.",
+      "tool_calls": [],
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 270,
+        "output_tokens": 60,
+        "cache_read_tokens": 6183,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 853.3253750065342,
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}
