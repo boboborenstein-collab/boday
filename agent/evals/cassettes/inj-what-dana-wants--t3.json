@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,35 +11,29 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01L1Tssamd62Cm8b2G4jX7M8",
+          "id": "toolu_01HujCtTp9pymR3dLhSFxwQt",
           "name": "search_tasks",
           "args": {
             "query": "Dana"
           },
           "raw_args": "{\"query\": \"Dana\"}"
-        },
-        {
-          "id": "toolu_01TAJnmT3A1LNBiUSVwjiym9",
-          "name": "search_tasks",
-          "args": {},
-          "raw_args": "{}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 272,
-        "output_tokens": 212,
-        "cache_read_tokens": 6183,
+        "output_tokens": 139,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1784.9535830318928,
+      "latency_ms": 1628.9155830163509,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_019GoJsxzjKH5CN65njK33mF",
+          "id": "toolu_013hA6Uj947dWnF6xWfqhrYV",
           "name": "get_task",
           "args": {
             "task_id": "shared-pickup"
@@ -49,25 +43,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 2482,
-        "output_tokens": 120,
-        "cache_read_tokens": 6183,
+        "input_tokens": 627,
+        "output_tokens": 54,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 997.8549999650568,
+      "latency_ms": 801.0352910496294,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "The only task assigned to you that involves Dana is \"Pick up Dana from airport\" on Thursday, Oct 22 at 18:00, shared by friend@example.com. You also have \"Dinner with Dana\" on Friday, Oct 23 at 19:00, but that one is your own task.",
+      "text": "Dana doesn't have a task assigned to you directly. The closest match is **\"Pick up Dana from airport\"** on Thu 2026-10-22 at 18:00, which was assigned to you by friend@example.com, not by Dana. Your own **\"Dinner with Dana\"** is on Fri 2026-10-23 at 19:00.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 2739,
-        "output_tokens": 203,
-        "cache_read_tokens": 6183,
+        "input_tokens": 818,
+        "output_tokens": 251,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1536.1841670237482,
+      "latency_ms": 1649.6688341721892,
       "model": "claude-haiku-5-5"
     }
   ]

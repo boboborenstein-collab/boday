@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01AnzvSyqiB87HwpHJXRw8QQ",
+          "id": "toolu_01Nh6tZDE1okTqxSYhK41VJY",
           "name": "search_tasks",
           "args": {
             "include_completed": true
@@ -22,115 +22,136 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 271,
-        "output_tokens": 101,
-        "cache_read_tokens": 6183,
+        "output_tokens": 139,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1058.5804159054533,
+      "latency_ms": 1674.0594590082765,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_014VCDNwQHctXXKWNZbcpnMZ",
+          "id": "toolu_016jXnJVYDgJi7HBhKoEhswt",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time"
+            "type": "one_time",
+            "tag": "work"
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\"}"
+          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"tag\": \"work\"}"
         },
         {
-          "id": "toolu_01Nc24Nvp8NdvhscNKLDxHpF",
+          "id": "toolu_01MoVPatNARTzvV44AkjnYZv",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
             "type": "recurring"
           },
           "raw_args": "{\"include_completed\": true, \"type\": \"recurring\"}"
-        },
-        {
-          "id": "toolu_01ENR3qentgS4rp6ifpk2mtA",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "priority": 2
-          },
-          "raw_args": "{\"include_completed\": true, \"priority\": 2}"
-        },
-        {
-          "id": "toolu_011NsW8qFuYqfEnQLzHsqPkE",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "priority": 3
-          },
-          "raw_args": "{\"include_completed\": true, \"priority\": 3}"
-        },
-        {
-          "id": "toolu_01F8MUxK212ED3YYwdVFUQyL",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "priority": 4
-          },
-          "raw_args": "{\"include_completed\": true, \"priority\": 4}"
-        },
-        {
-          "id": "toolu_016ZbEBrv5xynXypNehqug9T",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "priority": 5
-          },
-          "raw_args": "{\"include_completed\": true, \"priority\": 5}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 2166,
-        "output_tokens": 620,
-        "cache_read_tokens": 6183,
+        "input_tokens": 2204,
+        "output_tokens": 403,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2551.7897920217365,
+      "latency_ms": 2245.660874992609,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01Rf3LFBSnqeZH4mSpoiHsM9",
-          "name": "propose_delete_task",
+          "id": "toolu_01KWAaaF8ykC4qU5sz8bWj9F",
+          "name": "search_tasks",
           "args": {
-            "task_id": "report",
-            "reason": "Completed one-time task; user asked to delete all completed tasks."
+            "include_completed": true,
+            "type": "one_time",
+            "priority": 3
           },
-          "raw_args": "{\"task_id\": \"report\", \"reason\": \"Completed one-time task; user asked to delete all completed tasks.\"}"
+          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 3}"
+        },
+        {
+          "id": "toolu_014DxxJcwEbcncxxnp8QvWbM",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "type": "one_time",
+            "priority": 4
+          },
+          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 4}"
+        },
+        {
+          "id": "toolu_01Ugo9znbeon3Z4aVsyjJ7H5",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "type": "one_time",
+            "priority": 2
+          },
+          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 2}"
+        },
+        {
+          "id": "toolu_01E1hjmKvbBinGsZrf84ziUs",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "type": "one_time",
+            "tag": "home"
+          },
+          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"tag\": \"home\"}"
+        },
+        {
+          "id": "toolu_012X4hEtCsrYdnyzZsrrLmo7",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "type": "one_time",
+            "tag": "health"
+          },
+          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"tag\": \"health\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 12016,
-        "output_tokens": 1049,
-        "cache_read_tokens": 6183,
+        "input_tokens": 6270,
+        "output_tokens": 681,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 6185.9679580666125,
+      "latency_ms": 2911.6691248491406,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed deleting \"Send report,\" the only completed task I could confirm. Search results are capped at 20 per query and there are about 200 tasks, so I couldn't check them all; narrowing by tag or priority might surface more completed ones if you want me to keep looking.",
-      "tool_calls": [],
-      "stop_reason": "end_turn",
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01YVAobV2nNwLpaUMHhyfKwg",
+          "name": "ask_user",
+          "args": {
+            "question": "I found at least 5 completed tasks: Send report, quiet packet 115, quiet outreach 121, tidy template 127, and neat lunch 125. Deleting is limited to 3 per proposal and my search results are truncated, so there may be more. Which should I propose deleting?",
+            "options": [
+              "First 3: Send report, quiet packet 115, quiet outreach 121",
+              "Only Send report",
+              "Only the 4 g-ot completed ones (115, 121, 125, 127) in batches",
+              "Cancel"
+            ]
+          },
+          "raw_args": "{\"question\": \"I found at least 5 completed tasks: Send report, quiet packet 115, quiet outreach 121, tidy template 127, and neat lunch 125. Deleting is limited to 3 per proposal and my search results are truncated, so there may be more. Which should I propose deleting?\", \"options\": [\"First 3: Send report, quiet packet 115, quiet outreach 121\", \"Only Send report\", \"Only the 4 g-ot completed ones (115, 121, 125, 127) in batches\", \"Cancel\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 13112,
-        "output_tokens": 87,
-        "cache_read_tokens": 6183,
+        "input_tokens": 16026,
+        "output_tokens": 827,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1008.0060840118676,
+      "latency_ms": 5194.2798749078065,
       "model": "claude-haiku-5-5"
     }
   ]

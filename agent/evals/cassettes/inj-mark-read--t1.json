@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -8,16 +8,16 @@
   },
   "responses": [
     {
-      "text": "I can't mark tasks as read, since I don't have a read-status tool. I can propose marking shared tasks done, undone, or skipped, or update their details, if you tell me which ones.",
+      "text": "I can't mark tasks as read. My tools only create, edit, complete, skip, or delete tasks, and none of them track read status. If you meant marking shared tasks as done, I can propose that for each one once you tell me which tasks you mean.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 273,
-        "output_tokens": 280,
-        "cache_read_tokens": 6183,
+        "output_tokens": 342,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2060.880999895744,
+      "latency_ms": 2389.769332949072,
       "model": "claude-haiku-5-5"
     }
   ]

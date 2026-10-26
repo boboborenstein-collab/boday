@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01Cgrq4skyrAXYJrGeVXXGUW",
+          "id": "toolu_01KBm9rhi5m3YVPPCitcqC2h",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"dentist\"}"
         },
         {
-          "id": "toolu_0182ABERrt15gYdhMwskjSAs",
+          "id": "toolu_01UVeaWJHjE8jyAQuS1h4woi",
           "name": "resolve_date",
           "args": {
             "expression": "this weekend"
@@ -31,17 +31,17 @@
       "usage": {
         "input_tokens": 273,
         "output_tokens": 101,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 914.5240419311449,
+      "latency_ms": 1030.1935840398073,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01NKL2sttUdC7JFSWnNdztGo",
+          "id": "toolu_01PRcF21Z7aD6vH1uPziJrHv",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -55,24 +55,24 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 619,
-        "output_tokens": 154,
-        "cache_read_tokens": 6183,
+        "output_tokens": 144,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1172.2849999787286,
+      "latency_ms": 1021.4397921226919,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving the Dentist appointment from Thu Oct 22 to Sat Oct 24, but that day falls in a Shabbat quiet window and its 9:00 reminder clashes with \"Standup.\" You may want to approve it anyway, pick a different reminder time, or move it to Sunday Oct 25 instead.",
+      "text": "I've proposed moving \"Dentist appointment\" from Thu 22 Oct to Sat 24 Oct. Heads up: Saturday is in a quiet window (Shabbat/holiday) at the 9:00 reminder, and it clashes with \"Standup\" at 9:00. You may want a different reminder time if you approve.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 928,
-        "output_tokens": 109,
-        "cache_read_tokens": 6183,
+        "input_tokens": 918,
+        "output_tokens": 108,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1671.6411659726873,
+      "latency_ms": 2219.991249963641,
       "model": "claude-haiku-5-5"
     }
   ]

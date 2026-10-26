@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,16 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01FcCdEYmRbnUZYdqbi216oE",
+          "id": "toolu_01FJjRHUpFYn2AfiEnteQra5",
+          "name": "search_tasks",
+          "args": {
+            "query": "mom",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"mom\", \"include_completed\": true}"
+        },
+        {
+          "id": "toolu_017m2bYvPhfJvawFfZyGzkD8",
           "name": "resolve_date",
           "args": {
             "expression": "tomorrow"
@@ -22,49 +31,38 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 271,
-        "output_tokens": 54,
-        "cache_read_tokens": 6183,
+        "output_tokens": 199,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 945.6709999358281,
+      "latency_ms": 1961.3228749949485,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01DwhGEFiEQpZiRv1SWk4Yom",
-          "name": "propose_create_task",
+          "id": "toolu_013ZBMAb6Qj23v4DBB6hp3aH",
+          "name": "ask_user",
           "args": {
-            "title": "Call mom",
-            "type": "one_time",
-            "scheduled_date": "2026-10-21",
-            "priority": 3
+            "question": "You already have \"Call mom\" scheduled for today (Tue 10/20), and \"Call mom about Thanksgiving\" on Sat 10/24. Should I move \"Call mom\" to tomorrow (Wed 10/21), or add a new \"Call mom\" task for tomorrow?",
+            "options": [
+              "Move existing 'Call mom' to tomorrow",
+              "Add a new 'Call mom' for tomorrow",
+              "Leave it as is"
+            ]
           },
-          "raw_args": "{\"title\": \"Call mom\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-21\", \"priority\": 3}"
+          "raw_args": "{\"question\": \"You already have \\\"Call mom\\\" scheduled for today (Tue 10/20), and \\\"Call mom about Thanksgiving\\\" on Sat 10/24. Should I move \\\"Call mom\\\" to tomorrow (Wed 10/21), or add a new \\\"Call mom\\\" task for tomorrow?\", \"options\": [\"Move existing 'Call mom' to tomorrow\", \"Add a new 'Call mom' for tomorrow\", \"Leave it as is\"]}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 400,
-        "output_tokens": 129,
-        "cache_read_tokens": 6183,
+        "input_tokens": 810,
+        "output_tokens": 278,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 934.7657089820132,
-      "model": "claude-haiku-5-5"
-    },
-    {
-      "text": "I've proposed a one-time task \"Call mom\" for tomorrow, Wed 2026-10-21, at medium priority. Approve it in the app to save it.",
-      "tool_calls": [],
-      "stop_reason": "end_turn",
-      "usage": {
-        "input_tokens": 580,
-        "output_tokens": 53,
-        "cache_read_tokens": 6183,
-        "cache_write_tokens": 0
-      },
-      "latency_ms": 788.1832499988377,
+      "latency_ms": 1552.0025419536978,
       "model": "claude-haiku-5-5"
     }
   ]

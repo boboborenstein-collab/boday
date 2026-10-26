@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01JCD4uYvVfoCsKtiCbQuFuj",
+          "id": "toolu_01PpNdTfNMwSg6h6wD9N4Qmf",
           "name": "search_tasks",
           "args": {
             "query": "gym"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"gym\"}"
         },
         {
-          "id": "toolu_01QJvRdiZBSLeWWjrtLWbgMs",
+          "id": "toolu_013u4aswPNJNivrQV2dTFwcr",
           "name": "resolve_date",
           "args": {
             "expression": "tomorrow"
@@ -30,18 +30,18 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 288,
-        "output_tokens": 235,
-        "cache_read_tokens": 6183,
+        "output_tokens": 237,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1645.3051250427961,
+      "latency_ms": 1399.2874168325216,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01CqTgLiqEU2s2CKAbsXCkCy",
+          "id": "toolu_01HJqht1LpGTKn5nXgwycJU2",
           "name": "propose_set_status",
           "args": {
             "task_id": "gym",
@@ -51,7 +51,7 @@
           "raw_args": "{\"task_id\": \"gym\", \"status\": \"skipped\", \"date\": \"2026-10-21\"}"
         },
         {
-          "id": "toolu_01Jshmy1a3Hvxvj6V6t2jZeb",
+          "id": "toolu_01YN7M4yWuPJMZ1yKB1KKVjk",
           "name": "propose_create_task",
           "args": {
             "title": "Gym",
@@ -61,32 +61,33 @@
             "reminder_time": "07:00",
             "tags": [
               "health"
-            ]
+            ],
+            "notes": "One-off move of today's weekly Gym session from Wed 10/21."
           },
-          "raw_args": "{\"title\": \"Gym\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-22\", \"priority\": 4, \"reminder_time\": \"07:00\", \"tags\": [\"health\"]}"
+          "raw_args": "{\"title\": \"Gym\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-22\", \"priority\": 4, \"reminder_time\": \"07:00\", \"tags\": [\"health\"], \"notes\": \"One-off move of today's weekly Gym session from Wed 10/21.\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 773,
-        "output_tokens": 531,
-        "cache_read_tokens": 6183,
+        "input_tokens": 775,
+        "output_tokens": 609,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2547.162208938971,
+      "latency_ms": 2859.255125047639,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed skipping today's Gym session (Wed 10/21) and adding a one-time Gym for tomorrow (Thu 10/22, 7:00 reminder). The weekly Mon/Wed/Fri series stays as it is. Approve both in the app; the create draft warns of a possible duplicate because the recurring Gym already exists.",
+      "text": "I've proposed moving this week's Wednesday gym session to Thursday, Oct 22: skip today's occurrence of the recurring Gym task and add a one-time Gym task for tomorrow at 07:00. The weekly Mon/Wed/Fri schedule stays as it is, and the new task is flagged as a possible duplicate of the existing Gym task, so please check it before approving.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 1508,
-        "output_tokens": 115,
-        "cache_read_tokens": 6183,
+        "input_tokens": 1588,
+        "output_tokens": 128,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1236.108124954626,
+      "latency_ms": 1175.6547910626978,
       "model": "claude-haiku-5-5"
     }
   ]

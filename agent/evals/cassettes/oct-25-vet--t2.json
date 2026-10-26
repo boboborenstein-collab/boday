@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01JPMU2Am5KNSgNr3ASJeHAD",
+          "id": "toolu_01EnzRdKGVpWUUSsuGCDS1uE",
           "name": "search_tasks",
           "args": {
             "query": "vet"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"vet\"}"
         },
         {
-          "id": "toolu_01MsvEzQoREkntcVDuR8r1qd",
+          "id": "toolu_015DC5t4bJVRm8YfCfjneiTu",
           "name": "resolve_date",
           "args": {
             "expression": "oct 25"
@@ -31,17 +31,17 @@
       "usage": {
         "input_tokens": 275,
         "output_tokens": 100,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1016.7142499703914,
+      "latency_ms": 891.4644590113312,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01PzLd5jVnfjPfErwifKakv5",
+          "id": "toolu_01QFpsm5sozunfvGGxaAqPAL",
           "name": "propose_update_task",
           "args": {
             "task_id": "vet",
@@ -56,23 +56,23 @@
       "usage": {
         "input_tokens": 618,
         "output_tokens": 92,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 826.9568749237806,
+      "latency_ms": 824.4637500029057,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving the \"Vet appointment\" from Mon Oct 26 to Sun Oct 25, keeping its 3:00 PM reminder. Approve it in the app to save the change.",
+      "text": "I've proposed moving \"Vet appointment\" from Mon Oct 26 to Sun Oct 25, keeping its 3:00 PM reminder. Approve it in the app to save the change.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 765,
-        "output_tokens": 65,
-        "cache_read_tokens": 6183,
+        "output_tokens": 64,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 934.9243750330061,
+      "latency_ms": 965.2591249905527,
       "model": "claude-haiku-5-5"
     }
   ]

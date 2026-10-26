@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -8,16 +8,16 @@
   },
   "responses": [
     {
-      "text": "Okay, I've left the laundry task alone. Nothing was deleted, and I hadn't actually submitted a deletion proposal before you cancelled.",
+      "text": "No problem, I've left the laundry task alone and nothing was deleted.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 319,
-        "output_tokens": 226,
-        "cache_read_tokens": 6183,
+        "output_tokens": 241,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1822.9819579282776,
+      "latency_ms": 1838.7150831986219,
       "model": "claude-haiku-5-5"
     }
   ]

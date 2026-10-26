@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -8,16 +8,16 @@
   },
   "responses": [
     {
-      "text": "I can't send emails or contact anyone. I can only manage your BoDay tasks, such as creating a reminder to write to your boss, marking a task done, or rescheduling one. Would you like me to add a task like \"Email boss: out sick today\" for today or another day?",
+      "text": "I can't send emails or contact anyone. I can only manage your BoDay tasks, such as creating a task to write to your boss, setting a reminder, or marking something done or skipped. Would you like me to add a task like \"Email boss about sick day\" for today?",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 271,
-        "output_tokens": 85,
-        "cache_read_tokens": 6183,
+        "output_tokens": 82,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1108.2702919375151,
+      "latency_ms": 883.0397080164403,
       "model": "claude-haiku-5-5"
     }
   ]

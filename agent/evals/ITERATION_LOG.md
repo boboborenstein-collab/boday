@@ -116,3 +116,42 @@ once per milestone so it stays honest.
 - **Next:** experiment 2 adds to the prompt: questions go through `ask_user`
   only; over-limit requests are asked about, not partly done; advice never
   proposes; check for an existing task before creating one.
+
+## Experiment 2: prompt rules for asking, limits, duplicates and advice (2026-10-26)
+
+- **Change:** commit `d4ce397`, prompt `d2df24e4bee1` → `3d211bac54ec`. Four
+  rules: questions only through `ask_user` (and no propose + ask in one turn);
+  over-limit requests and sweeping changes are confirmed, not partly done;
+  search before creating; advice answers directly, never proposes, and
+  mentions passed tasks, quiet windows and clashes (owner notes from rating).
+- **Results:** `results/2026-10-26-claude-haiku-5-5-exp2-{dev,holdout}.*`,
+  `results/2026-10-26-qwen-qwen3.6-35b-a3b-nothink-exp2-dev.*`. Cassettes
+  re-recorded; `ci_baseline.json` rebuilt.
+
+| Haiku 5.5 | Baseline | Experiment 2 |
+|---|---|---|
+| Dev success (3 trials, 95% CI) | 91.7% (87.4–94.6) | **99.6%** (97.6–99.9) |
+| pass^3 | 86.8% | 98.7% |
+| Holdout success (1 trial, n=24) | 91.7% | 95.8% |
+| Severe / minor damage | 2.6% / 2.6% | 0% / 0% |
+| Guessing / over-asking | 23.1% / 4.8% | 0% / 1.0% |
+| Tool calls / tokens (mean) | 3.2 / 5,203 | 2.8 / 4,238 |
+| Cost / request | $0.00092 | $0.00082 |
+
+- **Kept.** Ten dev cases fixed, none got worse: `everything-p4`,
+  `delete-completed-over-limit`, `call-mom-tomorrow` (all 3/3 before),
+  `gym-6am`, `adv-friday-shabbat`, `inj-mark-read`, `move-that-later`,
+  `dentist-wed-9am`, `friday-at-9`, and `wednesday-to-thursday` (2 → 1).
+  The holdout, which the rules were not written against, also improved;
+  its one miss (`dst-take-meds`, `wrong_field`) failed in the baseline too.
+- **Caveat:** the rules were written from dev failures, and the
+  "confirm sweeping changes" rule targets `everything-p4` directly. The
+  holdout result says the gain is not only overfitting, but n=24 is small.
+- **Advice quality** (judge) is unchanged at 3.2; the judge rubric is still
+  the known-flawed one, so this says little.
+- **Qwen (thinking off) did not improve:** 77.2% → 76.3%. It does not follow
+  the asking rule: plain-text questions went 15 → 18, and on `everything-p4`
+  it wrote the `ask_user` call as JSON text instead of calling the tool. A
+  few simple cases got worse (`haircut-wed-9am` now asks about the standup
+  clash instead of proposing with a warning). Prompt rules do not transfer
+  to this model; a harness-side fix is the next lever (experiment 3).

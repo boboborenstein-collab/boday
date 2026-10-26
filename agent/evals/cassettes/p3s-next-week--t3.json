@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,38 +11,38 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01B1VLxPDhSHXJk69SgkQHFY",
+          "id": "toolu_013LrvjZv6y3REvPL9epyB7e",
+          "name": "get_agenda",
+          "args": {
+            "start_date": "2026-10-20",
+            "end_date": "2026-10-26"
+          },
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-26\"}"
+        },
+        {
+          "id": "toolu_014GfuYHAHXAfFeGwajqWm7j",
           "name": "search_tasks",
           "args": {
             "priority": 3
           },
           "raw_args": "{\"priority\": 3}"
-        },
-        {
-          "id": "toolu_019QoN7ADkq1hpjYrFN4w54H",
-          "name": "get_agenda",
-          "args": {
-            "start_date": "2026-10-20",
-            "end_date": "2026-10-25"
-          },
-          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-25\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 275,
-        "output_tokens": 288,
-        "cache_read_tokens": 6183,
+        "output_tokens": 315,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1642.437791917473,
+      "latency_ms": 1951.8723750952631,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_019batYtNskDw6VndUDCNQdX",
+          "id": "toolu_01DDd1YLiZ1PTdGJVskga1h5",
           "name": "propose_update_task",
           "args": {
             "task_id": "call-mom",
@@ -53,7 +53,7 @@
           "raw_args": "{\"task_id\": \"call-mom\", \"changes\": {\"scheduled_date\": \"2026-10-27\"}}"
         },
         {
-          "id": "toolu_01ShN5gm8uaYCmdmaD4atQ6K",
+          "id": "toolu_01VNqePxhwcLiVV9u5PTkarK",
           "name": "propose_update_task",
           "args": {
             "task_id": "pharmacy",
@@ -64,7 +64,7 @@
           "raw_args": "{\"task_id\": \"pharmacy\", \"changes\": {\"scheduled_date\": \"2026-10-27\"}}"
         },
         {
-          "id": "toolu_01GnD7XMqtuPUrzG2ALxf5Q3",
+          "id": "toolu_01WgYL68F6hp3wxFFdDgBZFQ",
           "name": "propose_update_task",
           "args": {
             "task_id": "dinner-dana",
@@ -75,7 +75,7 @@
           "raw_args": "{\"task_id\": \"dinner-dana\", \"changes\": {\"scheduled_date\": \"2026-10-30\"}}"
         },
         {
-          "id": "toolu_01Vdr7Unr1PXH3rNscAZUTyX",
+          "id": "toolu_01NB7VQNjntJJbtbLZWj2Vpi",
           "name": "propose_update_task",
           "args": {
             "task_id": "budget",
@@ -88,25 +88,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 3221,
-        "output_tokens": 1019,
-        "cache_read_tokens": 6183,
+        "input_tokens": 3580,
+        "output_tokens": 994,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 4647.760792053305,
+      "latency_ms": 4540.590625023469,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving four P3 tasks from this week to next week, each to the same weekday seven days later: Call mom and Pick up prescription to Tue Oct 27, Dinner with Dana to Fri Oct 30, and Review budget to Sun Nov 1. The Dinner with Dana move falls inside a Shabbat/holiday quiet window at 19:00, so you may want a different date for it; nothing is saved until you approve.",
+      "text": "I've proposed moving the four priority 3 tasks from this week (Tue 10-20 to Sun 10-25) to the same weekday next week: Call mom and Pick up prescription to Tue 10-27, Review budget to Sun 11-01, and Dinner with Dana to Fri 10-30. Dinner with Dana's 7 PM reminder on 10-30 falls in a Shabbat quiet window, so you may want a different date for it, such as Thu 10-29.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 4609,
-        "output_tokens": 145,
-        "cache_read_tokens": 6183,
+        "input_tokens": 4943,
+        "output_tokens": 258,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1355.7387500768527,
+      "latency_ms": 2090.0526670739055,
       "model": "claude-haiku-5-5"
     }
   ]

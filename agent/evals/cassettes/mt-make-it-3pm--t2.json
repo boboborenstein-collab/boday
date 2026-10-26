@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_012XYfwCGMGojHzfmo76wTyj",
+          "id": "toolu_01FgKSrLQj4zQuyLzVJKAzVz",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -22,18 +22,18 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 337,
-        "output_tokens": 117,
-        "cache_read_tokens": 6183,
+        "output_tokens": 187,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1128.2219580607489,
+      "latency_ms": 1470.7284588366747,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_013BqmfvKZ4s8cv1EYfkrczS",
+          "id": "toolu_0166FnLtpEDcqvtuWzA7NvSZ",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -47,25 +47,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 575,
-        "output_tokens": 264,
-        "cache_read_tokens": 6183,
+        "input_tokens": 645,
+        "output_tokens": 186,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1542.2166660428047,
+      "latency_ms": 1388.0677500274032,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've drafted a change to move the Dentist appointment to Friday, Oct 23 at 3:00 PM, pending your approval. Note that my earlier reply didn't actually create a draft, and the task is currently set for Thursday, Oct 22 at 9:00 AM.",
+      "text": "I've drafted a change to move \"Dentist appointment\" to Friday, Oct 23 at 3:00 PM (its reminder was 9:00 AM on Oct 22). Approve it in the app to save; my earlier draft was never actually submitted, so this one replaces it.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 901,
-        "output_tokens": 92,
-        "cache_read_tokens": 6183,
+        "input_tokens": 893,
+        "output_tokens": 91,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 948.0297499103472,
+      "latency_ms": 929.4625839684159,
       "model": "claude-haiku-5-5"
     }
   ]

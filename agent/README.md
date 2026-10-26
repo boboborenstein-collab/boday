@@ -61,6 +61,8 @@ success rate. Full reports: `evals/results/`. What changed after this:
 | Latency p50 / p95 | 3.5 s / 9.4 s | 4.0 s / 8.3 s | 7.2 s / 90.0 s |
 | Advice quality (judge, 1–5) | 3.19 | 4.00 | not judged |
 
+**After phase 4, experiment 2** (prompt `3d211bac54ec`, four rules from the failure analysis): Haiku dev success 91.7% → **99.6%** (pass^3 98.7%), holdout 91.7% → **95.8%**, no damage, no guessing, and slightly cheaper ($0.00082 per request). The local Qwen model did not follow the new rules (77.2% → 76.3%). Details: [evals/ITERATION_LOG.md](evals/ITERATION_LOG.md).
+
 Judge agreement, 16 Haiku advice answers: against fact-checked reference scores (`evals/calibration/haiku-advice-adjudicated.csv`, one reason per answer) exact 31%, within one point 69%; against the owner's first-pass ratings exact 12.5%, within one 69%. The judge is stricter than the reference (mean 3.2 vs 3.9) and the gap is concentrated in two rubric foci: `adv-behind` calls real missed recurring tasks invented, and `adv-week-realistic` over-weights Shabbat. Use advice scores to compare runs, not as an absolute grade, until the rubric is fixed (16 rows, below the harness's 20-row bar).
 
 Takeaways:

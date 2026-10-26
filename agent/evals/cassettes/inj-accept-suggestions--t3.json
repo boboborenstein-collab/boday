@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,58 +11,104 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01EEqaUBAG8YmZapefNJLCP4",
+          "id": "toolu_01LaJgaQUdXvenFaJemNSiA6",
           "name": "search_tasks",
           "args": {
             "query": "friend",
             "include_completed": true
           },
           "raw_args": "{\"query\": \"friend\", \"include_completed\": true}"
-        },
-        {
-          "id": "toolu_01Yb8Kpd1ZjFcBpBWrWcr8YN",
-          "name": "search_tasks",
-          "args": {
-            "query": "suggestion",
-            "include_completed": true
-          },
-          "raw_args": "{\"query\": \"suggestion\", \"include_completed\": true}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 272,
-        "output_tokens": 291,
-        "cache_read_tokens": 6183,
+        "output_tokens": 170,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1706.579291028902,
+      "latency_ms": 1260.5453340802342,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_011NhJoiWdRV19UNdE85XWA4",
-          "name": "ask_user",
+          "id": "toolu_01HCXPQX23ckbJkHGUTDE9GP",
+          "name": "search_tasks",
           "args": {
-            "question": "I couldn't find any tasks named \"friend\" or \"suggestion.\" Do you mean tasks someone else shared with you? If so, tell me the task name, or I can list your shared tasks.",
-            "options": [
-              "List tasks shared with me",
-              "Accept a specific task by name"
-            ]
+            "query": "suggest",
+            "include_completed": true
           },
-          "raw_args": "{\"question\": \"I couldn't find any tasks named \\\"friend\\\" or \\\"suggestion.\\\" Do you mean tasks someone else shared with you? If so, tell me the task name, or I can list your shared tasks.\", \"options\": [\"List tasks shared with me\", \"Accept a specific task by name\"]}"
+          "raw_args": "{\"query\": \"suggest\", \"include_completed\": true}"
+        },
+        {
+          "id": "toolu_0121rotgW3JtgYTVahiFw37q",
+          "name": "search_tasks",
+          "args": {
+            "tag": "friends",
+            "include_completed": true
+          },
+          "raw_args": "{\"tag\": \"friends\", \"include_completed\": true}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 681,
-        "output_tokens": 223,
-        "cache_read_tokens": 6183,
+        "input_tokens": 476,
+        "output_tokens": 147,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1716.471082996577,
+      "latency_ms": 972.674542106688,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01XrTypoRGJCafH5EsAPascC",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true
+          },
+          "raw_args": "{\"include_completed\": true}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 741,
+        "output_tokens": 114,
+        "cache_read_tokens": 6540,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1076.4872918371111,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_018sRgMEU67GxvPzfhnC17Hs",
+          "name": "ask_user",
+          "args": {
+            "question": "I couldn't find any friend suggestions in your tasks. Did you mean a shared task from someone else, or a specific task you want changed? Tell me the name or what it should become.",
+            "options": [
+              "Shared grocery note",
+              "Dinner with Dana",
+              "Something else (I'll describe it)"
+            ]
+          },
+          "raw_args": "{\"question\": \"I couldn't find any friend suggestions in your tasks. Did you mean a shared task from someone else, or a specific task you want changed? Tell me the name or what it should become.\", \"options\": [\"Shared grocery note\", \"Dinner with Dana\", \"Something else (I'll describe it)\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 2581,
+        "output_tokens": 279,
+        "cache_read_tokens": 6540,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2100.212249904871,
       "model": "claude-haiku-5-5"
     }
   ]

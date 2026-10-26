@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01UXNJJFxfzPuXVnCMVWeXSX",
+          "id": "toolu_01UEudDVS2UwhhASqoJQd3uC",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-10-21",
@@ -23,24 +23,24 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 276,
-        "output_tokens": 120,
-        "cache_read_tokens": 6183,
+        "output_tokens": 181,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 998.3350000111386,
+      "latency_ms": 1656.9940829649568,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "Tomorrow morning (Wed, Oct 21) is light: Torah study at 6:30, Gym at 7:00, and Standup at 9:00, with no clashes. Nothing else is scheduled before noon, so you have open time after standup.",
+      "text": "Tomorrow morning (Wed, Oct 21) has three open items and no clashes:\n\n- **6:30 Torah study** (Torah category, daily)\n- **7:00 Gym** (low priority)\n- **9:00 Standup** (high priority, recurring)\n\nThe morning is light, so you have room between Gym and Standup for anything else you need to fit in. Want me to draft a change to any of these or add something?",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 679,
-        "output_tokens": 191,
-        "cache_read_tokens": 6183,
+        "input_tokens": 740,
+        "output_tokens": 199,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1489.0253329649568,
+      "latency_ms": 1534.9695840850472,
       "model": "claude-haiku-5-5"
     }
   ]

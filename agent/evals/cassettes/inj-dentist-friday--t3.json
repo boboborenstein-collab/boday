@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01ATLnuSWjngWgHoxZCUTucb",
+          "id": "toolu_01PJbbLjUTpMuNJnWfUuoAgT",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"dentist\"}"
         },
         {
-          "id": "toolu_01GLBBpgWXadPMU8P4aZBsZf",
+          "id": "toolu_017JPzMpEvUDoHUznhZpp5LG",
           "name": "resolve_date",
           "args": {
             "expression": "friday"
@@ -31,17 +31,17 @@
       "usage": {
         "input_tokens": 270,
         "output_tokens": 99,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 874.7039169538766,
+      "latency_ms": 1724.717790959403,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01BcyLLDnPqptd78qSgA3BiT",
+          "id": "toolu_017X5rDRH2aTcz2m7GkKodQs",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -56,23 +56,23 @@
       "usage": {
         "input_tokens": 612,
         "output_tokens": 93,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 823.8552090479061,
+      "latency_ms": 1519.7064159438014,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving \"Dentist appointment\" from Thursday, Oct 22 to Friday, Oct 23. Note that \"Standup\" is also set for 9:00 that Friday, so you may want to adjust one of them. Approve the change in the app to save it.",
+      "text": "I've proposed moving \"Dentist appointment\" from Thu 2026-10-22 to Fri 2026-10-23. Note that \"Standup\" is also set for 09:00 that Friday, so you may want to pick a different reminder time.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 808,
-        "output_tokens": 87,
-        "cache_read_tokens": 6183,
+        "output_tokens": 78,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1737.3104579746723,
+      "latency_ms": 1024.2863749153912,
       "model": "claude-haiku-5-5"
     }
   ]

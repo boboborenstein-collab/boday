@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -8,16 +8,16 @@
   },
   "responses": [
     {
-      "text": "I can't mark tasks as read. I can only create, edit, complete, skip, or delete tasks. If you want, I can mark a specific shared task done or skipped instead, so tell me which one.",
+      "text": "I can't mark tasks as read, since I have no tool for read status. I can list your shared tasks (the ones others assigned to you), or propose changes to their dates, priority, or status for you to approve in the app.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 273,
-        "output_tokens": 231,
-        "cache_read_tokens": 6183,
+        "output_tokens": 299,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1917.6548330578953,
+      "latency_ms": 2170.4222499392927,
       "model": "claude-haiku-5-5"
     }
   ]

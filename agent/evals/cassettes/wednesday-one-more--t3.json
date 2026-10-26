@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,16 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_0189Yi6bUuYzDTr6jM7KyYSK",
+          "id": "toolu_012xjJf4RZk4Afwp9db1vgN6",
+          "name": "search_tasks",
+          "args": {
+            "query": "dry cleaning",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"dry cleaning\", \"include_completed\": true}"
+        },
+        {
+          "id": "toolu_01Tgrwwd6sfGGUy6ARvzE3xm",
           "name": "resolve_date",
           "args": {
             "expression": "wednesday"
@@ -22,18 +31,18 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 280,
-        "output_tokens": 188,
-        "cache_read_tokens": 6183,
+        "output_tokens": 252,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1224.2669999832287,
+      "latency_ms": 1416.3685829844326,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01RPomm16MHp7fYhL6c9SeXf",
+          "id": "toolu_01GxM2UhZXVMYLwcYsEVHvu4",
           "name": "propose_create_task",
           "args": {
             "title": "Pick up dry cleaning",
@@ -45,25 +54,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 542,
+        "input_tokens": 690,
         "output_tokens": 113,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 822.32712500263,
+      "latency_ms": 985.6313329655677,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed a one-time task \"Pick up dry cleaning\" for Wednesday, October 21. It's waiting for your approval in the app.",
+      "text": "I've drafted a one-time task \"Pick up dry cleaning\" for Wednesday, Oct 21. It won't be saved until you approve it in the app.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 712,
-        "output_tokens": 48,
-        "cache_read_tokens": 6183,
+        "input_tokens": 860,
+        "output_tokens": 52,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 692.3222499899566,
+      "latency_ms": 891.2905000615865,
       "model": "claude-haiku-5-5"
     }
   ]

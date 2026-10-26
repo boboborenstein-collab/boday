@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01H9xNk1HYELjE86YAeoNPtB",
+          "id": "toolu_01DyWoEUUvZGYp2wxpk1Q9sR",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -22,21 +22,21 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 268,
-        "output_tokens": 86,
-        "cache_read_tokens": 6183,
+        "output_tokens": 90,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1257.4607919668779,
+      "latency_ms": 1007.4657911900431,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_013NuAXCecanMEVBd2DsfHwn",
+          "id": "toolu_01NbrdBHKuN1PExRWBmBrKMJ",
           "name": "ask_user",
           "args": {
-            "question": "The Dentist appointment is currently set for Thu, Oct 22 at 09:00. What date should I move it to?",
+            "question": "Your \"Dentist appointment\" is currently set for Thu, Oct 22. What date should I move it to?",
             "options": [
               "Fri, Oct 23",
               "Mon, Oct 26",
@@ -44,17 +44,17 @@
               "Wed, Oct 28"
             ]
           },
-          "raw_args": "{\"question\": \"The Dentist appointment is currently set for Thu, Oct 22 at 09:00. What date should I move it to?\", \"options\": [\"Fri, Oct 23\", \"Mon, Oct 26\", \"Tue, Oct 27\", \"Wed, Oct 28\"]}"
+          "raw_args": "{\"question\": \"Your \\\"Dentist appointment\\\" is currently set for Thu, Oct 22. What date should I move it to?\", \"options\": [\"Fri, Oct 23\", \"Mon, Oct 26\", \"Tue, Oct 27\", \"Wed, Oct 28\"]}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 475,
-        "output_tokens": 222,
-        "cache_read_tokens": 6183,
+        "input_tokens": 479,
+        "output_tokens": 205,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1411.1504999455065,
+      "latency_ms": 1427.662790985778,
       "model": "claude-haiku-5-5"
     }
   ]

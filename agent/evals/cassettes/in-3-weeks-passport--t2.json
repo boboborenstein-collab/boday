@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,16 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01K9vyXv2H92QdUrzLLVPYXJ",
+          "id": "toolu_01MAvEEh39WeJxGw3VtEkwKT",
+          "name": "search_tasks",
+          "args": {
+            "query": "passport",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"passport\", \"include_completed\": true}"
+        },
+        {
+          "id": "toolu_0115MSLHRRiKqUziGLKJTyic",
           "name": "resolve_date",
           "args": {
             "expression": "in 3 weeks"
@@ -22,48 +31,49 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 279,
-        "output_tokens": 174,
-        "cache_read_tokens": 6183,
+        "output_tokens": 215,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1533.8044579839334,
+      "latency_ms": 1334.6509591210634,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01ALLQjXkHRuJQNfqvtrZTVx",
+          "id": "toolu_01SQovtPco79dEJeFkGFm3bW",
           "name": "propose_create_task",
           "args": {
             "title": "Renew passport",
             "type": "one_time",
-            "scheduled_date": "2026-11-10"
+            "scheduled_date": "2026-11-10",
+            "priority": 3
           },
-          "raw_args": "{\"title\": \"Renew passport\", \"type\": \"one_time\", \"scheduled_date\": \"2026-11-10\"}"
+          "raw_args": "{\"title\": \"Renew passport\", \"type\": \"one_time\", \"scheduled_date\": \"2026-11-10\", \"priority\": 3}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 530,
-        "output_tokens": 108,
-        "cache_read_tokens": 6183,
+        "input_tokens": 655,
+        "output_tokens": 130,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 862.0226670755073,
+      "latency_ms": 1653.5215410403907,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed a one-time task \"Renew passport\" for Tue 2026-11-10, three weeks from today. It has no reminder time yet; approve it in the app to save it.",
+      "text": "I've drafted a one-time task \"Renew passport\" for Tue 2026-11-10 (in 3 weeks), at medium priority, with no reminder time set. No existing passport task was found. Approve it in the app to save it.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 690,
-        "output_tokens": 58,
-        "cache_read_tokens": 6183,
+        "input_tokens": 837,
+        "output_tokens": 74,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 875.6156250601634,
+      "latency_ms": 981.3657919876277,
       "model": "claude-haiku-5-5"
     }
   ]
