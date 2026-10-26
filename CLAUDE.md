@@ -42,6 +42,13 @@ npm run preview
 ## Deployment & Infrastructure (all live, all free-tier)
 - **App**: https://boday.boapps.workers.dev — Cloudflare Workers static assets.
   Deploy: `npm run build && npx wrangler deploy` (repo-root `wrangler.jsonc`).
+  Wrangler must be logged in to the Cloudflare account whose workers.dev
+  subdomain is `boapps` (it hosts both `boday` and `boday-push`); check with
+  `npx wrangler deployments list` before deploying. The owner's other
+  Cloudflare account (subdomain `jborenstein`) is not this one.
+- **Agent server**: https://boday-agent-430294896514.us-west1.run.app — Cloud Run,
+  GCP project `boday-agent`. Deploy: see `agent/DEPLOY.md`. The app reads its
+  URL from `VITE_AGENT_URL` in the gitignored `.env`.
 - **Push worker**: `worker-push/` — cron every minute. On-time reminders,
   per-task re-nudge (Auto/Off/5m–2h; Auto = P1 hourly, P2 at 2h+6h), 9AM digest.
   Deploy: `npx wrangler deploy` inside `worker-push/`. `GET /test` sends a test push.
