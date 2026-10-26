@@ -10,7 +10,7 @@ and the plan for your track.
   implementation plans" section of `CLAUDE.md` / `AGENTS.md`.
 - **Known follow-ups:** `agent/FOLLOWUPS.md`
 
-## Status (2026-10-24, after round 2)
+## Status (2026-10-26, after phase 4)
 
 | Phase | What | Status |
 |---|---|---|
@@ -23,8 +23,9 @@ and the plan for your track.
 | 5a | FastAPI service (built, not deployed) | ✅ Done — PR #8 |
 | 5b | App chat UI (built, not deployed) | ✅ Done — PR #9 |
 | 3B baseline | Task B5 paid runs + write-up (Haiku, Sonnet, local Qwen, judge calibration) | ✅ Done — PR #10; see `agent/README.md` Results, `agent/evals/ITERATION_LOG.md` |
-| 5 deploy | Cloud Run, Supabase migration, secrets, Cloudflare Access, app `VITE_AGENT_URL` | ⏸ Owner steps (`agent/DEPLOY.md`), when the owner is ready |
-| 4 | Iterate on eval failures (plan: ITERATION_LOG "Planned experiments") | ⏭️ Next — owner + Claude on the Mac (needs paid / local runs) |
+| 4 | Experiments 1–2: Qwen thinking off, prompt rules (Haiku dev 91.7% → 99.6%, holdout 95.8%) | ✅ Done — PR #11; see `agent/evals/ITERATION_LOG.md` |
+| 5 deploy | Cloud Run, Supabase migration, secrets, app `VITE_AGENT_URL` (Haiku first; Cloudflare Access + Local later) | ⏭️ Next — owner + Claude on the Mac (`agent/DEPLOY.md`) |
+| 4 (optional) | Exp 3: harness safety net for local-model plain-text questions; judge rubric fix (`adv-behind`, `adv-week-realistic`) | Later |
 
 ## Round 2 — two parallel tracks (done; kept for reference)
 
