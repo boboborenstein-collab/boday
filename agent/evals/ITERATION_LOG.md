@@ -72,8 +72,16 @@ once per milestone so it stays honest.
 
 ### Judge calibration
 
-Owner rated 18 Haiku dev advice answers (`calibration/haiku-advice-rated.csv`);
-16 had a judge score. Exact agreement 12.5%, within one 68.8%. Owner mean 4.8,
-judge mean 3.2: the judge is stricter across the board, and two rubric foci
-(`adv-behind`, `adv-week-realistic`) drive the largest gaps (judge 1–2, owner
-4–5). Fix the rubric before relying on advice scores; re-rate after.
+- **Owner first pass** (`calibration/haiku-advice-rated.csv`, 18 answers, 16 with a
+  judge score): exact 12.5%, within one 68.8%. Owner mean 4.8: generous where
+  answers sounded complete but missed facts (Friday answers that never mention
+  the 17:52 candle-lighting; moving the dentist to another day when standup is
+  daily).
+- **Reference scores** (`calibration/haiku-advice-adjudicated.csv`): every answer
+  checked against the fixture, keeping the owner's score where it was right, the
+  judge's where it was right, with a one-line reason per answer. Judge vs
+  reference: exact 31%, within one 69% (`results/judge_calibration_adjudicated.json`).
+  Reference mean 3.7 (18 answers); judge mean 3.2.
+- Largest judge errors: `adv-behind` (judge 1, reference 4–5: the rubric calls
+  real missed recurring tasks invented) and `adv-week-realistic` (judge 2,
+  reference 4). Fix those two rubric foci, rerun the judge, and re-measure.

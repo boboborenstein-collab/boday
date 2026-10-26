@@ -59,7 +59,7 @@ success rate. Full reports: `evals/results/`. What changed after this:
 | Latency p50 / p95 | 3.5 s / 9.4 s | 4.0 s / 8.3 s | 7.2 s / 90.0 s |
 | Advice quality (judge, 1–5) | 3.19 | 4.00 | not judged |
 
-Judge agreement with the owner's ratings (16 Haiku advice answers, `evals/results/judge_calibration.json`): exact 12.5%, within one point 68.8%. The judge is much stricter (mean 3.2 vs the owner's 4.8), so its advice scores are only useful for comparing runs, not as an absolute grade. The two big gaps come from the rubric: `adv-behind` tells the judge that missed recurring tasks are invented (they are real in the test data), and `adv-week-realistic` penalises answers that skip Shabbat. Below the 20-row bar the harness wants for calling the judge calibrated.
+Judge agreement, 16 Haiku advice answers: against fact-checked reference scores (`evals/calibration/haiku-advice-adjudicated.csv`, one reason per answer) exact 31%, within one point 69%; against the owner's first-pass ratings exact 12.5%, within one 69%. The judge is stricter than the reference (mean 3.2 vs 3.9) and the gap is concentrated in two rubric foci: `adv-behind` calls real missed recurring tasks invented, and `adv-week-realistic` over-weights Shabbat. Use advice scores to compare runs, not as an absolute grade, until the rubric is fixed (16 rows, below the harness's 20-row bar).
 
 Takeaways:
 
