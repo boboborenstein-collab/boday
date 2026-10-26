@@ -262,3 +262,22 @@ def test_credentials_in_base_url_never_reach_describe_or_errors():
         p.complete("S", [UserText(text="x")], TOOLS, timeout_s=5)
     assert "hunter2" not in str(err.value) and "bob" not in str(err.value)
     assert "llm.example.com:8443" in str(err.value)
+
+
+def test_reasoning_effort_is_sent_only_when_set():
+    bodies = []
+
+    def handler(req):
+        bodies.append(json.loads(req.content))
+        return httpx.Response(200, json=CHAT_TEXT_REPLY)
+
+    plain = OpenAICompatProvider("http://mac/v1", "qwen", transport=httpx.MockTransport(handler))
+    off = OpenAICompatProvider(
+        "http://mac/v1", "qwen", reasoning_effort="none", transport=httpx.MockTransport(handler)
+    )
+    plain.complete("SYS", [UserText(text="hi")], TOOLS, timeout_s=10)
+    off.complete("SYS", [UserText(text="hi")], TOOLS, timeout_s=10)
+    assert "reasoning_effort" not in bodies[0]
+    assert bodies[1]["reasoning_effort"] == "none"
+    assert "effort" not in plain.describe()
+    assert off.describe()["effort"] == "none"

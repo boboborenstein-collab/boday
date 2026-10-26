@@ -23,7 +23,9 @@ uses `claude-haiku-5-5` with the Anthropic SDK's own credentials.
 `--api-key-env` applies to `--provider anthropic` and `--provider openai`;
 auto does not send that key to the local URL. `--now` replaces the snapshot
 clock and keeps its timezone. `--header "Name: value"` is sent with the
-OpenAI-compatible request (for example Cloudflare Access).
+OpenAI-compatible request (for example Cloudflare Access). With `--provider openai`,
+`--effort` is sent as `reasoning_effort` (`--effort none` turns off thinking
+on LM Studio's Qwen models).
 
 ## First run
 
