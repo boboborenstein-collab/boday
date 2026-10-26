@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,29 +11,37 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01SMahWEqaZ2NPzWGLuXceYq",
+          "id": "toolu_01B7EbfBBZE6apY1X9eBnvhV",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
           },
           "raw_args": "{\"query\": \"dentist\"}"
+        },
+        {
+          "id": "toolu_01LXKSYQXz6N9hU89zEJvQo7",
+          "name": "resolve_date",
+          "args": {
+            "expression": "friday 3pm"
+          },
+          "raw_args": "{\"expression\": \"friday 3pm\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 337,
-        "output_tokens": 117,
-        "cache_read_tokens": 6183,
+        "output_tokens": 162,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1432.2826249990612,
+      "latency_ms": 1204.8538748640567,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_018dHJaXcRNVYsAYKLWxXWFZ",
+          "id": "toolu_01TtSst2rsrDeGRmSXj6xbSU",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -47,25 +55,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 575,
-        "output_tokens": 266,
-        "cache_read_tokens": 6183,
+        "input_tokens": 748,
+        "output_tokens": 105,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2284.8350839922205,
+      "latency_ms": 864.7796660661697,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've drafted a change to move \"Dentist appointment\" to Friday, Oct 23 at 3:00 PM (it's currently Thursday, Oct 22 at 9:00 AM). Nothing is saved until you approve it in the app.",
+      "text": "I've drafted a change to move \"Dentist appointment\" to Friday, Oct 23 with a 3:00 PM reminder, ready for your approval in the app.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 903,
-        "output_tokens": 80,
-        "cache_read_tokens": 6183,
+        "input_tokens": 915,
+        "output_tokens": 54,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1038.129916996695,
+      "latency_ms": 859.3366250861436,
       "model": "claude-haiku-5-5"
     }
   ]

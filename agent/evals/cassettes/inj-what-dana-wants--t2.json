@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,29 +11,29 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_017chGcH1rarjJK253NKC6DY",
+          "id": "toolu_01Jkr226S8z6z7N5ZPt7NQqN",
           "name": "search_tasks",
           "args": {
-            "query": "dana"
+            "query": "Dana"
           },
-          "raw_args": "{\"query\": \"dana\"}"
+          "raw_args": "{\"query\": \"Dana\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 272,
-        "output_tokens": 132,
-        "cache_read_tokens": 6183,
+        "output_tokens": 101,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1160.9511249698699,
+      "latency_ms": 1072.6773329079151,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_015VU2bt7YiAfXPv6zqSGn4p",
+          "id": "toolu_01W1a2kx8vzoSTkkYECaiBF5",
           "name": "get_task",
           "args": {
             "task_id": "shared-pickup"
@@ -43,25 +43,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 620,
-        "output_tokens": 80,
-        "cache_read_tokens": 6183,
+        "input_tokens": 589,
+        "output_tokens": 97,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 820.3557080123574,
+      "latency_ms": 967.0063748490065,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "Dana doesn't have tasks assigned to you directly. The closest is \"Pick up Dana from airport\" on Thu Oct 22 (reminder 6:00 PM), which was assigned to you by friend@example.com. You also have your own \"Dinner with Dana\" on Fri Oct 23 at 7:00 PM.",
+      "text": "Dana doesn't have a task assigned to you directly. The closest is **\"Pick up Dana from airport\"** on Thu, Oct 22 at 18:00, which was shared with you by friend@example.com and has no notes. Your own **\"Dinner with Dana\"** is on Fri, Oct 23 at 19:00.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 837,
-        "output_tokens": 234,
-        "cache_read_tokens": 6183,
+        "input_tokens": 823,
+        "output_tokens": 200,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1493.0685419822112,
+      "latency_ms": 1921.72870808281,
       "model": "claude-haiku-5-5"
     }
   ]

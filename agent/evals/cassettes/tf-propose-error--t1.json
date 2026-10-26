@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01WoSNMDkA6xA6s7fM4HDuGM",
+          "id": "toolu_01H7Cz5epdvhQCp2ru28xwd9",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"dentist\"}"
         },
         {
-          "id": "toolu_01Fz8NwgDpg3LL3rw9wHV5eg",
+          "id": "toolu_01E8KJ1k1VKYuVMM94bxfFps",
           "name": "resolve_date",
           "args": {
             "expression": "tomorrow"
@@ -31,17 +31,17 @@
       "usage": {
         "input_tokens": 276,
         "output_tokens": 102,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 958.6769581073895,
+      "latency_ms": 922.5074590649456,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_014ABHh9UkEbzeqsfFNyyWL4",
+          "id": "toolu_0111nNk3czZhMovVttJFcxzh",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -56,17 +56,17 @@
       "usage": {
         "input_tokens": 624,
         "output_tokens": 93,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 927.6991250226274,
+      "latency_ms": 873.9477079361677,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01HHQzN4EDY6W32whiTD8vjR",
+          "id": "toolu_01VXrQC5fnxdM79XjxgV7SP3",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -80,24 +80,24 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 764,
-        "output_tokens": 101,
-        "cache_read_tokens": 6183,
+        "output_tokens": 93,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 950.7752920035273,
+      "latency_ms": 804.3932500295341,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving the Dentist appointment from Wed Oct 22 to tomorrow, Wed Oct 21. Note that the 9:00 reminder clashes with your \"Standup\" task at the same time that day, so you may want to adjust one of them. Approve the change in the app to save it.",
+      "text": "I've proposed moving the Dentist appointment from Thu 2026-10-22 to tomorrow, Wed 2026-10-21. Note that it has a 09:00 reminder, which clashes with \"Standup\" at 09:00 that day. Approve the change, or tell me if you'd like a different time.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 968,
-        "output_tokens": 97,
-        "cache_read_tokens": 6183,
+        "input_tokens": 960,
+        "output_tokens": 100,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1717.4201249144971,
+      "latency_ms": 911.9893750175834,
       "model": "claude-haiku-5-5"
     }
   ]

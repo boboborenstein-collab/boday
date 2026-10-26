@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,22 +11,52 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01SNfqxrEqBHThYeFe5KH4ZR",
-          "name": "ask_user",
+          "id": "toolu_015DDfX2BdJHPkQ5Q6wBZBzG",
+          "name": "get_agenda",
           "args": {
-            "question": "Which task should I move, and to what time? \"Later\" could mean later today or another day, so tell me the day (or time) you want."
+            "start_date": "2026-10-20",
+            "end_date": "2026-10-20"
           },
-          "raw_args": "{\"question\": \"Which task should I move, and to what time? \\\"Later\\\" could mean later today or another day, so tell me the day (or time) you want.\"}"
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-20\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 267,
-        "output_tokens": 147,
-        "cache_read_tokens": 6183,
+        "output_tokens": 268,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1667.6226659910753,
+      "latency_ms": 1929.6904590446502,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "Which task do you mean, and what time or date should I move it to? Here are today's open tasks:",
+      "tool_calls": [
+        {
+          "id": "toolu_012pnA2SVrHE3vzJL3NJrGJq",
+          "name": "ask_user",
+          "args": {
+            "question": "Which task should I move to later, and to when? Today's open tasks are: File taxes (carried over 5 days), Standup (recurring, 09:00), Call mom, Pick up prescription, Swim laps (recurring, 17:00), and Torah study (recurring, 06:30).",
+            "options": [
+              "File taxes",
+              "Call mom",
+              "Pick up prescription",
+              "Swim laps",
+              "Torah study"
+            ]
+          },
+          "raw_args": "{\"question\": \"Which task should I move to later, and to when? Today's open tasks are: File taxes (carried over 5 days), Standup (recurring, 09:00), Call mom, Pick up prescription, Swim laps (recurring, 17:00), and Torah study (recurring, 06:30).\", \"options\": [\"File taxes\", \"Call mom\", \"Pick up prescription\", \"Swim laps\", \"Torah study\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 1033,
+        "output_tokens": 223,
+        "cache_read_tokens": 6540,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1289.2130420077592,
       "model": "claude-haiku-5-5"
     }
   ]

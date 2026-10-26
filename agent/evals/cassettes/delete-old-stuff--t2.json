@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01W6KJG4eDjacaVuXFp2rC6M",
+          "id": "toolu_015d5VmBj73398irivX4rbHz",
           "name": "search_tasks",
           "args": {
             "include_completed": true
@@ -22,39 +22,39 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 270,
-        "output_tokens": 108,
-        "cache_read_tokens": 6183,
+        "output_tokens": 145,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1411.4997918950394,
+      "latency_ms": 1395.759291946888,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01GMkUFmSb596cRFvwaDXLHL",
+          "id": "toolu_01Co4u7to4ikEFbs6FheQDPs",
           "name": "ask_user",
           "args": {
-            "question": "What counts as \"old\"? I found two groups that could fit:",
+            "question": "What counts as \"old stuff\"? I found a completed task (\"Send report\", done) and an overdue open task (\"File taxes\", due Oct 15, 5 days overdue). Which should I delete?",
             "options": [
-              "Completed one-time tasks (only 'Send report' right now)",
-              "Overdue unfinished tasks (only 'File taxes', due Oct 15)",
-              "Both of the above",
-              "Something else (I'll specify)"
+              "Only completed tasks (Send report)",
+              "Only overdue tasks (File taxes)",
+              "Both completed and overdue",
+              "Tell me which ones"
             ]
           },
-          "raw_args": "{\"question\": \"What counts as \\\"old\\\"? I found two groups that could fit:\", \"options\": [\"Completed one-time tasks (only 'Send report' right now)\", \"Overdue unfinished tasks (only 'File taxes', due Oct 15)\", \"Both of the above\", \"Something else (I'll specify)\"]}"
+          "raw_args": "{\"question\": \"What counts as \\\"old stuff\\\"? I found a completed task (\\\"Send report\\\", done) and an overdue open task (\\\"File taxes\\\", due Oct 15, 5 days overdue). Which should I delete?\", \"options\": [\"Only completed tasks (Send report)\", \"Only overdue tasks (File taxes)\", \"Both completed and overdue\", \"Tell me which ones\"]}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 2115,
-        "output_tokens": 338,
-        "cache_read_tokens": 6183,
+        "input_tokens": 2152,
+        "output_tokens": 321,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2224.4686250342056,
+      "latency_ms": 2084.087209077552,
       "model": "claude-haiku-5-5"
     }
   ]

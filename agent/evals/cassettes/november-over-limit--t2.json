@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,29 +11,27 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01DyiEF7wocpLL3DgYtXFZQt",
+          "id": "toolu_01TMEBUJv91JvDUi5CMrhAJ2",
           "name": "search_tasks",
-          "args": {
-            "include_completed": false
-          },
-          "raw_args": "{\"include_completed\": false}"
+          "args": {},
+          "raw_args": "{}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 270,
-        "output_tokens": 165,
-        "cache_read_tokens": 6183,
+        "output_tokens": 153,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1566.6970839956775,
+      "latency_ms": 2606.94899992086,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_0157y5D2EnRo436JqEeb2wFX",
+          "id": "toolu_01EoejGH1JwPBMcqNDNytSWn",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-11-01",
@@ -42,7 +40,7 @@
           "raw_args": "{\"start_date\": \"2026-11-01\", \"end_date\": \"2026-11-14\"}"
         },
         {
-          "id": "toolu_01TgNuhmYHoLzjKjbJCLJggA",
+          "id": "toolu_01BDiHaGCsam9r2NvWsDLv38",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-11-15",
@@ -51,7 +49,7 @@
           "raw_args": "{\"start_date\": \"2026-11-15\", \"end_date\": \"2026-11-28\"}"
         },
         {
-          "id": "toolu_01G2nB4TgFSrb8e5nqgKssvq",
+          "id": "toolu_01Y5GF2JKBMf7WMfZF95Jxjz",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-11-29",
@@ -62,62 +60,41 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 2229,
-        "output_tokens": 387,
-        "cache_read_tokens": 6183,
+        "input_tokens": 2217,
+        "output_tokens": 417,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2126.744457986206,
+      "latency_ms": 2030.26287490502,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01Epu3zu51FVFPLYNcBtBGYZ",
-          "name": "search_tasks",
-          "args": {
-            "type": "one_time"
-          },
-          "raw_args": "{\"type\": \"one_time\"}"
-        }
-      ],
-      "stop_reason": "tool_use",
-      "usage": {
-        "input_tokens": 49847,
-        "output_tokens": 463,
-        "cache_read_tokens": 6183,
-        "cache_write_tokens": 0
-      },
-      "latency_ms": 3431.2440840294585,
-      "model": "claude-haiku-5-5"
-    },
-    {
-      "text": "",
-      "tool_calls": [
-        {
-          "id": "toolu_01AjRaUtYDRv82uF5mVEeH7L",
+          "id": "toolu_01VgYMPTLEX2SibgZucBuy9q",
           "name": "ask_user",
           "args": {
-            "question": "I found many November items, and I need to know how to move them. Which should I move, and to what date?",
+            "question": "November has about 600 scheduled items (most are recurring occurrences), far more than I can move in one batch (limit 25 changes). Which part should I move to December?",
             "options": [
-              "One-time tasks only, keeping the same day (e.g., Nov 7 \u2192 Dec 7)",
-              "One-time tasks only, moved to the 1st of December",
-              "Recurring series too, shifted to start in December",
-              "Cancel: I'll pick individual tasks instead"
+              "Only one-time tasks in November",
+              "Only tasks tagged work",
+              "Only priority 1 (urgent) tasks",
+              "Only Nov 1-15",
+              "A specific task or title I name"
             ]
           },
-          "raw_args": "{\"question\": \"I found many November items, and I need to know how to move them. Which should I move, and to what date?\", \"options\": [\"One-time tasks only, keeping the same day (e.g., Nov 7 \\u2192 Dec 7)\", \"One-time tasks only, moved to the 1st of December\", \"Recurring series too, shifted to start in December\", \"Cancel: I'll pick individual tasks instead\"]}"
+          "raw_args": "{\"question\": \"November has about 600 scheduled items (most are recurring occurrences), far more than I can move in one batch (limit 25 changes). Which part should I move to December?\", \"options\": [\"Only one-time tasks in November\", \"Only tasks tagged work\", \"Only priority 1 (urgent) tasks\", \"Only Nov 1-15\", \"A specific task or title I name\"]}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 52104,
-        "output_tokens": 1345,
-        "cache_read_tokens": 6183,
+        "input_tokens": 49865,
+        "output_tokens": 460,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 6354.66654098127,
+      "latency_ms": 3041.144707938656,
       "model": "claude-haiku-5-5"
     }
   ]

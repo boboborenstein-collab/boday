@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -8,16 +8,31 @@
   },
   "responses": [
     {
-      "text": "Which task do you mean, and what time should I move it to? \"Later\" is vague, so a specific day or time would help.",
-      "tool_calls": [],
-      "stop_reason": "end_turn",
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_01N3nTZg8abGWiH2nguCVCGL",
+          "name": "ask_user",
+          "args": {
+            "question": "Which task do you want to move, and to what time or day? \"Later\" could mean later today or another day.",
+            "options": [
+              "Later today",
+              "Tomorrow",
+              "This weekend",
+              "I'll name the task"
+            ]
+          },
+          "raw_args": "{\"question\": \"Which task do you want to move, and to what time or day? \\\"Later\\\" could mean later today or another day.\", \"options\": [\"Later today\", \"Tomorrow\", \"This weekend\", \"I'll name the task\"]}"
+        }
+      ],
+      "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 267,
-        "output_tokens": 131,
-        "cache_read_tokens": 6183,
+        "output_tokens": 188,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1348.76525006257,
+      "latency_ms": 1500.7228329777718,
       "model": "claude-haiku-5-5"
     }
   ]

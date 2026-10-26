@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01CDSsrBagbWeiBJuTus7x3Q",
+          "id": "toolu_01VHSyWxVggZzLdS9GupRPw8",
           "name": "search_tasks",
           "args": {
             "query": "standup"
@@ -23,17 +23,17 @@
       "usage": {
         "input_tokens": 270,
         "output_tokens": 50,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 761.3935000263155,
+      "latency_ms": 925.7189170457423,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01PHZQ3mBSCqdjHRkuitptHd",
+          "id": "toolu_013t3pcF49MvuVPts4dDQBYY",
           "name": "propose_set_status",
           "args": {
             "task_id": "standup",
@@ -47,23 +47,23 @@
       "usage": {
         "input_tokens": 432,
         "output_tokens": 100,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 868.9991669962183,
+      "latency_ms": 752.3190840147436,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed marking the Standup task done for today (Tue 2026-10-20); you'll need to approve it in the app to save.",
+      "text": "I've proposed marking today's Standup (Tue 2026-10-20) as done; approve it in the app to save.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 588,
-        "output_tokens": 43,
-        "cache_read_tokens": 6183,
+        "output_tokens": 38,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 783.4359999978915,
+      "latency_ms": 726.8272920046002,
       "model": "claude-haiku-5-5"
     }
   ]

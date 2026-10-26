@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,16 +11,16 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01AFtAGhy5vd4xyCy48mT3mf",
+          "id": "toolu_01XUBVpRt6ZRgLzWaWFc39Fs",
           "name": "get_agenda",
           "args": {
-            "start_date": "2026-10-13",
-            "end_date": "2026-10-20"
+            "start_date": "2026-10-20",
+            "end_date": "2026-10-21"
           },
-          "raw_args": "{\"start_date\": \"2026-10-13\", \"end_date\": \"2026-10-20\"}"
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-21\"}"
         },
         {
-          "id": "toolu_01Nt65EvLRRNJMj3BB5sfC4P",
+          "id": "toolu_017hHDVvhTZKxiRE7bi6XSiy",
           "name": "search_tasks",
           "args": {},
           "raw_args": "{}"
@@ -29,24 +29,70 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 270,
-        "output_tokens": 245,
-        "cache_read_tokens": 6183,
+        "output_tokens": 230,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1722.8357919957489,
+      "latency_ms": 1754.0422501042485,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "You're behind on **File taxes** (priority 1, due Oct 15, five days overdue) and four past recurring items still open: Team sync (Oct 13), Swim laps (Oct 13 and Oct 15), Back up laptop (Oct 15), and Groceries (Oct 18). Today you also have Standup, Call mom, Pick up prescription, Swim laps, and Torah study open.",
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_019J5ZqmgxnPBkhAh2WKaE31",
+          "name": "get_task",
+          "args": {
+            "task_id": "rent"
+          },
+          "raw_args": "{\"task_id\": \"rent\"}"
+        },
+        {
+          "id": "toolu_01JVeikf9N49yCcT1DX68ZNB",
+          "name": "get_task",
+          "args": {
+            "task_id": "backup"
+          },
+          "raw_args": "{\"task_id\": \"backup\"}"
+        },
+        {
+          "id": "toolu_015FMZvutwqpCAp824akuAir",
+          "name": "get_task",
+          "args": {
+            "task_id": "gym"
+          },
+          "raw_args": "{\"task_id\": \"gym\"}"
+        },
+        {
+          "id": "toolu_012aNGrpeedoaUShFEJdtqBw",
+          "name": "get_task",
+          "args": {
+            "task_id": "team-sync"
+          },
+          "raw_args": "{\"task_id\": \"team-sync\"}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 3051,
+        "output_tokens": 417,
+        "cache_read_tokens": 6540,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 2172.9406660888344,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "You're behind on **File taxes**, which was due 2026-10-15 and is still open five days later (priority 1). You also have several missed recurring tasks:\n\n- **Back up laptop** (Thursdays): missed on Oct 8 and Oct 15.\n- **Gym** (Mon/Wed/Fri): missed on Oct 7, 9 and 12. You've done the last three sessions.\n- **Team sync** (every 14 days): missed on Oct 13.\n\nDue today and still open: Call mom, Pick up prescription, Standup (09:00), Swim laps (17:00) and Torah study (06:30). Tomorrow you have Gym at 07:00 and Standup at 09:00.\n\nI haven't changed anything. Do you want me to draft a mark-done for any of these, or reschedule the taxes?",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 4706,
-        "output_tokens": 427,
-        "cache_read_tokens": 6183,
+        "input_tokens": 4258,
+        "output_tokens": 431,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2419.714416959323,
+      "latency_ms": 2564.8139170370996,
       "model": "claude-haiku-5-5"
     }
   ]

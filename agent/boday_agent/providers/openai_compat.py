@@ -36,6 +36,7 @@ class OpenAICompatProvider:
         api_key: str | None = None,
         extra_headers: dict[str, str] | None = None,
         is_local: bool = True,
+        reasoning_effort: str | None = None,
         transport: httpx.BaseTransport | None = None,
         sleep=time.sleep,
     ):
@@ -44,6 +45,8 @@ class OpenAICompatProvider:
         self.api_key = api_key
         self.extra_headers = dict(extra_headers or {})
         self.is_local = is_local
+        # Sent as the OpenAI `reasoning_effort` field; "none" turns off thinking on LM Studio.
+        self.reasoning_effort = reasoning_effort
         self.transport = transport
         self.sleep = sleep
 
@@ -54,12 +57,15 @@ class OpenAICompatProvider:
         return out
 
     def describe(self) -> dict:
-        return {
+        out = {
             "provider": "openai_compat",
             "model": self.model,
             "host": _display_host(self.base_url),
             "is_local": self.is_local,
         }
+        if self.reasoning_effort:
+            out["effort"] = self.reasoning_effort
+        return out
 
     def complete(
         self,
@@ -85,6 +91,8 @@ class OpenAICompatProvider:
             ],
             "tool_choice": "auto",
         }
+        if self.reasoning_effort:
+            body["reasoning_effort"] = self.reasoning_effort
         host = _display_host(self.base_url)
         started = time.perf_counter()
         try:

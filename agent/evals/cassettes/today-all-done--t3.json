@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_0194Ej46f7fN2sT2afFSaNKr",
+          "id": "toolu_01SQs7b74GHsACAfVxEGV1Rf",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-10-20",
@@ -23,18 +23,18 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 273,
-        "output_tokens": 84,
-        "cache_read_tokens": 6183,
+        "output_tokens": 108,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 895.8565419306979,
+      "latency_ms": 1152.9280000831932,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_011peiDdTmTpcwN4c5ZVkAbY",
+          "id": "toolu_01C4aD3fqBmnavztTq8WTfZQ",
           "name": "propose_set_status",
           "args": {
             "task_id": "taxes",
@@ -43,7 +43,7 @@
           "raw_args": "{\"task_id\": \"taxes\", \"status\": \"done\"}"
         },
         {
-          "id": "toolu_01H1qftqV7gd98FArxB7skpg",
+          "id": "toolu_01HtkJgMKypjMe5xSz4VsoNG",
           "name": "propose_set_status",
           "args": {
             "task_id": "standup",
@@ -53,7 +53,7 @@
           "raw_args": "{\"task_id\": \"standup\", \"status\": \"done\", \"date\": \"2026-10-20\"}"
         },
         {
-          "id": "toolu_01Jf4XAcAcHV8xmQ4MfqDSGS",
+          "id": "toolu_01Rh2fLqRCcQEhGxr6z372WC",
           "name": "propose_set_status",
           "args": {
             "task_id": "call-mom",
@@ -62,7 +62,7 @@
           "raw_args": "{\"task_id\": \"call-mom\", \"status\": \"done\"}"
         },
         {
-          "id": "toolu_01CPp6eGgAXyEhoHe1N12dVT",
+          "id": "toolu_01NYYA8nuDBioWY4FWhTea91",
           "name": "propose_set_status",
           "args": {
             "task_id": "pharmacy",
@@ -71,7 +71,7 @@
           "raw_args": "{\"task_id\": \"pharmacy\", \"status\": \"done\"}"
         },
         {
-          "id": "toolu_01RT9vj7x5PvwPF5ieLTY4AJ",
+          "id": "toolu_0169v1xpcyakyquUwqRxQYcY",
           "name": "propose_set_status",
           "args": {
             "task_id": "swim",
@@ -81,7 +81,7 @@
           "raw_args": "{\"task_id\": \"swim\", \"status\": \"done\", \"date\": \"2026-10-20\"}"
         },
         {
-          "id": "toolu_01EGoJbsRxPxFRwbTZsJNZgs",
+          "id": "toolu_019NGwkM23mPZuwGDfdWfp7f",
           "name": "propose_set_status",
           "args": {
             "task_id": "torah",
@@ -93,25 +93,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 855,
-        "output_tokens": 513,
-        "cache_read_tokens": 6183,
+        "input_tokens": 879,
+        "output_tokens": 570,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2553.877708967775,
+      "latency_ms": 2559.0305000077933,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed marking all six of today's open tasks done: File taxes, Standup, Call mom, Pick up prescription, Swim laps, and Torah study. Nothing is saved until you approve the draft in the app.",
+      "text": "I've proposed marking all six of today's open tasks done: File taxes, Standup, Call mom, Pick up prescription, Swim laps, and Torah study. Nothing is saved until you approve the draft.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 1833,
-        "output_tokens": 72,
-        "cache_read_tokens": 6183,
+        "input_tokens": 1914,
+        "output_tokens": 69,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1114.7143329726532,
+      "latency_ms": 717.8197500761598,
       "model": "claude-haiku-5-5"
     }
   ]

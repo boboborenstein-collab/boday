@@ -70,3 +70,16 @@ def test_auto_does_not_forward_the_api_key(monkeypatch):
 
 def test_cli_bad_snapshot_exit_2(tmp_path):
     assert cli.main(["x", "--snapshot", str(tmp_path / "missing.json")]) == 2
+
+
+def test_openai_provider_gets_effort_as_reasoning_effort():
+    args = SimpleNamespace(
+        provider="openai",
+        model="qwen",
+        base_url="http://mac/v1",
+        api_key_env=None,
+        header=[],
+        effort="none",
+    )
+    provider, _ = cli.make_provider(args)
+    assert provider.reasoning_effort == "none"

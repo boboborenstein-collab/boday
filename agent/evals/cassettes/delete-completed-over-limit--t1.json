@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01Vzhf6BENu4P6RcZbvFSv16",
+          "id": "toolu_01UvAkpWv68q4MQe1b9Kczm6",
           "name": "search_tasks",
           "args": {
             "include_completed": true
@@ -22,327 +22,316 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 271,
-        "output_tokens": 103,
-        "cache_read_tokens": 6183,
+        "output_tokens": 119,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1071.0343749960884,
+      "latency_ms": 1403.6321248859167,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_014seK4HwyjZRPdruCd4ZyGi",
+          "id": "toolu_01AJ2XH7aRwCWHYseeB3ULFE",
           "name": "search_tasks",
           "args": {
-            "include_completed": true,
-            "type": "recurring"
+            "include_completed": false
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"recurring\"}"
-        },
-        {
-          "id": "toolu_01EF1jp9RujD4ZQALcyqfvy7",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "query": "done"
-          },
-          "raw_args": "{\"include_completed\": true, \"query\": \"done\"}"
+          "raw_args": "{\"include_completed\": false}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 2168,
-        "output_tokens": 327,
-        "cache_read_tokens": 6183,
+        "input_tokens": 2184,
+        "output_tokens": 354,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1946.3042500428855,
+      "latency_ms": 2372.9360830038786,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01LPYNVscQPEFpjmJUxtNEhi",
+          "id": "toolu_01TMqCbSUnG7EmPaebgJYg9n",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 2
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 2}"
+        },
+        {
+          "id": "toolu_01TmcTHqAcRdkQNqcdc9VYRG",
           "name": "search_tasks",
           "args": {
             "include_completed": false,
-            "type": "one_time"
-          },
-          "raw_args": "{\"include_completed\": false, \"type\": \"one_time\"}"
-        },
-        {
-          "id": "toolu_01TcBWHYqonVWFvXSnLAp3pK",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
             "priority": 2
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 2}"
+          "raw_args": "{\"include_completed\": false, \"priority\": 2}"
         },
         {
-          "id": "toolu_01Gyn2ZeHHwnVGs1AAxWnSiN",
+          "id": "toolu_01ELXVJigV7emQsKAme5p8oK",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
             "priority": 3
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 3}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 3}"
         },
         {
-          "id": "toolu_01HeYYv6gERdwCjBXudHu7dp",
+          "id": "toolu_0151Lu7EF3fMBXynDKhYzksH",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": false,
+            "priority": 3
+          },
+          "raw_args": "{\"include_completed\": false, \"priority\": 3}"
+        },
+        {
+          "id": "toolu_01A4ZCGsSWrcUeiFWLZjvfGe",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
             "priority": 4
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 4}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 4}"
         },
         {
-          "id": "toolu_01B8V63d3gvrfCfqee1zLAwV",
+          "id": "toolu_016kYpfLTqwq3nrCj6Zv6fUL",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": false,
+            "priority": 4
+          },
+          "raw_args": "{\"include_completed\": false, \"priority\": 4}"
+        },
+        {
+          "id": "toolu_01PcttzrhqsyZY8KvcXu6576",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
             "priority": 5
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 5}"
-        }
-      ],
-      "stop_reason": "tool_use",
-      "usage": {
-        "input_tokens": 4401,
-        "output_tokens": 1031,
-        "cache_read_tokens": 6183,
-        "cache_write_tokens": 0
-      },
-      "latency_ms": 4740.949208033271,
-      "model": "claude-haiku-5-5"
-    },
-    {
-      "text": "",
-      "tool_calls": [
-        {
-          "id": "toolu_01PQZBXu26A7ENbE4qgPfgvy",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
-            "priority": 1
-          },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 1}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 5}"
         },
         {
-          "id": "toolu_011o81wHvd4HbBk4TjGHVtna",
+          "id": "toolu_014caNGtrrUA9mLJCYqrTARa",
           "name": "search_tasks",
           "args": {
             "include_completed": false,
-            "type": "one_time",
-            "priority": 2
+            "priority": 5
           },
-          "raw_args": "{\"include_completed\": false, \"type\": \"one_time\", \"priority\": 2}"
-        },
-        {
-          "id": "toolu_013rPscaV2zgPsmMeW7EDrmE",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": false,
-            "type": "one_time",
-            "priority": 3
-          },
-          "raw_args": "{\"include_completed\": false, \"type\": \"one_time\", \"priority\": 3}"
-        },
-        {
-          "id": "toolu_01MNqv73i2Smsp2Rbpo7ik6K",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": false,
-            "type": "one_time",
-            "priority": 4
-          },
-          "raw_args": "{\"include_completed\": false, \"type\": \"one_time\", \"priority\": 4}"
+          "raw_args": "{\"include_completed\": false, \"priority\": 5}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 12739,
-        "output_tokens": 858,
-        "cache_read_tokens": 6183,
+        "input_tokens": 4332,
+        "output_tokens": 933,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 3713.928582961671,
+      "latency_ms": 3939.1491669230163,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01XebW2G8ocuJpwqvrMHMcvv",
+          "id": "toolu_017qYB7u1RLXaSiqpQr5wVRG",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
-            "priority": 2,
-            "tag": "work"
-          },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 2, \"tag\": \"work\"}"
-        },
-        {
-          "id": "toolu_01XvFYdZeywawExcmfTnoqZV",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
-            "priority": 2,
-            "tag": "home"
-          },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 2, \"tag\": \"home\"}"
-        },
-        {
-          "id": "toolu_01U25TusNPUwFDWt9JQSe9tQ",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
-            "priority": 2,
-            "tag": "health"
-          },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 2, \"tag\": \"health\"}"
-        },
-        {
-          "id": "toolu_01RwL2EpGJ6rFwpGbN6maomZ",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
             "priority": 1,
             "tag": "home"
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 1, \"tag\": \"home\"}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 1, \"tag\": \"home\"}"
         },
         {
-          "id": "toolu_016R6WV3zGMhMtMniT9jLfmc",
+          "id": "toolu_01SAmLPJTZiPCJQVzAzPgY9s",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
             "priority": 1,
             "tag": "work"
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 1, \"tag\": \"work\"}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 1, \"tag\": \"work\"}"
         },
         {
-          "id": "toolu_0119opdZidMGCZyoHgcXfbGX",
+          "id": "toolu_015eLn6JTNmXpJMZunwRuiVT",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
             "priority": 1,
             "tag": "health"
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 1, \"tag\": \"health\"}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 1, \"tag\": \"health\"}"
+        },
+        {
+          "id": "toolu_01Cthx5yQPqHgSYUq2Fynnep",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 2,
+            "tag": "home"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 2, \"tag\": \"home\"}"
+        },
+        {
+          "id": "toolu_01UL5mgyVqA6HZAUiLDVUSuF",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 2,
+            "tag": "work"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 2, \"tag\": \"work\"}"
+        },
+        {
+          "id": "toolu_01An9ufx7EzQjCydA28GDnQH",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 2,
+            "tag": "health"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 2, \"tag\": \"health\"}"
+        },
+        {
+          "id": "toolu_01RC1wvkXm2TagW8L5ZjX11m",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 3,
+            "tag": "home"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 3, \"tag\": \"home\"}"
+        },
+        {
+          "id": "toolu_016L4BZzQYFhAxZYVKPomZNk",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 3,
+            "tag": "work"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 3, \"tag\": \"work\"}"
+        },
+        {
+          "id": "toolu_013u5S5vF9kARg35p8R2pGz7",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 3,
+            "tag": "health"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 3, \"tag\": \"health\"}"
+        },
+        {
+          "id": "toolu_014ChNtzqzxc5XmaH8mWRwGz",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 4,
+            "tag": "home"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 4, \"tag\": \"home\"}"
+        },
+        {
+          "id": "toolu_01PLiL1q5whFmNn48gyMEUnz",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 4,
+            "tag": "work"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 4, \"tag\": \"work\"}"
+        },
+        {
+          "id": "toolu_015uarCezDUE5VA6AEkpeiFz",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 4,
+            "tag": "health"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 4, \"tag\": \"health\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 20859,
-        "output_tokens": 2033,
-        "cache_read_tokens": 6183,
+        "input_tokens": 16410,
+        "output_tokens": 2332,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 9802.652125013992,
+      "latency_ms": 10088.112249970436,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_017Hyj1ghLZpbGwby1Daq7bF",
+          "id": "toolu_01HgZ5kzYZkFiMPwESA444Nu",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
-            "priority": 3,
-            "tag": "home"
+            "priority": 2,
+            "tag": "work",
+            "type": "one_time"
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 3, \"tag\": \"home\"}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 2, \"tag\": \"work\", \"type\": \"one_time\"}"
         },
         {
-          "id": "toolu_01BgkaeZdSjvzzGYYiDS25YE",
+          "id": "toolu_0117zL47C8m93shFURcB8ntz",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
-            "priority": 3,
-            "tag": "work"
-          },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 3, \"tag\": \"work\"}"
-        },
-        {
-          "id": "toolu_01LVCF6wD71HoaubZdgx4sSH",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
-            "priority": 3,
-            "tag": "health"
-          },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 3, \"tag\": \"health\"}"
-        },
-        {
-          "id": "toolu_01FSWL7AKrJcuuBNVnMejZ3V",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
-            "priority": 4,
-            "tag": "home"
-          },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 4, \"tag\": \"home\"}"
-        },
-        {
-          "id": "toolu_01VipPnyw27P6poitpcPkrez",
-          "name": "search_tasks",
-          "args": {
-            "include_completed": true,
-            "type": "one_time",
             "priority": 4,
             "tag": "work"
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 4, \"tag\": \"work\"}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 4, \"tag\": \"work\"}"
         },
         {
-          "id": "toolu_011feeYzq4HthVZqNjbGAUZp",
+          "id": "toolu_015xhmFvwTt7zMKTqe3MecoR",
           "name": "search_tasks",
           "args": {
             "include_completed": true,
-            "type": "one_time",
             "priority": 4,
             "tag": "health"
           },
-          "raw_args": "{\"include_completed\": true, \"type\": \"one_time\", \"priority\": 4, \"tag\": \"health\"}"
+          "raw_args": "{\"include_completed\": true, \"priority\": 4, \"tag\": \"health\"}"
+        },
+        {
+          "id": "toolu_014q6i6XZMLgMLyVBxvVzY25",
+          "name": "search_tasks",
+          "args": {
+            "include_completed": true,
+            "priority": 4,
+            "tag": "home",
+            "type": "one_time"
+          },
+          "raw_args": "{\"include_completed\": true, \"priority\": 4, \"tag\": \"home\", \"type\": \"one_time\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 30740,
-        "output_tokens": 1687,
-        "cache_read_tokens": 6183,
+        "input_tokens": 33569,
+        "output_tokens": 1226,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 7125.273540965281,
+      "latency_ms": 5770.148917101324,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01N2fAZQTAxwkLTbHmZ1YgEd",
+          "id": "toolu_019gEngxnpqJiJQ1MA3GgoGc",
           "name": "get_task",
           "args": {
             "task_id": "g-ot-118"
@@ -350,15 +339,29 @@
           "raw_args": "{\"task_id\": \"g-ot-118\"}"
         },
         {
-          "id": "toolu_01BcyTxquhcSgzHpDiciyr48",
+          "id": "toolu_014DVcqCVgNcPAUErR7mrvFm",
           "name": "get_task",
           "args": {
             "task_id": "g-ot-128"
           },
           "raw_args": "{\"task_id\": \"g-ot-128\"}"
-        },
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 40602,
+        "output_tokens": 2174,
+        "cache_read_tokens": 6540,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 12220.204250188544,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
         {
-          "id": "toolu_016GJgfnpZcp144v9tXZimGP",
+          "id": "toolu_01Xg56h1AigGMLfyWL4Tuxn5",
           "name": "get_task",
           "args": {
             "task_id": "g-ot-133"
@@ -366,7 +369,7 @@
           "raw_args": "{\"task_id\": \"g-ot-133\"}"
         },
         {
-          "id": "toolu_01PfsHhzDrKckjNNDh2bQ35F",
+          "id": "toolu_01AEYeyHFDJpEkLc7JwfGTi7",
           "name": "get_task",
           "args": {
             "task_id": "g-ot-134"
@@ -374,45 +377,50 @@
           "raw_args": "{\"task_id\": \"g-ot-134\"}"
         },
         {
-          "id": "toolu_01TprZKVjbdZy1XXnZf3E5B9",
+          "id": "toolu_01WarLZPg6Z6kBeubTLnyxb9",
           "name": "get_task",
           "args": {
-            "task_id": "g-ot-114"
+            "task_id": "g-ot-135"
           },
-          "raw_args": "{\"task_id\": \"g-ot-114\"}"
+          "raw_args": "{\"task_id\": \"g-ot-135\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 38233,
-        "output_tokens": 1363,
-        "cache_read_tokens": 6183,
+        "input_tokens": 43073,
+        "output_tokens": 220,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 8059.024833026342,
+      "latency_ms": 2306.4957088790834,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01GTSqZpTDufz1w4Nc3qFj57",
-          "name": "search_tasks",
+          "id": "toolu_01BgQ1TMGWmBZ1gdUD9q3uvL",
+          "name": "ask_user",
           "args": {
-            "include_completed": false,
-            "type": "recurring"
+            "question": "I found 20 completed tasks, but I can delete at most 3 per request. Which should I start with?",
+            "options": [
+              "Priority 1 and 2 completed tasks (9 tasks)",
+              "Only the 4 priority 1 tasks",
+              "Only the 5 priority 2 work tasks",
+              "Just the 3 oldest (Sep 2026) tasks"
+            ]
           },
-          "raw_args": "{\"include_completed\": false, \"type\": \"recurring\"}"
+          "raw_args": "{\"question\": \"I found 20 completed tasks, but I can delete at most 3 per request. Which should I start with?\", \"options\": [\"Priority 1 and 2 completed tasks (9 tasks)\", \"Only the 4 priority 1 tasks\", \"Only the 5 priority 2 work tasks\", \"Just the 3 oldest (Sep 2026) tasks\"]}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 40256,
-        "output_tokens": 232,
-        "cache_read_tokens": 6183,
+        "input_tokens": 43584,
+        "output_tokens": 759,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1539.1449589515105,
+      "latency_ms": 3532.6044589746743,
       "model": "claude-haiku-5-5"
     }
   ]

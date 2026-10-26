@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,30 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01LiJShvkw2ADm2wj7qv8TrD",
+          "id": "toolu_01NfcrWuqT6pdpsnkp7vFPVQ",
+          "name": "search_tasks",
+          "args": {
+            "query": "team lunch",
+            "include_completed": true
+          },
+          "raw_args": "{\"query\": \"team lunch\", \"include_completed\": true}"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 274,
+        "output_tokens": 188,
+        "cache_read_tokens": 6540,
+        "cache_write_tokens": 0
+      },
+      "latency_ms": 1306.1747078318149,
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "toolu_012DtwNtMCy1nWucSKdo22H5",
           "name": "propose_create_task",
           "args": {
             "title": "Team lunch",
@@ -27,25 +50,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 274,
-        "output_tokens": 427,
-        "cache_read_tokens": 6183,
+        "input_tokens": 496,
+        "output_tokens": 259,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2561.492457985878,
+      "latency_ms": 1504.0487919468433,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've drafted a recurring \"Team lunch\" task every 14 days, starting today (Tue Oct 20, 2026). It's waiting for your approval; let me know if you'd rather it start on a different Tuesday or have a reminder time.",
+      "text": "I've proposed a recurring \"Team lunch\" task every 14 days, starting today (Tue Oct 20), so it falls on alternate Tuesdays. Approve it in the app to save it; if you want the first one on Tue Oct 27 instead, tell me and I'll change the start date.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 753,
-        "output_tokens": 79,
-        "cache_read_tokens": 6183,
+        "input_tokens": 807,
+        "output_tokens": 95,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1170.1147909043357,
+      "latency_ms": 950.022374978289,
       "model": "claude-haiku-5-5"
     }
   ]

@@ -75,6 +75,7 @@ def make_provider(args):
                 args.model,
                 api_key=api_key,
                 extra_headers=headers or None,
+                reasoning_effort=args.effort,
             ),
             "explicit",
         )

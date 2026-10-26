@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01PbZWroZxaHngMH8Lo9zbi4",
+          "id": "toolu_01GSFYtH6mSLhCdvKaGqsyND",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"dentist\"}"
         },
         {
-          "id": "toolu_01412roemPctNpeRuET8weD7",
+          "id": "toolu_01Y4qKW4a4BdTjiNpivNwARk",
           "name": "resolve_date",
           "args": {
             "expression": "tomorrow"
@@ -31,17 +31,17 @@
       "usage": {
         "input_tokens": 273,
         "output_tokens": 102,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 878.3130410593003,
+      "latency_ms": 934.1877500992268,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01RBmpjwuF1kxm8AU7W87JeZ",
+          "id": "toolu_01WX2wxr3sRDdoG5oaqpPi8y",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -56,23 +56,23 @@
       "usage": {
         "input_tokens": 621,
         "output_tokens": 93,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 884.5304170390591,
+      "latency_ms": 1757.6311668381095,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving your \"Dentist appointment\" from Thu 2026-10-22 to tomorrow, Wed 2026-10-21. Note that it will clash at 09:00 with your \"Standup\" task that day, so you may want to adjust the reminder time.",
+      "text": "I've proposed moving \"Dentist appointment\" from Thu 2026-10-22 to tomorrow, Wed 2026-10-21. Note that it will clash at 09:00 with your \"Standup\" task that day, so you may want to adjust one of them once you approve.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 817,
-        "output_tokens": 87,
-        "cache_read_tokens": 6183,
+        "output_tokens": 88,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 998.6688749631867,
+      "latency_ms": 1063.0526249296963,
       "model": "claude-haiku-5-5"
     }
   ]

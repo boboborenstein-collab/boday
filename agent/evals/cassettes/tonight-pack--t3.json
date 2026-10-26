@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,60 +11,69 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01JfscCnC5DQQH6bHhKTmoXP",
+          "id": "toolu_01S5uqzhyXJMcmpq6kXKc3R8",
+          "name": "search_tasks",
+          "args": {
+            "query": "pack bag"
+          },
+          "raw_args": "{\"query\": \"pack bag\"}"
+        },
+        {
+          "id": "toolu_01Bh1hd4kPrLWDTq7AUtuTBv",
           "name": "resolve_date",
           "args": {
-            "expression": "today at 8pm"
+            "expression": "tonight at 8pm"
           },
-          "raw_args": "{\"expression\": \"today at 8pm\"}"
+          "raw_args": "{\"expression\": \"tonight at 8pm\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 275,
-        "output_tokens": 193,
-        "cache_read_tokens": 6183,
+        "output_tokens": 203,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1459.0938750188798,
+      "latency_ms": 2262.279416201636,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01E37tBcFfxnnrKA2iKjjHbC",
+          "id": "toolu_01HkM8VY9jFr8V7AJDBCsy34",
           "name": "propose_create_task",
           "args": {
             "title": "Pack the bag",
             "type": "one_time",
             "scheduled_date": "2026-10-20",
-            "reminder_time": "20:00"
+            "reminder_time": "20:00",
+            "priority": 3
           },
-          "raw_args": "{\"title\": \"Pack the bag\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-20\", \"reminder_time\": \"20:00\"}"
+          "raw_args": "{\"title\": \"Pack the bag\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-20\", \"reminder_time\": \"20:00\", \"priority\": 3}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 546,
-        "output_tokens": 136,
-        "cache_read_tokens": 6183,
+        "input_tokens": 642,
+        "output_tokens": 158,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 998.3193340012804,
+      "latency_ms": 1042.0465420465916,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed a one-time task \"Pack the bag\" for tonight, Tue 2026-10-20, with a reminder at 8:00 PM. It's waiting for your approval in the app.",
+      "text": "I've drafted a one-time task \"Pack the bag\" for tonight, Tue 2026-10-20, with a reminder at 8:00 PM. It's waiting for your approval in the app.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 735,
+        "input_tokens": 853,
         "output_tokens": 63,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 940.083457971923,
+      "latency_ms": 1069.8652078863233,
       "model": "claude-haiku-5-5"
     }
   ]

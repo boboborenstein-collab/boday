@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01WVSj2VRL6fmgTFSjnYZ38S",
+          "id": "toolu_013T1hvjeonGJnXmDURJAkf8",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"dentist\"}"
         },
         {
-          "id": "toolu_01HWJQf2SzNbGQkEF1uyFriy",
+          "id": "toolu_01BqPVewtWgiZaoDZBFRYZqg",
           "name": "resolve_date",
           "args": {
             "expression": "friday"
@@ -30,18 +30,18 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 344,
-        "output_tokens": 219,
-        "cache_read_tokens": 6183,
+        "output_tokens": 195,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1543.3450000127777,
+      "latency_ms": 1422.330457950011,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01BEfkc553Qs6qNswbHEd7uJ",
+          "id": "toolu_01NwF9FV2V7WDutxFn2o1D7G",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -54,25 +54,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 806,
-        "output_tokens": 143,
-        "cache_read_tokens": 6183,
+        "input_tokens": 782,
+        "output_tokens": 130,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1124.2010830901563,
+      "latency_ms": 1152.1828749682754,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've drafted moving \"Dentist appointment\" from Thursday Oct 22 to Friday Oct 23, but it's not saved until you approve it. Note that a \"Standup\" is also set for 09:00 that Friday, so the reminder times clash.",
+      "text": "I've drafted moving \"Dentist appointment\" to Friday, Oct 23, but it will clash with \"Standup\" at 09:00 that day. Approve the draft if you still want Friday, or tell me a different time.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 1052,
-        "output_tokens": 83,
-        "cache_read_tokens": 6183,
+        "input_tokens": 1015,
+        "output_tokens": 71,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1159.5399589277804,
+      "latency_ms": 1093.6163750011474,
       "model": "claude-haiku-5-5"
     }
   ]

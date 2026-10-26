@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,29 +11,30 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01NFRRiHLmWFqtwnMdgocnRS",
-          "name": "resolve_date",
+          "id": "toolu_01JQzkKN3RLaeGEMuU8y8sTo",
+          "name": "get_agenda",
           "args": {
-            "expression": "this friday"
+            "start_date": "2026-10-23",
+            "end_date": "2026-10-23"
           },
-          "raw_args": "{\"expression\": \"this friday\"}"
+          "raw_args": "{\"start_date\": \"2026-10-23\", \"end_date\": \"2026-10-23\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 268,
-        "output_tokens": 52,
-        "cache_read_tokens": 6183,
+        "output_tokens": 84,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 798.7497079884633,
+      "latency_ms": 916.419625049457,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_016AVhGeYJ1nHRkJeQKfU8c8",
+          "id": "toolu_01U7qcbxF2nQsNSDxRC41qNP",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-10-23",
@@ -44,48 +45,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 393,
+        "input_tokens": 399,
         "output_tokens": 84,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 846.1410419549793,
+      "latency_ms": 950.0426249578595,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "",
-      "tool_calls": [
-        {
-          "id": "toolu_01RLPXiYNmQzWKcy89GjkbqH",
-          "name": "get_agenda",
-          "args": {
-            "start_date": "2026-10-23",
-            "end_date": "2026-10-23"
-          },
-          "raw_args": "{\"start_date\": \"2026-10-23\", \"end_date\": \"2026-10-23\"}"
-        }
-      ],
-      "stop_reason": "tool_use",
-      "usage": {
-        "input_tokens": 524,
-        "output_tokens": 84,
-        "cache_read_tokens": 6183,
-        "cache_write_tokens": 0
-      },
-      "latency_ms": 1157.2660419624299,
-      "model": "claude-haiku-5-5"
-    },
-    {
-      "text": "Friday, Oct 23 has four items:\n- **06:30** Torah study (recurring)\n- **07:00** Gym (recurring, low priority)\n- **09:00** Standup (recurring, high priority)\n- **19:00** Dinner with Dana (one-time)",
+      "text": "Friday, Oct 23 has four items:\n\n- **06:30**: Torah study (recurring)\n- **07:00**: Gym (recurring)\n- **09:00**: Standup (recurring, high priority)\n- **19:00**: Dinner with Dana. This falls in your quiet window.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 969,
-        "output_tokens": 90,
-        "cache_read_tokens": 6183,
+        "input_tokens": 844,
+        "output_tokens": 203,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1161.8708749301732,
+      "latency_ms": 1467.7397920750082,
       "model": "claude-haiku-5-5"
     }
   ]

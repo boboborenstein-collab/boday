@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01WNVfT2n7hih9ewR1DTpkRH",
+          "id": "toolu_01Q9DWghr68YCyAi9RuEBRKW",
           "name": "search_tasks",
           "args": {
             "priority": 3
@@ -19,30 +19,30 @@
           "raw_args": "{\"priority\": 3}"
         },
         {
-          "id": "toolu_01LeAuJS7x7Qx6L7RSZD9vQZ",
+          "id": "toolu_01GLumpsvYshX8Sme7kq1WGn",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-10-20",
-            "end_date": "2026-10-26"
+            "end_date": "2026-10-25"
           },
-          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-26\"}"
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-25\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 275,
-        "output_tokens": 290,
-        "cache_read_tokens": 6183,
+        "output_tokens": 322,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1715.0682089850307,
+      "latency_ms": 1777.6739578694105,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_016uaMCA4nQNhAz5cuZWLw8b",
+          "id": "toolu_012rbzJam4hg3KrAemfWZMko",
           "name": "propose_update_task",
           "args": {
             "task_id": "call-mom",
@@ -53,7 +53,7 @@
           "raw_args": "{\"task_id\": \"call-mom\", \"changes\": {\"scheduled_date\": \"2026-10-27\"}}"
         },
         {
-          "id": "toolu_01J2CRsnQndJJUUMvDEQsc9a",
+          "id": "toolu_01Fg8YAGwTb3pC8t6zmtL9uU",
           "name": "propose_update_task",
           "args": {
             "task_id": "pharmacy",
@@ -64,7 +64,7 @@
           "raw_args": "{\"task_id\": \"pharmacy\", \"changes\": {\"scheduled_date\": \"2026-10-27\"}}"
         },
         {
-          "id": "toolu_01TqPD5pnWtayoj5yj5gq9WQ",
+          "id": "toolu_01Fzktxg1uxhNXEz2Gkh9mwg",
           "name": "propose_update_task",
           "args": {
             "task_id": "dinner-dana",
@@ -75,7 +75,7 @@
           "raw_args": "{\"task_id\": \"dinner-dana\", \"changes\": {\"scheduled_date\": \"2026-10-30\"}}"
         },
         {
-          "id": "toolu_019zPKrHifzpjvnDKZppBmuw",
+          "id": "toolu_01NPERWFMSB6RGnLxges9yPa",
           "name": "propose_update_task",
           "args": {
             "task_id": "budget",
@@ -88,25 +88,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 3555,
-        "output_tokens": 1098,
-        "cache_read_tokens": 6183,
+        "input_tokens": 3255,
+        "output_tokens": 800,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 5175.674875034019,
+      "latency_ms": 3691.328417044133,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving four P3 tasks from this week (Oct 20\u201325) to next week: Call mom and Pick up prescription to Tue Oct 27, Review budget to Sun Nov 1, and Dinner with Dana to Fri Oct 30. The dinner's 7:00 PM reminder falls in a Shabbat quiet window, so you may want a different day for it. I used the same weekday next week for each task.",
+      "text": "I've drafted four moves to next week's same weekdays: Call mom and Pick up prescription to Tue 10-27, Review budget to Sun 11-01, and Dinner with Dana to Fri 10-30. Dinner with Dana's 19:00 reminder falls in a Shabbat quiet window that day, so you may want a different day for it; I can draft that instead.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 5022,
-        "output_tokens": 201,
-        "cache_read_tokens": 6183,
+        "input_tokens": 4424,
+        "output_tokens": 218,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1612.0487499283627,
+      "latency_ms": 1740.2483748737723,
       "model": "claude-haiku-5-5"
     }
   ]

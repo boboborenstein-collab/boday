@@ -48,3 +48,16 @@ def test_messages_put_context_last_and_render_history(snap):
 def test_parse_warning_note(snap):
     snap.parse_warnings.append("skipped task 'z': bad")
     assert "1 task(s) could not be read" in render_context(snap, Clock.from_snapshot(snap))
+
+
+def test_system_prompt_states_phase4_rules():
+    text = SYSTEM_PROMPT
+    # Questions go through the tool, never in the final text.
+    assert "never put a question" in text
+    # Over-limit and sweeping requests are confirmed, not partly done.
+    assert "more than 25 changes or more than 3 deletes" in text
+    assert "do not propose part of it" in text
+    # Search before creating, to avoid duplicates.
+    assert "search for an existing task before creating" in text
+    # Advice answers directly and never proposes.
+    assert "advice" in text and "do not propose changes" in text

@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01TTNAA9im8npZ83mnCaHjy4",
+          "id": "toolu_01NXwxiDGbYsQYo4FH5VSCR8",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-10-20",
@@ -23,24 +23,24 @@
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 270,
-        "output_tokens": 84,
+        "output_tokens": 119,
         "cache_read_tokens": 0,
-        "cache_write_tokens": 6183
+        "cache_write_tokens": 6540
       },
-      "latency_ms": 1140.926916967146,
+      "latency_ms": 1342.9177079815418,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "Start with **File taxes**: it's urgent (priority 1) and has been carried over for 5 days. Then join **Standup** at 9:00, and after that handle **Pick up prescription** and **Call mom**. **Swim laps** is at 17:00.",
+      "text": "Start with **File taxes**. It's urgent (priority 1) and has been carried over for 5 days. Standup is at 09:00 right now, so join that first, then go straight to taxes.\n\nOther items today:\n- **Torah study** (reminder was 06:30) is still open, so it's past its time.\n- **Call mom** and **Pick up prescription** have no set time. Fit them in after taxes.\n- **Swim laps** is at 17:00.\n\nThere are no clashes or quiet-window conflicts. I can draft changes to any of these if you want.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 852,
-        "output_tokens": 224,
-        "cache_read_tokens": 6183,
+        "input_tokens": 887,
+        "output_tokens": 378,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1692.1796669485047,
+      "latency_ms": 2294.8700000997633,
       "model": "claude-haiku-5-5"
     }
   ]

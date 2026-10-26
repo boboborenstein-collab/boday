@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,61 +11,56 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01FAbhiPW67GLH2RMmfHrws3",
+          "id": "toolu_01X6Nw338suEHxJwZdHVbq3L",
+          "name": "search_tasks",
+          "args": {
+            "query": "haircut"
+          },
+          "raw_args": "{\"query\": \"haircut\"}"
+        },
+        {
+          "id": "toolu_01Y6pmrsiu3D46wWpxHmyKta",
           "name": "resolve_date",
           "args": {
-            "expression": "wednesday"
+            "expression": "wed"
           },
-          "raw_args": "{\"expression\": \"wednesday\"}"
+          "raw_args": "{\"expression\": \"wed\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 273,
-        "output_tokens": 286,
-        "cache_read_tokens": 6183,
+        "output_tokens": 178,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1836.8495410541072,
+      "latency_ms": 1654.9538329709321,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01RBEAUz8gjv4gy9C3MWjXWb",
-          "name": "propose_create_task",
+          "id": "toolu_01N31mxbJmTrthB2w7dGu8CQ",
+          "name": "ask_user",
           "args": {
-            "title": "Book haircut",
-            "type": "one_time",
-            "scheduled_date": "2026-10-21",
-            "reminder_time": "09:00",
-            "priority": 3
+            "question": "You already have a \"Haircut\" task scheduled for Mon 2 Nov. Should I move that one to Wed 21 Oct with a 9:00 reminder, or add a new \"Book haircut\" task for Wed 21 Oct at 9:00?",
+            "options": [
+              "Move existing task to Wed 21 Oct 9:00",
+              "Add a new task for Wed 21 Oct 9:00"
+            ]
           },
-          "raw_args": "{\"title\": \"Book haircut\", \"type\": \"one_time\", \"scheduled_date\": \"2026-10-21\", \"reminder_time\": \"09:00\", \"priority\": 3}"
+          "raw_args": "{\"question\": \"You already have a \\\"Haircut\\\" task scheduled for Mon 2 Nov. Should I move that one to Wed 21 Oct with a 9:00 reminder, or add a new \\\"Book haircut\\\" task for Wed 21 Oct at 9:00?\", \"options\": [\"Move existing task to Wed 21 Oct 9:00\", \"Add a new task for Wed 21 Oct 9:00\"]}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 633,
-        "output_tokens": 157,
-        "cache_read_tokens": 6183,
+        "input_tokens": 689,
+        "output_tokens": 332,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 2550.578000023961,
-      "model": "claude-haiku-5-5"
-    },
-    {
-      "text": "I've proposed a one-time task \"Book haircut\" for Wednesday, Oct 21 with a 9:00 AM reminder. It clashes with your \"Standup\" at 9:00 that day, so you may want to approve it with a different reminder time.",
-      "tool_calls": [],
-      "stop_reason": "end_turn",
-      "usage": {
-        "input_tokens": 889,
-        "output_tokens": 81,
-        "cache_read_tokens": 6183,
-        "cache_write_tokens": 0
-      },
-      "latency_ms": 876.0480830678716,
+      "latency_ms": 1933.5856658872217,
       "model": "claude-haiku-5-5"
     }
   ]

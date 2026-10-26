@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01Fu9NEw9BfQ1gVJKYTcEfyZ",
+          "id": "toolu_011CoZQiQn2G1G79TLV51EJy",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"dentist\"}"
         },
         {
-          "id": "toolu_01NbFhqnnXZ4WBLcb3R11f8w",
+          "id": "toolu_01NmGdbQ52YcnnCHYsuqVM71",
           "name": "resolve_date",
           "args": {
             "expression": "next friday"
@@ -31,36 +31,36 @@
       "usage": {
         "input_tokens": 272,
         "output_tokens": 100,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 973.268041969277,
+      "latency_ms": 914.6849999669939,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01RxrVJ7xhGB3w1jd18zrcs1",
+          "id": "toolu_01EjjTQrtUoBKQgT7maQEqdz",
           "name": "ask_user",
           "args": {
-            "question": "Your Dentist appointment is currently on Thu Oct 22. Which Friday do you mean by \"next Friday\"?",
+            "question": "Your dentist appointment is currently Thu Oct 22. Which Friday should I move it to?",
             "options": [
-              "Fri Oct 23",
-              "Fri Oct 30"
+              "Fri Oct 23 (this coming Friday)",
+              "Fri Oct 30 (the Friday after)"
             ]
           },
-          "raw_args": "{\"question\": \"Your Dentist appointment is currently on Thu Oct 22. Which Friday do you mean by \\\"next Friday\\\"?\", \"options\": [\"Fri Oct 23\", \"Fri Oct 30\"]}"
+          "raw_args": "{\"question\": \"Your dentist appointment is currently Thu Oct 22. Which Friday should I move it to?\", \"options\": [\"Fri Oct 23 (this coming Friday)\", \"Fri Oct 30 (the Friday after)\"]}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 648,
-        "output_tokens": 163,
-        "cache_read_tokens": 6183,
+        "output_tokens": 225,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 6388.483667047694,
+      "latency_ms": 1342.479292070493,
       "model": "claude-haiku-5-5"
     }
   ]

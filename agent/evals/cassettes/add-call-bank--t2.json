@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,29 +11,37 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01EvAygUeQCt3SKiFxmLmV21",
+          "id": "toolu_01CYF1vSe1JAHFha7f1LDHSt",
           "name": "resolve_date",
           "args": {
             "expression": "tomorrow"
           },
           "raw_args": "{\"expression\": \"tomorrow\"}"
+        },
+        {
+          "id": "toolu_0131aSqj1GLZEYB2yTLAbzef",
+          "name": "search_tasks",
+          "args": {
+            "query": "bank"
+          },
+          "raw_args": "{\"query\": \"bank\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 275,
-        "output_tokens": 54,
-        "cache_read_tokens": 6183,
+        "output_tokens": 101,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1058.8227499974892,
+      "latency_ms": 862.8401248715818,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_014kYKgpjz4UFZArEyXTLrHk",
+          "id": "toolu_01S5P7CtDZonWrLuS1AUYqsX",
           "name": "propose_create_task",
           "args": {
             "title": "Call the bank",
@@ -46,25 +54,25 @@
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 404,
+        "input_tokens": 621,
         "output_tokens": 130,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 979.2956670280546,
+      "latency_ms": 1009.8404588643461,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've drafted \"Call the bank\" as an urgent (P1) one-time task for tomorrow, Wed 2026-10-21, for you to approve.",
+      "text": "I've drafted \"Call the bank\" for tomorrow (Wed 2026-10-21) at priority 1 (urgent). It's waiting for your approval in the app.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 586,
-        "output_tokens": 51,
-        "cache_read_tokens": 6183,
+        "input_tokens": 803,
+        "output_tokens": 56,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 949.9407500261441,
+      "latency_ms": 989.8367079440504,
       "model": "claude-haiku-5-5"
     }
   ]

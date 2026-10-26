@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,7 +11,7 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01GT5735wCRcMxGSMv1ucxAN",
+          "id": "toolu_01WNChJbDxKnQVerUKyzXZUE",
           "name": "search_tasks",
           "args": {
             "query": "dentist"
@@ -19,7 +19,7 @@
           "raw_args": "{\"query\": \"dentist\"}"
         },
         {
-          "id": "toolu_01P6GZqd3Kafn1u2DCw8oVye",
+          "id": "toolu_019PuVqDMRWqteFH4ur6Qo2T",
           "name": "resolve_date",
           "args": {
             "expression": "friday"
@@ -31,17 +31,17 @@
       "usage": {
         "input_tokens": 270,
         "output_tokens": 99,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 997.2749169683084,
+      "latency_ms": 1177.9855000786483,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_014bZHEr9iAHqPomyFsjSEbW",
+          "id": "toolu_01NUiQKR5pY6Tf3imCnJGP2R",
           "name": "propose_update_task",
           "args": {
             "task_id": "dentist",
@@ -56,23 +56,23 @@
       "usage": {
         "input_tokens": 612,
         "output_tokens": 93,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 927.254542009905,
+      "latency_ms": 1472.121834056452,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "I've proposed moving \"Dentist appointment\" from Thu 2026-10-22 to Fri 2026-10-23. Note that \"Standup\" is also set for 09:00 that Friday, so you may want to adjust one of them.",
+      "text": "I've proposed moving \"Dentist appointment\" from Thu 2026-10-22 to Fri 2026-10-23. Heads-up: \"Standup\" is also set for 09:00 that Friday, so you may want to adjust one of them once you approve.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
         "input_tokens": 808,
-        "output_tokens": 76,
-        "cache_read_tokens": 6183,
+        "output_tokens": 83,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1061.8947920156643,
+      "latency_ms": 1062.7247500233352,
       "model": "claude-haiku-5-5"
     }
   ]

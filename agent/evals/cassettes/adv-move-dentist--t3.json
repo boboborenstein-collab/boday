@@ -1,5 +1,5 @@
 {
-  "prompt_version": "d2df24e4bee1",
+  "prompt_version": "3d211bac54ec",
   "provider": {
     "provider": "anthropic",
     "model": "claude-haiku-5-5",
@@ -11,59 +11,58 @@
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01G2JiBcV5WHi7CVA5P95QBb",
+          "id": "toolu_01WvFVd9XASxXUr6nfSsviqh",
           "name": "search_tasks",
           "args": {
-            "query": "dentist",
-            "include_completed": true
+            "query": "dentist"
           },
-          "raw_args": "{\"query\": \"dentist\", \"include_completed\": true}"
+          "raw_args": "{\"query\": \"dentist\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
         "input_tokens": 271,
-        "output_tokens": 120,
-        "cache_read_tokens": 6183,
+        "output_tokens": 129,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1111.2994169816375,
+      "latency_ms": 1193.8390841241926,
       "model": "claude-haiku-5-5"
     },
     {
       "text": "",
       "tool_calls": [
         {
-          "id": "toolu_01HVGb9RoEXTyTaf687iAWvc",
+          "id": "toolu_016LrznAbAT4oqxFzzDXSMQP",
           "name": "get_agenda",
           "args": {
             "start_date": "2026-10-20",
-            "end_date": "2026-10-27"
+            "end_date": "2026-10-23"
           },
-          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-27\"}"
+          "raw_args": "{\"start_date\": \"2026-10-20\", \"end_date\": \"2026-10-23\"}"
         }
       ],
       "stop_reason": "tool_use",
       "usage": {
-        "input_tokens": 512,
+        "input_tokens": 521,
         "output_tokens": 84,
-        "cache_read_tokens": 6183,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 1458.0449579516426,
+      "latency_ms": 785.3567912243307,
       "model": "claude-haiku-5-5"
     },
     {
-      "text": "Your dentist appointment is Thursday, Oct 22 at 9:00, and it clashes with your 9:00 standup that day. Thursday is otherwise light, so moving it only makes sense if the 9:00 clash is a real conflict; Wednesday Oct 21 has no appointments, so I can propose moving it there if you want. Tell me the new date or whether to keep it.",
+      "text": "The dentist appointment is Thursday, Oct 22, with a 9:00 reminder that collides with your standup at the same time. Thursday is otherwise light, so you don't need to move the appointment itself. The simplest fix is to shift the dentist reminder to a different time, such as 8:30, if your actual appointment isn't at 9:00. If it is at 9:00, move the appointment to another day, like Wed Oct 21 or Fri Oct 23, which are also light. I can draft either change for you to approve.",
       "tool_calls": [],
       "stop_reason": "end_turn",
       "usage": {
-        "input_tokens": 3398,
-        "output_tokens": 440,
-        "cache_read_tokens": 6183,
+        "input_tokens": 2203,
+        "output_tokens": 542,
+        "cache_read_tokens": 6540,
         "cache_write_tokens": 0
       },
-      "latency_ms": 3276.2293750420213,
+      "latency_ms": 3221.532499883324,
       "model": "claude-haiku-5-5"
     }
   ]
