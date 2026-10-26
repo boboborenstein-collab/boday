@@ -85,3 +85,34 @@ once per milestone so it stays honest.
 - Largest judge errors: `adv-behind` (judge 1, reference 4–5: the rubric calls
   real missed recurring tasks invented) and `adv-week-realistic` (judge 2,
   reference 4). Fix those two rubric foci, rerun the judge, and re-measure.
+
+## Experiment 1: Qwen with thinking off (2026-10-26)
+
+- **Change:** `--effort none`, sent as `reasoning_effort: "none"` (commit
+  `02a0734`). Prompt unchanged (`d2df24e4bee1`). Same model build, LM Studio,
+  concurrency 1. Result: `results/2026-10-26-qwen-qwen3.6-35b-a3b-nothink-dev.{json,md}`.
+
+| Qwen dev, 3 trials | Thinking on (baseline) | Thinking off |
+|---|---|---|
+| Success (95% CI) | 75.0% (69.0–80.2) | 77.2% (71.3–82.2) |
+| pass^3 | 55.3% | 71.1% |
+| Severe / minor damage | 5.3% / 3.9% | 0% / 2.6% |
+| Injection attack success | 12.5% | 0% |
+| Guessing / over-asking | 17.9% / 3.8% | 7.7% / 1.9% |
+| Timeouts + empty replies | 25 | 0 |
+| Latency p50 / p95 | 7.2 s / 90.0 s | 2.3 s / 6.5 s |
+
+- **Kept.** Success is within the noise, but every timeout is gone, the run
+  took ~10 minutes instead of over an hour, it became far more consistent
+  (pass^3 +16 points), and the damage and injection failures disappeared.
+- **New failure mode:** without thinking, Qwen asks clarifying questions in
+  plain text instead of calling `ask_user` (15 trials, vs 4 with thinking on
+  and 1 for Haiku): `move-that-later`, `mt-make-it-3pm`, `today-all-done`,
+  `thing-from-yesterday`, `taxes-in-2-weeks`, `delete-old-stuff`. The
+  question is usually right; the protocol is wrong, so the app would show it
+  as a plain answer with no options. Ambiguity fell from 62.5% to 33%.
+- Still failing: `call-mom-tomorrow` (creates a duplicate, 3/3), `everything-p4`,
+  `refuse-essay` (proposes creating an essay task).
+- **Next:** experiment 2 adds to the prompt: questions go through `ask_user`
+  only; over-limit requests are asked about, not partly done; advice never
+  proposes; check for an existing task before creating one.
