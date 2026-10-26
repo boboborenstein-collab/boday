@@ -12,9 +12,9 @@ Run `agent/sql/agent_traces.sql` in the Supabase SQL editor. It is safe to run a
 
 The direct database host is IPv6-only on the free plan, and Cloud Run sends IPv4, so use the Supavisor pooler. `AGENT_TRACES_DSN` is:
 
-`postgresql://agent_tracer.cgsjsbsxuzawvgunrpqi:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres`
+`postgresql://agent_tracer.cgsjsbsxuzawvgunrpqi:<password>@aws-1-us-west-1.pooler.supabase.com:6543/postgres`
 
-That is transaction mode. Copy the exact host from Supabase → Connect. The pooler user name is the role name, a dot, and the project ref. `postgres_connect` already turns prepared statements off for this mode.
+That is transaction mode. The host is `aws-1`, not `aws-0`: `aws-0` answers "tenant/user not found" for this project. Copy the exact host from Supabase → Connect if it ever changes. The pooler user name is the role name, a dot, and the project ref. `postgres_connect` already turns prepared statements off for this mode.
 
 Schedule the delete of rows older than 30 days once `pg_cron` is enabled (Database → Extensions). The comment at the end of the SQL file has the `cron.schedule` statement. This file does not delete rows.
 
@@ -32,8 +32,8 @@ Store these in Secret Manager and map them with `--set-secrets`. Secret Manager'
 
 - `AGENT_ENCRYPTION_KEY` — standard base64 of 32 bytes; see "Encryption key" below
 - `ANTHROPIC_API_KEY`
-- `CF_ACCESS_CLIENT_ID`
-- `CF_ACCESS_CLIENT_SECRET`
+- `CF_ACCESS_CLIENT_ID` — only for Local mode
+- `CF_ACCESS_CLIENT_SECRET` — only for Local mode
 - `AGENT_TRACES_DSN`
 - `SUPABASE_JWT_SECRET` — only if JWKS is not used; if both are set, JWKS wins
 
@@ -69,6 +69,8 @@ openssl rand -base64 32 | tr -d '\n' | gcloud secrets create agent-encryption-ke
 Grant the service account access to it as above. Never commit the key or paste it into a chat.
 
 ### Deploy command
+
+Deployed 2026-10-26 without Local mode: the two `CF_ACCESS_*` secrets and the `BODAY_LOCAL_*` variables were left out (all four are optional). Service URL: `https://boday-agent-430294896514.us-west1.run.app`. Add them with the full command below once the tunnel exists.
 
 Run from the repo root. Cloud Build builds `agent/Dockerfile`, so nothing is built on the Mac:
 
