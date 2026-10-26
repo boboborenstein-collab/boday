@@ -22,9 +22,9 @@ and the plan for your track.
 | 5 plans | Service + app plans (Track D) | ✅ Done — PR #5 |
 | 5a | FastAPI service (built, not deployed) | ✅ Done — PR #8 |
 | 5b | App chat UI (built, not deployed) | ✅ Done — PR #9 |
-| 3B baseline | Task B5 paid runs + write-up | 🔄 Haiku + local Qwen done (branch `agent/phase3b-baseline`); Sonnet, judge calibration, write-up left |
+| 3B baseline | Task B5 paid runs + write-up (Haiku, Sonnet, local Qwen, judge calibration) | ✅ Done — PR #10; see `agent/README.md` Results, `agent/evals/ITERATION_LOG.md` |
 | 5 deploy | Cloud Run, Supabase migration, secrets, Cloudflare Access, app `VITE_AGENT_URL` | ⏸ Owner steps (`agent/DEPLOY.md`), when the owner is ready |
-| 4 | Iterate on eval failures | ⏸ After the baseline |
+| 4 | Iterate on eval failures (plan: ITERATION_LOG "Planned experiments") | ⏭️ Next — owner + Claude on the Mac (needs paid / local runs) |
 
 ## Round 2 — two parallel tracks (done; kept for reference)
 
