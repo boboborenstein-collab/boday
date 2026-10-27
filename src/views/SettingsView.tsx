@@ -18,7 +18,7 @@ import {
   SunIcon,
   UploadIcon,
 } from '../components/icons'
-import type { AccentKey, ThemeMode } from '../types'
+import type { AccentKey, ThemeMode, TimeFormat } from '../types'
 
 const ACCENTS: { key: AccentKey; color: string }[] = [
   { key: 'indigo', color: '#6366f1' },
@@ -27,6 +27,11 @@ const ACCENTS: { key: AccentKey; color: string }[] = [
   { key: 'rose', color: '#f43f5e' },
   { key: 'amber', color: '#f59e0b' },
   { key: 'sky', color: '#0ea5e9' },
+]
+
+const TIME_FORMATS: { value: TimeFormat; label: string }[] = [
+  { value: '12h', label: '12-hour' },
+  { value: '24h', label: '24-hour' },
 ]
 
 const THEMES: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
@@ -132,6 +137,21 @@ export function SettingsView() {
                   {t.icon}
                   {t.label}
                 </span>
+              </button>
+            ))}
+          </div>
+        </Row>
+        <Row label="Time format">
+          <div className="flex rounded-lg border border-border bg-surface-2 p-0.5 text-xs font-medium">
+            {TIME_FORMATS.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => update({ timeFormat: t.value })}
+                className={`rounded-md px-2.5 py-1.5 ${
+                  settings.timeFormat === t.value ? 'bg-surface-3 text-text' : 'text-muted'
+                }`}
+              >
+                {t.label}
               </button>
             ))}
           </div>

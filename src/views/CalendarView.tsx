@@ -17,7 +17,7 @@ import { useStore } from '../store/useStore'
 import { buildDayList } from '../lib/recurrence'
 import { currentStreak } from '../lib/streaks'
 import { fromDateStr, todayStr, toDateStr } from '../lib/date'
-import { formatDateLong } from '../lib/format'
+import { formatDateLong, formatTime } from '../lib/format'
 import { TaskRow } from '../components/TaskRow'
 import { PRIORITY_STYLES } from '../components/priorityStyles'
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from '../components/icons'
@@ -33,6 +33,7 @@ export function CalendarView() {
   const completions = useStore((s) => s.completions)
   const openEditor = useStore((s) => s.openEditor)
   const weekStartsOn = useStore((s) => s.settings.weekStartsOn)
+  const timeFormat = useStore((s) => s.settings.timeFormat)
 
   const today = todayStr()
   const [view, setView] = useState<'month' | 'week'>('month')
@@ -189,10 +190,10 @@ export function CalendarView() {
               </span>
             ))}
             {selectedJewish.candles && (
-              <span className="text-muted">🕯️ Candle lighting {selectedJewish.candles}</span>
+              <span className="text-muted">🕯️ Candle lighting {formatTime(selectedJewish.candles, timeFormat)}</span>
             )}
             {selectedJewish.havdalah && (
-              <span className="text-muted">✨ Havdalah {selectedJewish.havdalah}</span>
+              <span className="text-muted">✨ Havdalah {formatTime(selectedJewish.havdalah, timeFormat)}</span>
             )}
           </div>
         )}

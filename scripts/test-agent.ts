@@ -43,6 +43,7 @@ import {
 } from '../src/lib/agentSettings.ts'
 import * as settingsLib from '../src/lib/agentSettings.ts'
 import * as prefsLib from '../src/lib/userPrefs.ts'
+import { buildDayInfo } from '../src/lib/hebcal.ts'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { AgentSettings } from '../src/components/AgentSettings.tsx'
@@ -652,6 +653,23 @@ check('chat uses the gates', chat.includes('canSend') && chat.includes('hasUsabl
 
 const view = readFileSync('src/views/SettingsView.tsx', 'utf8')
 check('settings mounts the section', view.includes('AgentSettings'))
+check('settings has time format', view.includes('Time format') && view.includes("update({ timeFormat"))
+check('chat sends time format', chat.includes('timeFormat: useStore.getState().settings.timeFormat'))
+const jewishDays = buildDayInfo([
+  { title: 'Candle lighting: 5:52pm', date: '2026-10-30T17:52:00-07:00', category: 'candles' },
+  { title: 'Havdalah: 6:51pm', date: '2026-10-31T18:51:00-07:00', category: 'havdalah' },
+  { title: 'Candle lighting: 6:01pm', date: '2026-11-06', category: 'candles' },
+] as never)
+check('candles as HH:mm from the date', jewishDays.get('2026-10-30')?.candles === '17:52')
+check('havdalah as HH:mm from the date', jewishDays.get('2026-10-31')?.havdalah === '18:51')
+check('candles without a time keep the title text', jewishDays.get('2026-11-06')?.candles === '6:01pm')
+for (const file of ['src/views/TodayView.tsx', 'src/views/CalendarView.tsx']) {
+  check(`${file} formats candle times`, readFileSync(file, 'utf8').includes('formatTime('))
+}
+for (const file of ['src/components/ShabbatSettings.tsx', 'src/components/QuietOverlay.tsx']) {
+  const src = readFileSync(file, 'utf8')
+  check(`${file} uses the time format`, src.includes('formatIsoTime(') && !src.includes('toLocaleTimeString') && !src.includes("h:mmaaa"))
+}
 const traces = readFileSync('src/components/TraceViewer.tsx', 'utf8')
 check('traces table', traces.includes('agent_traces') && traces.includes('traceSummary') && traces.includes('traceLoadMessage'))
 const envExample = readFileSync('.env.example', 'utf8')

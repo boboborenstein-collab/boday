@@ -4,7 +4,7 @@ import { useStore } from '../store/useStore'
 import { buildTodayList } from '../lib/recurrence'
 import { currentStreak } from '../lib/streaks'
 import { todayStr } from '../lib/date'
-import { formatDateLong } from '../lib/format'
+import { formatDateLong, formatTime } from '../lib/format'
 import { TaskRow } from '../components/TaskRow'
 import { ProgressRing } from '../components/Confetti'
 import { SparklesIcon } from '../components/icons'
@@ -125,7 +125,7 @@ export function TodayView() {
       {isFriday && todayInfo?.candles && (
         <div className="mb-4 rounded-xl border border-border bg-surface/80 px-4 py-3 text-sm">
           <span className="font-medium text-accent">Shabbat prep</span>
-          <span className="text-muted"> · Candles {todayInfo.candles}</span>
+          <span className="text-muted"> · Candles {formatTime(todayInfo.candles, settings.timeFormat)}</span>
           <button
             type="button"
             onClick={() => bulkSkipRecurring(today, 'except_torah')}

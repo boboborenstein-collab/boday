@@ -7,11 +7,14 @@ import {
   currentQuietWindow,
 } from '../lib/hebcal'
 import type { QuietWindow } from '../lib/hebcal'
+import { formatIsoTime } from '../lib/format'
+import { useStore } from '../store/useStore'
 
 export function QuietOverlay() {
   const [activeWindow, setActiveWindow] = useState<QuietWindow | null>(null)
   const [dismissed, setDismissed] = useState(false)
   const shouldReduceMotion = useReducedMotion()
+  const timeFormat = useStore((s) => s.settings.timeFormat)
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>
@@ -64,10 +67,7 @@ export function QuietOverlay() {
   const isHoliday = !activeWindow.title.includes('Candle')
   const titleText = isHoliday ? activeWindow.title : 'Shabbat Shalom'
 
-  const endTime = new Date(activeWindow.end).toLocaleTimeString([], {
-    hour: 'numeric',
-    minute: '2-digit',
-  })
+  const endTime = formatIsoTime(activeWindow.end, timeFormat)
 
   return (
     <motion.div

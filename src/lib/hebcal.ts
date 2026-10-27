@@ -137,6 +137,14 @@ export function currentQuietWindow(windows: QuietWindow[], now: number): QuietWi
   return windows.find(w => Date.parse(w.start) <= now && now <= Date.parse(w.end)) || null
 }
 
+/** 'HH:mm' at the event's location from the ISO date; the title's own text when there is no time part. */
+function itemTime(item: HebcalItem): string | null {
+  const iso = /^\d{4}-\d{2}-\d{2}T(\d{2}:\d{2})/.exec(item.date)
+  if (iso) return iso[1]
+  const match = item.title.match(/:\s*(.+)$/)
+  return match ? match[1] : null
+}
+
 export function buildDayInfo(items: HebcalItem[]): Map<string, JewishDayInfo> {
   const map = new Map<string, JewishDayInfo>()
 
@@ -151,11 +159,11 @@ export function buildDayInfo(items: HebcalItem[]): Map<string, JewishDayInfo> {
     if (item.category === 'holiday') {
       info.holidays.push(item.title)
     } else if (item.category === 'candles') {
-      const match = item.title.match(/:\s*(.+)$/)
-      if (match) info.candles = match[1]
+      const time = itemTime(item)
+      if (time) info.candles = time
     } else if (item.category === 'havdalah') {
-      const match = item.title.match(/:\s*(.+)$/)
-      if (match) info.havdalah = match[1]
+      const time = itemTime(item)
+      if (time) info.havdalah = time
     }
   }
 
