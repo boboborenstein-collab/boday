@@ -10,7 +10,7 @@ and the plan for your track.
   implementation plans" section of `CLAUDE.md` / `AGENTS.md`.
 - **Known follow-ups:** `agent/FOLLOWUPS.md`
 
-## Status (2026-10-26, after phase 4)
+## Status (2026-10-27, project complete)
 
 | Phase | What | Status |
 |---|---|---|
@@ -26,7 +26,8 @@ and the plan for your track.
 | 4 | Experiments 1–2: Qwen thinking off, prompt rules (Haiku dev 91.7% → 99.6%, holdout 95.8%) | ✅ Done — PR #11; see `agent/evals/ITERATION_LOG.md` |
 | 5 deploy | Cloud Run (`boday-agent`, us-west1), Supabase `agent_traces`, secrets, app `VITE_AGENT_URL` | ✅ Live 2026-10-26, Haiku only (`agent/DEPLOY.md`) |
 | 5 local | Cloudflare tunnel + Access token for LM Studio, `BODAY_LOCAL_*` env vars | Later (optional) |
-| 4 (optional) | Exp 3: harness safety net for local-model plain-text questions; judge rubric fix (`adv-behind`, `adv-week-realistic`) | Later |
+| 4 exp 3 | Judge sees completions + rubric fix (kept: 31% → 69% exact agreement); not-found prompt rule (rejected); `merge_user_prefs` security fix; root README | ✅ Done — PR #12 |
+| Later (optional) | Harness retry when a final answer ends in an unasked question (not-found cases); Local mode tunnel | — |
 
 ## Round 2 — two parallel tracks (done; kept for reference)
 
