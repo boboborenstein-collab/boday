@@ -539,3 +539,27 @@ def test_an_http_exception_does_not_return_a_detail_body():
         "Check the message, snapshot, and model settings.",
     )
     assert res.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def test_run_passes_time_format_to_the_agent_context(monkeypatch):
+    client = _client(sink=MemorySink())
+    fake = FakeProvider([fake_text("Done.")])
+    monkeypatch.setattr(app_module, "build_provider", lambda *a, **k: (fake, "explicit"))
+    body = _run_body()
+    body["snapshot"] = _demo_snapshot()
+    body["timeFormat"] = "12h"
+    res = client.post("/agent/run", json=body, headers=_auth())
+    assert res.status_code == 200
+    _system, messages, _tools = fake.calls[0]
+    context = next(m.text for m in messages if "<context>" in getattr(m, "text", ""))
+    assert "12-hour format" in context
+
+
+def test_run_rejects_an_unknown_time_format():
+    client = _client(sink=MemorySink())
+    body = _run_body()
+    body["snapshot"] = _demo_snapshot()
+    body["timeFormat"] = "13h"
+    res = client.post("/agent/run", json=body, headers=_auth())
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "INVALID_REQUEST"

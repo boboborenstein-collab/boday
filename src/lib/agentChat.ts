@@ -1,5 +1,7 @@
 import type { RunResponse } from './agentContract'
 import type { AgentAiPrefs, UserPrefsEnvelope } from './userPrefs'
+import type { TimeFormat } from '../types'
+import { formatTime, formatTimesInText } from './format'
 
 export interface ChatMessage {
   id: string
@@ -311,6 +313,13 @@ function show(value: unknown): string {
   return String(value)
 }
 
+/** One diff line. A reminder time is shown in the user's format; other fields as stored. */
+function fieldLine(key: string, values: unknown[], fmt: TimeFormat): string {
+  if (key !== 'reminderTime') return `${key}: ${values.map(show).join(' → ')}`
+  const times = values.map((value) => (typeof value === 'string' ? formatTime(value, fmt) : 'none'))
+  return `Reminder: ${times.join(' → ')}`
+}
+
 function changeTitle(change: Record<string, unknown>, tasks: readonly { id: string; title?: string }[]): string {
   const taskId = typeof change.taskId === 'string' ? change.taskId : ''
   const task = tasks.find((item) => item.id === taskId)
@@ -322,12 +331,13 @@ function changeTitle(change: Record<string, unknown>, tasks: readonly { id: stri
   return taskId
 }
 
-function warningMessages(change: Record<string, unknown>): string[] {
+function warningMessages(change: Record<string, unknown>, fmt: TimeFormat): string[] {
   if (!Array.isArray(change.warnings)) return []
   const messages: string[] = []
   for (const warning of change.warnings) {
     const row = plain(warning)
-    if (row && typeof row.message === 'string') messages.push(row.message)
+    // The server writes times as HH:mm inside the sentence.
+    if (row && typeof row.message === 'string') messages.push(formatTimesInText(row.message, fmt))
   }
   return messages
 }
@@ -336,6 +346,7 @@ export function diffModel(
   changes: readonly unknown[],
   selectedTaskIds: readonly string[],
   tasks: readonly { id: string; title?: string }[],
+  fmt: TimeFormat = '24h',
 ): { creates: DiffRow[]; updates: DiffRow[]; deletes: DiffRow[] } {
   const selected = new Set(selectedTaskIds)
   const creates: DiffRow[] = []
@@ -348,14 +359,14 @@ export function diffModel(
       taskId: rec.taskId,
       title: changeTitle(rec, tasks),
       lines: [],
-      warnings: warningMessages(rec),
+      warnings: warningMessages(rec, fmt),
       checked: selected.has(rec.taskId),
     }
     if (rec.op === 'create') {
       const after = plain(rec.after) ?? {}
       row.lines = Object.keys(after)
         .filter((key) => key !== 'id')
-        .map((key) => `${key}: ${show(after[key])}`)
+        .map((key) => fieldLine(key, [after[key]], fmt))
       creates.push(row)
     } else if (rec.op === 'delete') {
       row.lines = [typeof rec.reason === 'string' ? rec.reason : '']
@@ -369,7 +380,7 @@ export function diffModel(
     } else if (rec.op === 'update') {
       const patch = plain(rec.patch) ?? {}
       const beforeFields = plain(rec.beforeFields) ?? {}
-      row.lines = Object.keys(patch).map((key) => `${key}: ${show(beforeFields[key])} → ${show(patch[key])}`)
+      row.lines = Object.keys(patch).map((key) => fieldLine(key, [beforeFields[key], patch[key]], fmt))
       updates.push(row)
     }
   }

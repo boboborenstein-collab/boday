@@ -211,6 +211,7 @@ export function AgentChat() {
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           }),
           settings: ai,
+          timeFormat: useStore.getState().settings.timeFormat,
         },
         token,
       )

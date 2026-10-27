@@ -42,10 +42,13 @@ class RunSettings(BaseModel):
 
 
 class RunRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     message: str = Field(min_length=1, max_length=4000)
     history: list[HistoryItem]
     snapshot: dict
     settings: RunSettings
+    time_format: Literal["12h", "24h"] | None = Field(default=None, alias="timeFormat")
 
     _message_has_no_nul = field_validator("message")(_no_nul)
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { useStore } from '../store/useStore'
 import { priorityMeta } from '../lib/priority'
-import { describeRecurrence, formatReminder } from '../lib/format'
+import { describeRecurrence, formatTime } from '../lib/format'
 import { celebrate } from '../lib/feedback'
 import { PRIORITY_STYLES } from './priorityStyles'
 import { CheckIcon, ClockIcon, FlameIcon, RepeatIcon, SkipIcon, TrashIcon } from './icons'
@@ -26,6 +26,7 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
   const setOneTimeCompleted = useStore((s) => s.setOneTimeCompleted)
   const toggleRecurring = useStore((s) => s.toggleRecurringCompletion)
   const toggleSkip = useStore((s) => s.toggleRecurringSkip)
+  const timeFormat = useStore((s) => s.settings.timeFormat)
   const deferOneTimeTask = useStore((s) => s.deferOneTimeTask)
   const toggleSubtask = useStore((s) => s.toggleSubtask)
   const deleteTask = useStore((s) => s.deleteTask)
@@ -121,7 +122,7 @@ export function TaskRow({ item, dateStr, streak = 0, overdue = false }: TaskRowP
               {task.reminderTime && (
                 <span className="inline-flex items-center gap-1">
                   <ClockIcon className="size-3.5" />
-                  {formatReminder(task.reminderTime)}
+                  {formatTime(task.reminderTime, timeFormat)}
                 </span>
               )}
               {skipped && (

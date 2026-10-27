@@ -12,7 +12,13 @@ from pydantic import BaseModel, Field
 
 from boday_agent.domain.models import Snapshot
 from boday_agent.pricing import cost_usd
-from boday_agent.prompt import PROMPT_VERSION, SYSTEM_PROMPT, HistoryTurn, build_messages
+from boday_agent.prompt import (
+    PROMPT_VERSION,
+    SYSTEM_PROMPT,
+    HistoryTurn,
+    TimeFormat,
+    build_messages,
+)
 from boday_agent.providers.base import (
     AssistantTurn,
     Message,
@@ -41,6 +47,7 @@ class AgentRequest(BaseModel):
     message: str
     history: list[HistoryTurn] = Field(default_factory=list)
     snapshot: Snapshot
+    time_format: TimeFormat | None = None
 
 
 class AgentResult(BaseModel):
@@ -68,7 +75,11 @@ def run_agent(
     gen = id_gen or (lambda: str(uuid4()))
     ctx = RunContext.create(request.snapshot, faults=faults, id_gen=gen)
     messages: list[Message] = build_messages(
-        request.message, request.history, request.snapshot, ctx.clock
+        request.message,
+        request.history,
+        request.snapshot,
+        ctx.clock,
+        time_format=request.time_format,
     )
     budget = limits.local_timeout_s if provider.is_local else limits.timeout_s
     schemas = tool_schemas()

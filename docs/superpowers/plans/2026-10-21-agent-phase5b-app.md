@@ -154,6 +154,7 @@ Request:
 - `settings.model` is a string or null. For `claude`, null means `claude-haiku-5-5`.
 - `settings.baseUrl` is a string or null. Required for `custom`. Ignored for `auto` (the server uses `BODAY_LOCAL_BASE_URL`).
 - `settings.keyCiphertext` is the opaque string from `POST /encrypt`, or null. Required for `claude`, for every user including the owner. Optional for `custom`. Ignored for `auto`. `auto` uses the server Anthropic key for its fallback and never the ciphertext.
+- `timeFormat` (added 2026-10-27, optional): `"12h"` or `"24h"`, the user's time format setting. The agent writes clock times in that format; tool arguments and stored times stay `HH:mm`. Absent means no preference (older apps). Any other value is `400 INVALID_REQUEST`.
 - `custom` requires `baseUrl` and `model` for every user.
 - Owner `auto` ignores `keyCiphertext`, `baseUrl`, and `model` from the body.
 

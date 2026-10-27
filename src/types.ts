@@ -98,6 +98,8 @@ export interface TaskCompletion {
 
 export type ThemeMode = 'system' | 'light' | 'dark'
 export type AccentKey = 'indigo' | 'violet' | 'emerald' | 'rose' | 'amber' | 'sky'
+/** How clock times are shown. Stored times are always 'HH:mm'. */
+export type TimeFormat = '12h' | '24h'
 
 export interface Settings {
   theme: ThemeMode
@@ -108,6 +110,8 @@ export interface Settings {
   sound: boolean
   /** 0 = Sunday, 1 = Monday — used by the calendar grid. */
   weekStartsOn: 0 | 1
+  /** Clock times in the UI and in the agent's replies. */
+  timeFormat: TimeFormat
   /** Show Shabbat candle-lighting/havdalah times on the calendar (Hebcal). */
   showShabbatOnCalendar: boolean
   /** Show Jewish holidays on the calendar (Hebcal). */
@@ -126,6 +130,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reduceMotion: false,
   sound: true,
   weekStartsOn: 0,
+  timeFormat: '12h',
   showShabbatOnCalendar: true,
   showHolidaysOnCalendar: true,
   todayTagFilter: null,

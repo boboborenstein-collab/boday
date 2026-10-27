@@ -43,6 +43,7 @@ import {
 } from '../src/lib/agentSettings.ts'
 import * as settingsLib from '../src/lib/agentSettings.ts'
 import * as prefsLib from '../src/lib/userPrefs.ts'
+import { buildDayInfo } from '../src/lib/hebcal.ts'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { AgentSettings } from '../src/components/AgentSettings.tsx'
@@ -613,6 +614,32 @@ const statusCard = diffModel(
   [],
 )
 check('status is an update', statusCard.updates[0].lines[0] === 'status: open → skipped' && statusCard.updates[0].lines[1] === 'date: 2026-10-23' && statusCard.updates[0].title === 'gym')
+const reminderChange = {
+  op: 'update',
+  taskId: 'dentist',
+  patch: { reminderTime: '10:30' },
+  beforeFields: { reminderTime: '09:00' },
+  warnings: [{ code: 'TIME_CLASH', message: 'Another open item is also set for 10:30 on 2026-10-22: Standup.' }],
+}
+const card12 = diffModel([reminderChange], ['dentist'], [dentist], '12h')
+check('reminder 12h', card12.updates[0].lines[0] === 'Reminder: 9:00 AM → 10:30 AM')
+check('warning time 12h', card12.updates[0].warnings[0] === 'Another open item is also set for 10:30 AM on 2026-10-22: Standup.')
+const card24 = diffModel([reminderChange], ['dentist'], [dentist], '24h')
+check('reminder 24h', card24.updates[0].lines[0] === 'Reminder: 09:00 → 10:30')
+const added = diffModel(
+  [{ op: 'update', taskId: 'dentist', patch: { reminderTime: '17:00' }, beforeFields: { reminderTime: null }, warnings: [] }],
+  ['dentist'],
+  [dentist],
+  '12h',
+)
+check('reminder added shows none', added.updates[0].lines[0] === 'Reminder: none → 5:00 PM')
+const createdCard = diffModel(
+  [{ op: 'create', taskId: 'new-1', after: { title: 'Call bank', reminderTime: '10:00' }, warnings: [] }],
+  ['new-1'],
+  [],
+  '12h',
+)
+check('create reminder 12h', createdCard.creates[0].lines.includes('Reminder: 10:00 AM') && createdCard.creates[0].lines.includes('title: Call bank'))
 
 const layout = readFileSync('src/components/Layout.tsx', 'utf8')
 check('entry uses the helper', layout.includes('agentEntry') && layout.includes('openAgent') && layout.includes('BoDay Agent'))
@@ -626,6 +653,23 @@ check('chat uses the gates', chat.includes('canSend') && chat.includes('hasUsabl
 
 const view = readFileSync('src/views/SettingsView.tsx', 'utf8')
 check('settings mounts the section', view.includes('AgentSettings'))
+check('settings has time format', view.includes('Time format') && view.includes("update({ timeFormat"))
+check('chat sends time format', chat.includes('timeFormat: useStore.getState().settings.timeFormat'))
+const jewishDays = buildDayInfo([
+  { title: 'Candle lighting: 5:52pm', date: '2026-10-30T17:52:00-07:00', category: 'candles' },
+  { title: 'Havdalah: 6:51pm', date: '2026-10-31T18:51:00-07:00', category: 'havdalah' },
+  { title: 'Candle lighting: 6:01pm', date: '2026-11-06', category: 'candles' },
+] as never)
+check('candles as HH:mm from the date', jewishDays.get('2026-10-30')?.candles === '17:52')
+check('havdalah as HH:mm from the date', jewishDays.get('2026-10-31')?.havdalah === '18:51')
+check('candles without a time keep the title text', jewishDays.get('2026-11-06')?.candles === '6:01pm')
+for (const file of ['src/views/TodayView.tsx', 'src/views/CalendarView.tsx']) {
+  check(`${file} formats candle times`, readFileSync(file, 'utf8').includes('formatTime('))
+}
+for (const file of ['src/components/ShabbatSettings.tsx', 'src/components/QuietOverlay.tsx']) {
+  const src = readFileSync(file, 'utf8')
+  check(`${file} uses the time format`, src.includes('formatIsoTime(') && !src.includes('toLocaleTimeString') && !src.includes("h:mmaaa"))
+}
 const traces = readFileSync('src/components/TraceViewer.tsx', 'utf8')
 check('traces table', traces.includes('agent_traces') && traces.includes('traceSummary') && traces.includes('traceLoadMessage'))
 const envExample = readFileSync('.env.example', 'utf8')

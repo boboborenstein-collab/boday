@@ -61,6 +61,15 @@ PROMPT_VERSION = hashlib.sha256(
 
 _WEEKDAYS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
+TimeFormat = Literal["12h", "24h"]
+
+# Added to the per-request context only, so PROMPT_VERSION and the cassettes
+# (which never set a format) are unaffected.
+_TIME_FORMAT_LINE = {
+    "12h": "Write clock times for the user in 12-hour format (2:05 PM); tool arguments stay HH:mm.",
+    "24h": "Write clock times for the user in 24-hour format (14:05); tool arguments stay HH:mm.",
+}
+
 
 class HistoryTurn(BaseModel):
     role: Literal["user", "assistant"]
@@ -73,13 +82,22 @@ def _day_label(day) -> str:
     return f"{_WEEKDAYS[day.weekday()]} {day.isoformat()}"
 
 
-def render_context(snapshot: Snapshot, clock: Clock) -> str:
+def _clock_time(local, time_format: TimeFormat | None) -> str:
+    if time_format == "12h":
+        period = "AM" if local.hour < 12 else "PM"
+        return f"{local.hour % 12 or 12}:{local.minute:02d} {period}"
+    return local.strftime("%H:%M")
+
+
+def render_context(
+    snapshot: Snapshot, clock: Clock, time_format: TimeFormat | None = None
+) -> str:
     local = clock.local_now
     lines = [
         "<context>",
         (
-            f"Now: {_WEEKDAYS[local.weekday()]} {local.strftime('%Y-%m-%d %H:%M')} "
-            f"({clock.tz.key})"
+            f"Now: {_WEEKDAYS[local.weekday()]} {local.strftime('%Y-%m-%d')} "
+            f"{_clock_time(local, time_format)} ({clock.tz.key})"
         ),
     ]
     today = clock.today
@@ -87,6 +105,8 @@ def render_context(snapshot: Snapshot, clock: Clock) -> str:
     warnings = len(snapshot.parse_warnings)
     if warnings:
         lines.append(f"Note: {warnings} task(s) could not be read and are not shown.")
+    if time_format is not None:
+        lines.append(_TIME_FORMAT_LINE[time_format])
     lines.append("</context>")
     return "\n".join(lines)
 
@@ -97,6 +117,7 @@ def build_messages(
     snapshot: Snapshot,
     clock: Clock,
     max_history: int = 10,
+    time_format: TimeFormat | None = None,
 ) -> list[Message]:
     messages: list[Message] = []
     for turn in history[-max_history:]:
@@ -119,5 +140,6 @@ def build_messages(
                 )
             )
         )
-    messages.append(UserText(text=render_context(snapshot, clock) + "\n\n" + request_text))
+    context = render_context(snapshot, clock, time_format)
+    messages.append(UserText(text=context + "\n\n" + request_text))
     return messages

@@ -209,7 +209,12 @@ def create_app(
             for item in body.history
         ]
         result = run_agent(
-            AgentRequest(message=body.message, history=history, snapshot=snapshot),
+            AgentRequest(
+                message=body.message,
+                history=history,
+                snapshot=snapshot,
+                time_format=body.time_format,
+            ),
             provider,
             selection_reason=reason,
         )

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 import { format } from 'date-fns'
+import { formatIsoTime } from '../lib/format'
 import { useStore } from '../store/useStore'
 import {
   loadQuietPrefs,
@@ -64,6 +65,7 @@ function Toggle({
 
 export function ShabbatSettings() {
   const updateSettings = useStore((s) => s.updateSettings)
+  const timeFormat = useStore((s) => s.settings.timeFormat)
   const showShabbatOnCalendar = useStore((s) => s.settings.showShabbatOnCalendar)
   const showHolidaysOnCalendar = useStore((s) => s.settings.showHolidaysOnCalendar)
 
@@ -186,8 +188,8 @@ export function ShabbatSettings() {
       {prefs.enabled && prefs.locationId && nextWindow && (
         <div className="py-2.5">
           <div className="text-xs text-muted">
-            🕯️ Next: {format(new Date(nextWindow.start), 'EEE h:mmaaa')} →{' '}
-            {format(new Date(nextWindow.end), 'EEE h:mmaaa')}
+            🕯️ Next: {format(new Date(nextWindow.start), 'EEE')} {formatIsoTime(nextWindow.start, timeFormat)} →{' '}
+            {format(new Date(nextWindow.end), 'EEE')} {formatIsoTime(nextWindow.end, timeFormat)}
           </div>
         </div>
       )}
