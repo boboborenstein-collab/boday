@@ -1,6 +1,7 @@
 import type { ChatMessage } from '../lib/agentChat'
 import { diffModel } from '../lib/agentChat'
 import type { DiffRow } from '../lib/agentChat'
+import { useStore } from '../store/useStore'
 
 export function AgentDiffCard({
   message,
@@ -17,7 +18,8 @@ export function AgentDiffCard({
   onReject: () => void
   onUndo: () => void
 }) {
-  const model = diffModel(message.changes ?? [], message.selectedTaskIds ?? [], tasks)
+  const timeFormat = useStore((s) => s.settings.timeFormat)
+  const model = diffModel(message.changes ?? [], message.selectedTaskIds ?? [], tasks, timeFormat)
   const rows = [...model.creates, ...model.updates, ...model.deletes]
   const anyChecked = rows.some((row) => row.checked)
   const pending = message.proposalStatus === 'pending'

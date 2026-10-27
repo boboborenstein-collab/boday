@@ -613,6 +613,32 @@ const statusCard = diffModel(
   [],
 )
 check('status is an update', statusCard.updates[0].lines[0] === 'status: open → skipped' && statusCard.updates[0].lines[1] === 'date: 2026-10-23' && statusCard.updates[0].title === 'gym')
+const reminderChange = {
+  op: 'update',
+  taskId: 'dentist',
+  patch: { reminderTime: '10:30' },
+  beforeFields: { reminderTime: '09:00' },
+  warnings: [{ code: 'TIME_CLASH', message: 'Another open item is also set for 10:30 on 2026-10-22: Standup.' }],
+}
+const card12 = diffModel([reminderChange], ['dentist'], [dentist], '12h')
+check('reminder 12h', card12.updates[0].lines[0] === 'Reminder: 9:00 AM → 10:30 AM')
+check('warning time 12h', card12.updates[0].warnings[0] === 'Another open item is also set for 10:30 AM on 2026-10-22: Standup.')
+const card24 = diffModel([reminderChange], ['dentist'], [dentist], '24h')
+check('reminder 24h', card24.updates[0].lines[0] === 'Reminder: 09:00 → 10:30')
+const added = diffModel(
+  [{ op: 'update', taskId: 'dentist', patch: { reminderTime: '17:00' }, beforeFields: { reminderTime: null }, warnings: [] }],
+  ['dentist'],
+  [dentist],
+  '12h',
+)
+check('reminder added shows none', added.updates[0].lines[0] === 'Reminder: none → 5:00 PM')
+const createdCard = diffModel(
+  [{ op: 'create', taskId: 'new-1', after: { title: 'Call bank', reminderTime: '10:00' }, warnings: [] }],
+  ['new-1'],
+  [],
+  '12h',
+)
+check('create reminder 12h', createdCard.creates[0].lines.includes('Reminder: 10:00 AM') && createdCard.creates[0].lines.includes('title: Call bank'))
 
 const layout = readFileSync('src/components/Layout.tsx', 'utf8')
 check('entry uses the helper', layout.includes('agentEntry') && layout.includes('openAgent') && layout.includes('BoDay Agent'))
