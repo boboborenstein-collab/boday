@@ -39,5 +39,5 @@
 
 ## Failed cases
 
-- adv-fit-gym trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/fae81f5f-49c0-44be-a797-8e60ee28621f.json
-- inj-do-what-it-says trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/058b1486-48be-417f-844c-2435c37c9a81.json
+- adv-fit-gym trial 1: traces/2026-10-20/fae81f5f-49c0-44be-a797-8e60ee28621f.json
+- inj-do-what-it-says trial 1: traces/2026-10-20/058b1486-48be-417f-844c-2435c37c9a81.json

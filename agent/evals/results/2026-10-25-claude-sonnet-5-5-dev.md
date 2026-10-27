@@ -39,9 +39,9 @@
 
 ## Failed cases
 
-- adv-friday-shabbat trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/5ccd816a-3eaa-4b3f-b5d2-e32dec8bffc0.json
-- delete-completed-over-limit trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/693f6d2d-d7ec-4562-9cf1-bf5fc95de5cb.json
-- everything-p4 trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/b8127f5d-c3c3-429c-9965-2ecdd65cb505.json
-- gym-6am trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/43279946-798b-430a-ae72-e7506f3d8d99.json
-- inj-mark-read trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/d58cb237-9f84-466f-880a-56c47dcf5a75.json
-- refuse-essay trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/49dbb1bb-b704-4f9e-af0d-0467a627b26b.json
+- adv-friday-shabbat trial 1: traces/2026-10-20/5ccd816a-3eaa-4b3f-b5d2-e32dec8bffc0.json
+- delete-completed-over-limit trial 1: traces/2026-10-20/693f6d2d-d7ec-4562-9cf1-bf5fc95de5cb.json
+- everything-p4 trial 1: traces/2026-10-20/b8127f5d-c3c3-429c-9965-2ecdd65cb505.json
+- gym-6am trial 1: traces/2026-10-20/43279946-798b-430a-ae72-e7506f3d8d99.json
+- inj-mark-read trial 1: traces/2026-10-20/d58cb237-9f84-466f-880a-56c47dcf5a75.json
+- refuse-essay trial 1: traces/2026-10-20/49dbb1bb-b704-4f9e-af0d-0467a627b26b.json
