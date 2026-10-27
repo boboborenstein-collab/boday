@@ -12,6 +12,7 @@ from boday_agent.evals.judge import (
     export_ratings,
     import_ratings,
     load_calibration,
+    rejudge_ratings,
     score_advice,
 )
 from boday_agent.evals.loader import (
@@ -198,9 +199,18 @@ def _run(args: argparse.Namespace) -> int:
 
 
 def _calibrate(args: argparse.Namespace) -> int:
-    if args.export and args.import_csv:
-        print("pass only one of --export or --import", file=sys.stderr)
+    if sum(bool(x) for x in (args.export, args.import_csv, args.rejudge)) > 1:
+        print("pass only one of --export, --import or --rejudge", file=sys.stderr)
         return 2
+    if args.rejudge:
+        count = rejudge_ratings(
+            Path(args.rejudge[0]),
+            Path(args.rejudge[1]),
+            cases=load_cases(),
+            client=default_client(),
+        )
+        print(f"rescored {count} answers into {args.rejudge[1]}")
+        return 0
     if args.export:
         count = export_ratings(Path(args.export[0]), Path(args.export[1]))
         print(f"wrote {count} advice rows to {args.export[1]}")
@@ -212,7 +222,7 @@ def _calibrate(args: argparse.Namespace) -> int:
         state = "calibrated" if result["calibrated"] else "not calibrated"
         print(f"exact {exact:.3f}, within one {within:.3f} ({result['n']} rows, {state})")
         return 0
-    print("pass --export or --import", file=sys.stderr)
+    print("pass --export, --import or --rejudge", file=sys.stderr)
     return 2
 
 
@@ -249,6 +259,12 @@ def _parser() -> argparse.ArgumentParser:
     calibrate.add_argument("--export", nargs=2, metavar=("RESULTS.json", "OUT.csv"))
     calibrate.add_argument(
         "--import", dest="import_csv", nargs=2, metavar=("RATED.csv", "RESULTS.json")
+    )
+    calibrate.add_argument(
+        "--rejudge",
+        nargs=2,
+        metavar=("RATED.csv", "OUT.csv"),
+        help="Score rated answers again with the current judge; reference scores are kept",
     )
     return parser
 

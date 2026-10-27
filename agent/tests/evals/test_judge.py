@@ -246,3 +246,44 @@ def test_judge_scores_are_written_into_the_same_report(tmp_path, monkeypatch):
     saved = json.loads(files[0].read_text())
     assert saved["results"][0]["judge_score"] == 4
     assert saved["metrics"]["advice_quality_mean"] == 4
+
+
+def test_judge_sees_completions_so_missed_occurrences_are_checkable():
+    # Without completions the judge called real missed recurring days
+    # "invented" (adv-behind, baseline calibration).
+    from boday_agent.evals.judge import judge_answer
+
+    fixture = {
+        "tasks": [{"id": "gym", "title": "Gym", "recurrence": {"kind": "daily"}}],
+        "completions": [
+            {"id": "c1", "taskId": "gym", "completionDate": "2026-10-14", "skipped": False},
+            {"id": "c2", "taskId": "gym", "completionDate": "2026-10-15", "skipped": True},
+        ],
+        "quietWindows": [],
+    }
+    client = StubClient()
+    judge_answer(advice_case(), "You missed gym on the 16th.", fixture, client=client)
+    content = client.kwargs["messages"][0]["content"]
+    assert "Completions" in content
+    assert '"taskId":"gym","date":"2026-10-14","skipped":false' in content
+    assert '"date":"2026-10-15","skipped":true' in content
+
+
+def test_rejudge_rescores_rated_answers_and_keeps_reference_scores(tmp_path):
+    from boday_agent.evals.judge import rejudge_ratings
+
+    rated = tmp_path / "rated.csv"
+    with rated.open("w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["case_id", "trial", "answer_text", "judge_score", "owner_score", "reason"])
+        writer.writerow(["drop-advice", "1", "Drop the errands.", "1", "5", "right"])
+        writer.writerow(["drop-advice", "2", "Which day?", "", "2", "asked instead"])
+        writer.writerow(["no-such-case", "1", "text", "3", "3", "gone"])
+    out = tmp_path / "rejudged.csv"
+    client = CountingClient()
+    count = rejudge_ratings(rated, out, cases=[advice_case()], client=client)
+    assert count == 1 and client.calls == 1
+    rows = list(csv.DictReader(out.open(newline="")))
+    assert [r["judge_score"] for r in rows] == ["4", "", ""]
+    assert [r["owner_score"] for r in rows] == ["5", "2", "3"]
+    assert rows[0]["reason"] == "right"
