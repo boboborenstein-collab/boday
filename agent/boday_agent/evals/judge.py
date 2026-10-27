@@ -125,6 +125,46 @@ def import_ratings(rated_csv: Path, results_json: Path, *, out: Path | None = No
     return result
 
 
+def rejudge_ratings(
+    rated_csv: Path, out_csv: Path, *, cases: list[EvalCase], client=None
+) -> int:
+    """Score already-rated answers again with the current judge and rubric.
+
+    Reference scores and every other column are copied unchanged, so the output
+    can go straight into import_ratings. Only rows the judge scored before are
+    scored again (score_advice skips trials that were not answered); the rest,
+    and rows with an unknown case, keep an empty judge score.
+    """
+    if client is None:
+        client = default_client()
+    by_id = {case.id: case for case in cases}
+    fixtures: dict[str, dict] = {}
+    with Path(rated_csv).open(newline="") as handle:
+        reader = csv.DictReader(handle)
+        fields = list(reader.fieldnames or [])
+        rows = list(reader)
+    count = 0
+    for row in rows:
+        case = by_id.get(row.get("case_id") or "")
+        text = row.get("answer_text") or ""
+        judged_before = bool((row.get("judge_score") or "").strip())
+        row["judge_score"] = ""
+        if case is None or not text or not judged_before:
+            continue
+        if case.fixture not in fixtures:
+            fixtures[case.fixture] = load_fixture(case.fixture)
+        score = judge_answer(case, text, fixtures[case.fixture], client=client)
+        if score is not None:
+            row["judge_score"] = str(score.score)
+            count += 1
+    out_csv.parent.mkdir(parents=True, exist_ok=True)
+    with out_csv.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+    return count
+
+
 def load_calibration(path: Path | None = None) -> dict | None:
     file = path or (RESULTS_DIR / "judge_calibration.json")
     if not file.is_file():
@@ -159,6 +199,18 @@ def _user_content(case: EvalCase, answer_text: str, fixture: dict) -> str:
             }
         )
     blob = json.dumps(tasks, separators=(",", ":"))
+    # Without completions the judge cannot tell a missed recurring day from an
+    # invented one.
+    completions = [
+        {
+            "taskId": row.get("taskId"),
+            "date": row.get("completionDate"),
+            "skipped": bool(row.get("skipped")),
+        }
+        for row in fixture.get("completions") or []
+        if isinstance(row, dict)
+    ]
+    done = json.dumps(completions, separators=(",", ":"))
     quiet = json.dumps(fixture.get("quietWindows") or [], separators=(",", ":"))
     weekday = case.now.strftime("%A")
     return (
@@ -167,5 +219,6 @@ def _user_content(case: EvalCase, answer_text: str, fixture: dict) -> str:
         f"Now: {weekday} {case.now.isoformat()} {case.timezone}\n"
         f"Quiet windows:\n{quiet}\n"
         f"Tasks:\n{blob}\n"
+        f"Completions (a recurring occurrence with no row was not done):\n{done}\n"
         f"Answer:\n{answer_text}"
     )

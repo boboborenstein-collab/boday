@@ -40,5 +40,5 @@
 
 ## Failed cases
 
-- adv-fit-gym trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-20/68ac978e-4412-4c31-918e-e0401199b9c6.json
-- dst-take-meds trial 1: /Users/jacobborenstein/projects/orginization app/agent/evals/results/traces/2026-10-31/b93facc0-d9c2-4c91-984b-32c7da56953a.json
+- adv-fit-gym trial 1: traces/2026-10-20/68ac978e-4412-4c31-918e-e0401199b9c6.json
+- dst-take-meds trial 1: traces/2026-10-31/b93facc0-d9c2-4c91-984b-32c7da56953a.json

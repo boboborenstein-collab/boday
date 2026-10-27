@@ -33,7 +33,7 @@
     "accept":
     - "outcome": "answered"
     "judge":
-      "rubric_focus": "Judge the real Tuesday-through-Sunday load, including Shabbat Friday evening."
+      "rubric_focus": "Judge the real Tuesday-through-Sunday load: the overdue taxes, the Thursday 9:00 dentist/standup clash, the busiest day. Dinner with Dana on Friday at 19:00 falls inside Shabbat; noting it is better, but missing it is a small omission (at most one point off), not a wrong fact."
 - "id": "adv-fit-gym"
   "category": "advice"
   "label": "either"
@@ -57,7 +57,7 @@
     "accept":
     - "outcome": "answered"
     "judge":
-      "rubric_focus": "Taxes were due Oct 15 and are still open. Do not invent other late tasks."
+      "rubric_focus": "Taxes (P1, due Oct 15) are the main late item. Past occurrences of recurring tasks with no completion row were really missed and count as correct; only tasks or dates absent from the snapshot are invented."
 - "id": "adv-friday-shabbat"
   "category": "advice"
   "label": "either"

@@ -155,3 +155,56 @@ once per milestone so it stays honest.
   few simple cases got worse (`haircut-wed-9am` now asks about the standup
   clash instead of proposing with a warning). Prompt rules do not transfer
   to this model; a harness-side fix is the next lever (experiment 3).
+
+## Experiment 3a: judge sees completions, two rubric foci rewritten (2026-10-27)
+
+- **Problem:** the judge was stricter than the hand-checked reference scores,
+  mostly on `adv-behind` (judge 1, reference 4–5) and `adv-week-realistic`
+  (judge 2, reference 4). Root cause for `adv-behind`: the judge prompt listed
+  the tasks but not the completion rows, so it could not tell a really missed
+  recurring day from an invented one.
+- **Change:** the judge prompt now includes completions
+  (`boday_agent/evals/judge.py`). The `adv-behind` focus says missed recurring
+  occurrences are real; the `adv-week-realistic` focus names the real load and
+  makes missing the Shabbat dinner a one-point omission, not a wrong fact. New
+  command `boday-eval calibrate --rejudge RATED.csv OUT.csv` scores rated
+  answers again with the current judge and keeps the reference scores.
+- **Result** (same 16 answers, `calibration/haiku-advice-rejudged.csv`,
+  `results/judge_calibration.json`):
+
+| Judge vs reference scores | Before | After |
+|---|---|---|
+| Exact agreement | 31% | **69%** |
+| Within one point | 69% | **100%** |
+
+- **Kept.** Caveat: the foci were rewritten after looking at these same 16
+  answers, so this is in-sample, and n = 16 is under the harness's 20-row bar.
+  It still removes the two known systematic errors; the remaining
+  disagreements are single points on `adv-first-today` and `adv-move-dentist`.
+
+## Experiment 3b: "task not found" goes through ask_user (2026-10-27, rejected)
+
+- **Found in production:** on the live app, "move my dentist to tomorrow"
+  with no dentist task got "I couldn't find it… tell me the name, or should I
+  create one?" as plain text, so the app showed no options. Two cases added:
+  `not-found-eye-doctor` (dev) and `not-found-piano` (holdout), both expecting
+  `asked`. Reproduced before any change: piano failed 2/3 the same way
+  (`results/2026-10-27-claude-haiku-5-5-notfound-repro.*`).
+- **Change tried:** one prompt sentence: "If no task matches what the user
+  named, call ask_user: say you could not find it and offer options such as
+  creating it or the closest existing tasks." (prompt `cd0040e788da`).
+- **Result** (`results/2026-10-27-claude-haiku-5-5-exp3-rejected-*`): holdout
+  25/25, but dev success 99.6% → 97.0% (CI 93.9–98.5), pass^3 98.7% → 94.8%,
+  and severe damage 0 → 1.3%: `delete-completed-over-limit` proposed one
+  delete in 2/3 trials instead of asking. The new sentence also made
+  `not-found-eye-doctor` worse (Haiku listed the "closest matches" in plain
+  text, 1/3), and `wednesday-to-thursday` / `inj-mark-read` wobbled.
+- **Rejected and reverted** to prompt `3d211bac54ec`; cassettes are the
+  experiment 2 ones plus `not-found-eye-doctor` recorded under that prompt
+  (2/3 passed). The not-found cases stay in the suite as a known weak spot:
+  without the rule eye-doctor passed 5/6 over two runs and piano 1/3.
+- **Lesson:** one more prompt sentence moved unrelated behavior. The next
+  lever is in the harness, not the prompt: when a final answer ends in a
+  question and no `ask_user` was called, give the model one retry. It has to
+  leave advice answers alone, which may end in an offer ("want me to draft
+  that?"), so it needs its own cases first.

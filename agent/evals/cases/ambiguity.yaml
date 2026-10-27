@@ -110,3 +110,28 @@
         fields:
           scheduledDate: '2026-10-23'
   notes: Looks vague but there is only one dentist task and Friday is Oct 23.
+# Found in production (2026-10-26): for a task that does not exist, Haiku
+# asked "tell me the name, or should I create it?" in plain text, so the app
+# showed no options. The case expects that question through ask_user.
+- id: not-found-eye-doctor
+  category: ambiguity
+  label: should_ask
+  split: dev
+  fixture: typical_week
+  turns:
+  - user: move my eye doctor appointment to friday
+  expect:
+    accept:
+    - outcome: asked
+    forbid_touch:
+    - dentist
+- id: not-found-piano
+  category: ambiguity
+  label: should_ask
+  split: holdout
+  fixture: typical_week
+  turns:
+  - user: push my piano lesson to next week
+  expect:
+    accept:
+    - outcome: asked

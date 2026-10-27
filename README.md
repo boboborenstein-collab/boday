@@ -1,184 +1,110 @@
-# Cadence
+# BoDay
 
-A cross-platform task & routine manager built as an **installable PWA** — one
-codebase that runs in the browser on desktop and installs to the home screen on
-phone. The defining feature is smart **carry-over** for one-time tasks plus
-flexible **recurring routines**, with a calendar, priorities, streaks, and
-(later) push reminders.
+A task and routine manager (installable PWA) with a natural-language **AI
+agent** that proposes changes to your tasks, which you approve or undo. The
+agent comes with an **eval harness** that measures how reliable it is.
 
-> Status: **Phases 1, 2 and 4 are built and verified.** Phases 3 (Supabase) and
-> 5 (Notifications) are intentionally not started — they need your accounts /
-> keys and a quick approval. See [Roadmap](#roadmap).
+**Live:** https://boday.boapps.workers.dev (invite-only).
 
----
+## The agent in one paragraph
 
-## Quick start
+You type "move my dentist to tomorrow" or "is my week realistic?". The agent
+reads a snapshot of your tasks through 9 typed tools, then either proposes a
+diff (each change carries its old values, so it can be checked and undone),
+asks a clarifying question with options, or answers. **It cannot write
+anything itself**: every change is applied by the app, only after you approve
+it. A 102-case eval suite measures success, damage, guessing, injection
+resistance, cost and latency across models, and every prompt change is a
+logged experiment with before/after numbers.
+
+## Results
+
+Default model: **Claude Haiku 5.5**, prompt `3d211bac54ec`.
+
+| | Baseline | After iteration |
+|---|---|---|
+| Dev success (3 trials, 95% CI) | 91.7% (87.4–94.6) | **99.6%** (97.6–99.9) |
+| Holdout success (cases the prompt was not tuned on) | 91.7% | **95.8%** |
+| Severe damage (a wrong change that would hurt if approved) | 2.6% | **0%** |
+| Guessing on ambiguous requests | 23.1% | **0%** |
+| Prompt-injection attack success | 0% | 0% |
+| Cost / latency per request | $0.0009 / 3.5 s p50 | **$0.0008** / 3.5 s p50 |
+
+- **Cross-model:** Sonnet 5.5 matched Haiku's baseline (92.1%) at 17× the
+  cost, so Haiku is the default. A local Qwen 3.6 35B on a Mac reached 77%
+  once its thinking mode was turned off (timeouts 25 → 0, p95 90 s → 6.5 s),
+  but it does not follow the prompt rules that fixed Haiku.
+- **What moved the number:** a failure analysis of the baseline found five
+  clusters; four short prompt rules (ask through the tool, never partly do an
+  over-limit request, search before creating, advice never proposes) fixed
+  ten cases and broke none.
+- **What did not:** a fix for a bug found in production improved the holdout
+  but caused a regression on dev, so it was rejected and logged.
+- **The judge was checked too:** the LLM judge for advice answers agreed with
+  hand-checked scores only 31% of the time; it had never been shown the
+  completion history. Fixed, it agrees 69% exactly and 100% within one point.
+
+Full numbers, per-category tables and the experiment history:
+[agent/README.md](agent/README.md#results-baseline-prompt-d2df24e4bee1) and
+[agent/evals/ITERATION_LOG.md](agent/evals/ITERATION_LOG.md).
+
+## How it works
+
+```mermaid
+flowchart LR
+    U["BoDay app (React PWA)"] -- "message + task snapshot + login token" --> S["Agent service<br/>FastAPI on Cloud Run"]
+    S -- "verify login (JWKS)" --> A[("Supabase Auth")]
+    S --> M{"model"}
+    M -- "owner, Mac reachable" --> Q["Local Qwen 3.6<br/>LM Studio via Cloudflare tunnel"]
+    M -- "otherwise" --> H["Claude Haiku 5.5"]
+    S -- "proposal (diff with before-values)" --> U
+    U -- "approve / undo" --> D[("Supabase tasks")]
+    S -- "trace" --> T[("agent_traces")]
+```
+
+- **Agent** ([agent/](agent/)): Python, a plain tool-use loop (no framework),
+  9 tools, provider-agnostic (Anthropic or any OpenAI-compatible server).
+  Hard limits per proposal (25 changes, 3 deletes); a tool can only touch a
+  task id the agent has already read.
+- **Evals** ([agent/evals/](agent/evals/)): 102 cases (77 dev, 25 holdout)
+  across 11 categories including prompt injection through shared tasks,
+  graded deterministically; advice answers also scored 1–5 by an LLM judge
+  that is calibrated against hand-checked reference scores. Recorded
+  cassettes replay 10 cases in CI on every push with no model calls.
+- **Service** ([agent/boday_agent/server/](agent/boday_agent/server/)):
+  FastAPI on Cloud Run (scales to zero, free tier). Supabase JWT auth, users'
+  own API keys encrypted with AES-GCM, an SSRF guard for custom model URLs,
+  traces in Postgres through an insert-only role.
+- **App** ([src/](src/)): React 19 + TypeScript + Vite, Zustand, Supabase
+  (RLS on every table), Cloudflare Workers. The chat shows each proposal as a
+  diff card with approve, reject and undo.
+
+## The app
+
+- **Two task types:** one-time tasks carry over until done; recurring
+  routines (daily, weekly, every N days, monthly) don't pile up, and
+  completions are stored per date, which gives streaks and an honest history.
+- **Calendar**, priorities P1–P4, carry-over badges, subtasks.
+- **Push reminders** from a Cloudflare cron worker: on-time, re-nudges by
+  priority, a 9 AM digest.
+- **Shabbat and Yom Tov quiet mode:** pushes are suppressed between
+  candle-lighting and havdalah (Hebcal), and recurring tasks can be skipped
+  for a day.
+- **Calendar feed** (.ics subscription), invite-only sign-up, offline-first.
+
+## Run it
 
 ```bash
-npm install
-npm run dev          # http://localhost:5173
+npm install && npm run dev        # app on http://localhost:5173
+cd agent && uv sync && uv run pytest
+uv run boday-eval run --provider anthropic --model claude-haiku-5-5 --split dev
 ```
 
-Other scripts:
+The agent CLI, eval commands and deploy steps are in
+[agent/README.md](agent/README.md) and [agent/DEPLOY.md](agent/DEPLOY.md).
 
-```bash
-npm run build        # type-check (tsc) + production build + PWA service worker
-npm run preview      # serve the production build
-npm run test:logic   # run the engine assertion suite (carry-over / recurrence / streaks)
-npm run gen:icons    # regenerate PWA icons in /public
-```
+## How it was built
 
-The app seeds itself with realistic demo data on first run (stored in
-`localStorage`). To wipe it, clear the `cadence-v1` key (or run
-`localStorage.removeItem('cadence-v1')` in the console) and reload.
-
----
-
-## Stack
-
-| Concern        | Choice                                             |
-| -------------- | -------------------------------------------------- |
-| Build / app    | React 19 + Vite                                    |
-| PWA            | `vite-plugin-pwa` (Workbox SW + web manifest)      |
-| Styling        | Tailwind CSS v4 with **design tokens** (`@theme`)  |
-| State          | Zustand + `persist` (localStorage for now)         |
-| Dates          | `date-fns`                                         |
-| Routing        | React Router                                       |
-| Backend (next) | Supabase (Postgres + RLS + Auth + Realtime)        |
-
-### Reskinning (Claude Design)
-
-The UI is deliberately **not over-styled** — it's correct and well-structured so
-it's trivial to restyle. **All colors, radii, and fonts live as CSS variables in
-[`src/index.css`](src/index.css) under `@theme`.** Components reference semantic
-Tailwind classes (`bg-surface`, `text-muted`, `bg-p1`, `text-accent`, …) and
-never raw hex. To reskin, edit the token values — components don't need to change.
-
----
-
-## Architecture
-
-### Two task types (the core idea — kept deliberately separate)
-
-1. **One-time tasks** *(carry over)* — have a `scheduledDate` and a `completed`
-   flag. They appear in **Today** whenever `scheduledDate <= today && !completed`,
-   so they chase you forward until done. No cron job ever moves a row — carry-over
-   is purely a **query**. A `carried Nd` badge shows how long it's been waiting.
-
-2. **Recurring tasks / routines** *(do NOT carry over)* — have a `recurrence`
-   pattern (`daily`, `weekly` by days-of-week, or `everyNDays`) plus
-   `startDate`/optional `endDate`. Completions are tracked **per date** in a
-   separate `TaskCompletion` collection — a row exists only for a day you checked
-   it off. Missing Wednesday doesn't create a backlog; Thursday is just a fresh
-   unchecked occurrence. Per-date rows give us **streaks** and an accurate
-   history calendar.
-
-### The engine ([`src/lib/`](src/lib))
-
-Everything is **pure** and takes the date as an argument (never reads "today"
-internally), so it's unit-testable and will be reused unchanged against Supabase
-rows in Phase 3.
-
-- [`recurrence.ts`](src/lib/recurrence.ts) — `occursOn`, `buildTodayList`
-  (carry-over semantics), `buildDayList` (calendar — carry-over does **not**
-  smear across days), `summarizeDay`, sorting.
-- [`streaks.ts`](src/lib/streaks.ts) — `currentStreak`. Counts consecutive
-  *scheduled occurrences* with a completion, walking backward. **Today-rule:** a
-  still-open occurrence *today* is forgiven (doesn't break the streak); any
-  earlier miss does.
-- [`date.ts`](src/lib/date.ts) — date discipline: store/compare `yyyy-MM-dd`
-  strings; use `parseISO` for date math; never `new Date('yyyy-MM-dd')` (UTC
-  off-by-one trap).
-
-#### Date discipline (why it matters)
-
-Dates are stored and compared as `'yyyy-MM-dd'` strings, so range/carry-over
-checks are timezone-proof string comparisons. When a `Date` is needed (weekday,
-N-day interval) we use `parseISO` (local) and `differenceInCalendarDays` (DST-safe).
-
-### Verifying the engine
-
-`npm run test:logic` runs [`scripts/test-logic.ts`](scripts/test-logic.ts): 27
-assertions over adversarial seed data covering carry-over (incl. multi-day
-badges), future/completed hiding, every-N anchoring, weekday recurrence, streaks
-with the today-rule, sort order, and the calendar "no smear" rule.
-
-### Layout
-
-```
-src/
-  types.ts                 # OneTimeTask | RecurringTask, TaskCompletion, DayItem
-  lib/                     # pure engine: date, recurrence, streaks, priority, format
-  store/
-    useStore.ts            # Zustand store + persist + CRUD + completion toggles
-    seed.ts                # adversarial demo data (relative to "today")
-  components/              # TaskRow, TaskEditor (modal), Layout/nav, icons, ...
-  views/
-    TodayView.tsx          # default screen: stats + sorted day list
-    CalendarView.tsx       # month/week grid + selected-day detail
-  App.tsx, main.tsx
-scripts/
-  test-logic.ts            # engine assertions
-  gen-icons.mjs            # dependency-free PNG icon generator
-```
-
----
-
-## Features built
-
-- **Today view** — date header; stat chips (to-do / carried over / P1 / done);
-  a single list combining recurring occurrences for today + one-time tasks due
-  today + carried-over one-time tasks; grouped by priority with completed items
-  sunk to the bottom; carry-over badges; per-routine streak flames. Tap the
-  circle to complete (writes a per-date completion for routines, sets
-  `completed` for one-time tasks); tap the row to edit.
-- **Calendar view** — month and week grids with per-day priority dots; today
-  highlighted, any day selectable; the selected day's tasks listed below with
-  completion status and streaks. Past days reflect what was actually done.
-- **Create / edit** — modal with one-time vs recurring toggle, priority (P1–P4),
-  notes, day-of-week picker / every-N-days / every-day, start & optional end
-  date, optional reminder time, and delete.
-- **Priorities** — P1 Urgent → P4 Low, color-coded and used for sort + calendar
-  dots.
-- **Installable PWA** — web manifest, generated icons, auto-updating service
-  worker (enabled in dev too, for testing notifications later).
-- **Local persistence** — Zustand `persist` to `localStorage` (verified across
-  reloads). This is the Phase-2 stand-in for the backend.
-
----
-
-## Decisions made (defaults — easy to change)
-
-- **Priority:** P1–P4 (P1 highest), Todoist-style.
-- **Recurrence:** all three of every-day / days-of-week / every-N-days
-  implemented now. Monthly is left as a future addition.
-- **State:** Zustand (light) with `persist`.
-- **Persistence today:** `localStorage`, so the carry-over + recurrence logic is
-  provable with zero backend. Swapped for Supabase in Phase 3.
-- **Front end:** built here with clean component boundaries + design tokens so it
-  can be reskinned in Claude Design without touching component logic.
-
----
-
-## Roadmap
-
-### Phase 3 — Supabase (needs your approval + project) — NOT STARTED
-
-Postgres schema (one `tasks` table with a `type` discriminator + a
-`task_completions` table), Row Level Security scoped to `auth.uid()`, Auth
-(email/password or magic link), wire CRUD to Postgres, and Realtime sync across
-devices. The pure engine functions are reused as-is against fetched rows.
-
-**Needs from you:** a Supabase project (URL + anon key), and a decision on
-hosting for the deployed PWA.
-
-### Phase 5 — Notifications (needs VAPID keys) — NOT STARTED
-
-Web Push: register the SW push subscription, store it per user/device, send via a
-Supabase Edge Function triggered by `pg_cron` (due-reminder checks + an optional
-daily morning summary).
-
-**iOS caveat (will be surfaced in the UI):** Web Push on iOS only works for a PWA
-**added to the home screen** (iOS 16.4+), not in a Safari tab. Android Chrome and
-desktop work normally. If push proves fiddly, the fallback is in-app reminders +
-the daily summary first.
+Specs and plans are in [docs/superpowers/](docs/superpowers/). Each phase was
+planned, built on its own branch by a coding agent, reviewed, and merged
+through a PR; the paid eval runs and the deploy were done by hand.

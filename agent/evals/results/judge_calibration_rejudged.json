@@ -1,0 +1,7 @@
+{
+  "n": 16,
+  "exact_agreement": 0.6875,
+  "within_one_agreement": 1.0,
+  "calibrated": false,
+  "results": "evals/results/2026-10-22-claude-haiku-5-5-dev.json"
+}

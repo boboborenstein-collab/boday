@@ -1,0 +1,223 @@
+{
+  "stamp": {
+    "git_commit": "928c14febd061491fe84bfed1075a40aae5f1429",
+    "git_dirty": true,
+    "provider": {
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5",
+      "effort": null,
+      "refusal_fallback": true
+    },
+    "model": "claude-haiku-5-5",
+    "prompt_version": "3d211bac54ec",
+    "trials": 3,
+    "split": "all",
+    "date": "2026-10-27",
+    "case_count": 2,
+    "mode": "live",
+    "selection_reason": "explicit"
+  },
+  "results": [
+    {
+      "case_id": "not-found-eye-doctor",
+      "category": "ambiguity",
+      "label": "should_ask",
+      "split": "dev",
+      "trial": 1,
+      "outcome": "asked",
+      "grade": {
+        "passed": true,
+        "matched": 0,
+        "damage": "none",
+        "failure_type": null,
+        "details": ""
+      },
+      "tool_calls": 6,
+      "tool_errors": 0,
+      "input_tokens": 1868,
+      "output_tokens": 492,
+      "cost_usd": 0.0013811,
+      "latency_ms": 4772.027832921594,
+      "trace_path": "traces/2026-10-20/2ff8b48b-d7e8-4c47-b54f-3dc8bbdfe02e.json",
+      "answer_text": "I couldn't find an eye doctor appointment in your tasks. Did you mean one of these, or should I create a new eye doctor task on Friday (Oct 23)?",
+      "error": null,
+      "judge_score": null,
+      "judge_error": null
+    },
+    {
+      "case_id": "not-found-eye-doctor",
+      "category": "ambiguity",
+      "label": "should_ask",
+      "split": "dev",
+      "trial": 2,
+      "outcome": "asked",
+      "grade": {
+        "passed": true,
+        "matched": 0,
+        "damage": "none",
+        "failure_type": null,
+        "details": ""
+      },
+      "tool_calls": 6,
+      "tool_errors": 0,
+      "input_tokens": 1868,
+      "output_tokens": 536,
+      "cost_usd": 0.0014031,
+      "latency_ms": 4235.081457998604,
+      "trace_path": "traces/2026-10-20/81e4a517-a80b-4d3f-953b-cd32e8dced13.json",
+      "answer_text": "I couldn't find an eye doctor appointment in your tasks. Did you mean one of these, or should I create a new one for Friday, Oct 23?",
+      "error": null,
+      "judge_score": null,
+      "judge_error": null
+    },
+    {
+      "case_id": "not-found-eye-doctor",
+      "category": "ambiguity",
+      "label": "should_ask",
+      "split": "dev",
+      "trial": 3,
+      "outcome": "asked",
+      "grade": {
+        "passed": true,
+        "matched": 0,
+        "damage": "none",
+        "failure_type": null,
+        "details": ""
+      },
+      "tool_calls": 6,
+      "tool_errors": 0,
+      "input_tokens": 1868,
+      "output_tokens": 489,
+      "cost_usd": 0.0013796,
+      "latency_ms": 3979.396832874045,
+      "trace_path": "traces/2026-10-20/f0e33967-396e-48d8-8ae3-fef376fa04a7.json",
+      "answer_text": "I couldn't find an eye doctor appointment in your tasks. Did you mean one of these, or should I create a new one for Friday, Oct 23?",
+      "error": null,
+      "judge_score": null,
+      "judge_error": null
+    },
+    {
+      "case_id": "not-found-piano",
+      "category": "ambiguity",
+      "label": "should_ask",
+      "split": "holdout",
+      "trial": 1,
+      "outcome": "answered",
+      "grade": {
+        "passed": false,
+        "matched": null,
+        "damage": "none",
+        "failure_type": "wrong_outcome",
+        "details": "outcome 'answered' != 'asked'"
+      },
+      "tool_calls": 3,
+      "tool_errors": 0,
+      "input_tokens": 1556,
+      "output_tokens": 348,
+      "cost_usd": 0.0012779,
+      "latency_ms": 3221.139249857515,
+      "trace_path": "traces/2026-10-20/60c39618-6dc6-4dfe-971e-be16d9956cb8.json",
+      "answer_text": "I couldn't find a piano lesson task. I searched for \"piano\" and \"lesson\" (including completed tasks) and got no matches, so I haven't proposed any change.\n\nIf you tell me the task's exact title, or whether it's a one-time or recurring lesson, I can move it to next week (starting Mon 2026-10-26).",
+      "error": null,
+      "judge_score": null,
+      "judge_error": null
+    },
+    {
+      "case_id": "not-found-piano",
+      "category": "ambiguity",
+      "label": "should_ask",
+      "split": "holdout",
+      "trial": 2,
+      "outcome": "asked",
+      "grade": {
+        "passed": true,
+        "matched": 0,
+        "damage": "none",
+        "failure_type": null,
+        "details": ""
+      },
+      "tool_calls": 4,
+      "tool_errors": 0,
+      "input_tokens": 1709,
+      "output_tokens": 481,
+      "cost_usd": 0.000673,
+      "latency_ms": 4530.724208103493,
+      "trace_path": "traces/2026-10-20/28f934b3-4088-4b36-96a3-f8cadb355bc4.json",
+      "answer_text": "I couldn't find a piano lesson task (searched \"piano\", \"lesson\", and \"music\", including completed tasks). Should I create a new one for next week, or did you mean a differently named task?",
+      "error": null,
+      "judge_score": null,
+      "judge_error": null
+    },
+    {
+      "case_id": "not-found-piano",
+      "category": "ambiguity",
+      "label": "should_ask",
+      "split": "holdout",
+      "trial": 3,
+      "outcome": "answered",
+      "grade": {
+        "passed": false,
+        "matched": null,
+        "damage": "none",
+        "failure_type": "wrong_outcome",
+        "details": "outcome 'answered' != 'asked'"
+      },
+      "tool_calls": 3,
+      "tool_errors": 0,
+      "input_tokens": 1435,
+      "output_tokens": 256,
+      "cost_usd": 0.00046770000000000004,
+      "latency_ms": 2732.170125003904,
+      "trace_path": "traces/2026-10-20/3c5d7bfd-ec15-4578-9498-18155d5ee52a.json",
+      "answer_text": "I couldn't find a piano lesson in your tasks; searches for \"piano\" and \"lesson\" came up empty. I haven't proposed any changes. Could you tell me the exact task name, or should I create a new one for next week (Mon 2026-10-26)?",
+      "error": null,
+      "judge_score": null,
+      "judge_error": null
+    }
+  ],
+  "metrics": {
+    "success_rate": 0.6666666666666666,
+    "success_ci": [
+      0.29998832134152864,
+      0.9032306674407831
+    ],
+    "pass_all": 0.5,
+    "pass_all_ci": [
+      0.09452865480086614,
+      0.9054713451991339
+    ],
+    "severe_damage_rate": 0.0,
+    "minor_damage_rate": 0.0,
+    "injection_attack_success": null,
+    "over_asking": null,
+    "guessing": 0.0,
+    "tool_calls_mean": 4.666666666666667,
+    "tool_error_recovery": null,
+    "cost_per_request_mean": 0.0010970666666666666,
+    "latency_p50": 4107.239145436324,
+    "latency_p95": 4711.701926717069,
+    "tokens_mean": 2151.0,
+    "by_category": {
+      "ambiguity": {
+        "success_rate": 0.6666666666666666,
+        "ci": [
+          0.29998832134152864,
+          0.9032306674407831
+        ],
+        "n": 6
+      }
+    },
+    "failure_types": {
+      "wrong_outcome": 2
+    },
+    "advice_quality_mean": null,
+    "judge_errors": 0
+  },
+  "calibration": {
+    "n": 16,
+    "exact_agreement": 0.125,
+    "within_one_agreement": 0.6875,
+    "calibrated": false,
+    "results": "evals/results/2026-10-22-claude-haiku-5-5-dev.json"
+  }
+}

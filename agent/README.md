@@ -43,7 +43,7 @@ on LM Studio's Qwen models).
 
 ## Results (baseline, prompt `d2df24e4bee1`)
 
-100 eval cases (76 dev, 24 holdout) graded deterministically; advice answers
+100 eval cases at baseline (76 dev, 24 holdout; 102 after phase 4) graded deterministically; advice answers
 are also scored 1–5 by an LLM judge (`claude-opus-5-5`), kept out of the
 success rate. Full reports: `evals/results/`. What changed after this:
 [evals/ITERATION_LOG.md](evals/ITERATION_LOG.md).
@@ -63,7 +63,9 @@ success rate. Full reports: `evals/results/`. What changed after this:
 
 **After phase 4, experiment 2** (prompt `3d211bac54ec`, four rules from the failure analysis): Haiku dev success 91.7% → **99.6%** (pass^3 98.7%), holdout 91.7% → **95.8%**, no damage, no guessing, and slightly cheaper ($0.00082 per request). The local Qwen model did not follow the new rules (77.2% → 76.3%). Details: [evals/ITERATION_LOG.md](evals/ITERATION_LOG.md).
 
-Judge agreement, 16 Haiku advice answers: against fact-checked reference scores (`evals/calibration/haiku-advice-adjudicated.csv`, one reason per answer) exact 31%, within one point 69%; against the owner's first-pass ratings exact 12.5%, within one 69%. The judge is stricter than the reference (mean 3.2 vs 3.9) and the gap is concentrated in two rubric foci: `adv-behind` calls real missed recurring tasks invented, and `adv-week-realistic` over-weights Shabbat. Use advice scores to compare runs, not as an absolute grade, until the rubric is fixed (16 rows, below the harness's 20-row bar).
+**Judge calibration.** 16 Haiku advice answers were rated by the owner, then fact-checked one by one into reference scores (`evals/calibration/haiku-advice-adjudicated.csv`, one reason per answer). The first judge agreed with them exactly 31% of the time and within one point 69%. Its errors came from one harness bug (the judge never saw completion rows, so it called really missed recurring tasks invented) and two badly worded rubric foci. After fixing both (experiment 3a), the same answers agree **69% exact, 100% within one point** (`evals/results/judge_calibration.json`). That is in-sample and n = 16, so advice scores are for comparing runs, not an absolute grade.
+
+**Experiment 3b (rejected).** A bug found in production (a "task not found" question asked in plain text) became two eval cases. The one-sentence prompt fix passed the holdout 25/25 but dropped dev success to 97.0% and caused a severe-damage failure, so it was reverted; the cases stay as a known weak spot. Details: [evals/ITERATION_LOG.md](evals/ITERATION_LOG.md).
 
 Takeaways:
 
