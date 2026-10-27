@@ -34,8 +34,8 @@
 
 **Produces:** `TimeFormat = Literal["12h", "24h"]` in `prompt.py`; `render_context(snapshot, clock, time_format: TimeFormat | None = None)`; `build_messages(..., time_format=None)`; `AgentRequest.time_format: TimeFormat | None = None`; `RunRequest.time_format` (alias `timeFormat`).
 
-- [ ] Tests: `None` output equals the current output; `"12h"` → `Now:` line uses `%-I:%M %p` and the 12h line before `</context>`; `"24h"` → 24h line; `RunRequest` rejects `"13h"`; the server passes `timeFormat` to `run_agent`.
-- [ ] Implement, run `uv run pytest`, ruff, commit.
+- [x] Tests: `None` output equals the current output; `"12h"` → `Now:` line uses `%-I:%M %p` and the 12h line before `</context>`; `"24h"` → 24h line; `RunRequest` rejects `"13h"`; the server passes `timeFormat` to `run_agent`.
+- [x] Implement, run `uv run pytest`, ruff, commit.
 
 ### Task 2: App setting and format helpers
 
@@ -43,23 +43,23 @@
 
 **Produces:** `type TimeFormat = '12h' | '24h'`; `formatTime(hhmm, fmt)`; `formatTimesInText(text, fmt)`; `formatIsoTime(iso, fmt)`; `formatReminder` removed.
 
-- [ ] Tests (test-logic): `formatTime('09:00','12h')==='9:00 AM'`, `('00:00','12h')==='12:00 AM'`, `('12:00','12h')==='12:00 PM'`, `('23:59','24h')==='23:59'`, `('9:5','12h')` returned as is; `formatTimesInText('set for 09:00 on 2026-10-22','12h')==='set for 9:00 AM on 2026-10-22'`.
-- [ ] Implement, run `npm run test:logic`, commit.
+- [x] Tests (test-logic): `formatTime('09:00','12h')==='9:00 AM'`, `('00:00','12h')==='12:00 AM'`, `('12:00','12h')==='12:00 PM'`, `('23:59','24h')==='23:59'`, `('9:5','12h')` returned as is; `formatTimesInText('set for 09:00 on 2026-10-22','12h')==='set for 9:00 AM on 2026-10-22'`.
+- [x] Implement, run `npm run test:logic`, commit.
 
 ### Task 3: AI change cards follow the format
 
 **Files:** `src/lib/agentChat.ts` (`diffModel` gains `fmt: TimeFormat = '24h'` as 4th param), `src/components/AgentDiffCard.tsx`, `scripts/test-agent.ts`.
 
-- [ ] Tests: a `reminderTime` patch `09:00 → 10:30` gives `Reminder: 9:00 AM → 10:30 AM` (12h) and `Reminder: 09:00 → 10:30` (24h); `null` before shows `none`; a create's `reminderTime` uses the same label; warning `09:00` is reformatted; existing `update line` check still passes.
-- [ ] Implement, pass the setting from the card, `npm run test:agent`, commit.
+- [x] Tests: a `reminderTime` patch `09:00 → 10:30` gives `Reminder: 9:00 AM → 10:30 AM` (12h) and `Reminder: 09:00 → 10:30` (24h); `null` before shows `none`; a create's `reminderTime` uses the same label; warning `09:00` is reformatted; existing `update line` check still passes.
+- [x] Implement, pass the setting from the card, `npm run test:agent`, commit.
 
 ### Task 4: Every other time display + the request field
 
 **Files:** `TaskRow.tsx`, `ShabbatSettings.tsx`, `QuietOverlay.tsx`, `src/lib/hebcal.ts` (`buildDayInfo` stores `HH:mm` from ISO `date` when it has a time), `TodayView.tsx`, `CalendarView.tsx`, `SettingsView.tsx` (Appearance: "Time format" 12-hour / 24-hour), `AgentChat.tsx` + request type (`timeFormat` in the run body).
 
-- [ ] Tests (test-agent / test-logic): `buildDayInfo` candle `2026-10-30T17:52:00-07:00` → `candles === '17:52'`; item without time keeps the title text; the run request body includes `timeFormat`.
-- [ ] Implement, `npm run build`, both test suites, commit, push, PR.
+- [x] Tests (test-agent / test-logic): `buildDayInfo` candle `2026-10-30T17:52:00-07:00` → `candles === '17:52'`; item without time keeps the title text; the run request body includes `timeFormat`.
+- [x] Implement, `npm run build`, both test suites, commit, push, PR.
 
 ### Task 5: Ship
 
-- [ ] Merge, redeploy Cloud Run (`agent/DEPLOY.md` deploy command), live check with Haiku in both formats (< $0.01), `npm run build && npx wrangler deploy` (Cloudflare account check first).
+- [x] Merge, redeploy Cloud Run (`agent/DEPLOY.md` deploy command), live check with Haiku in both formats (< $0.01), `npm run build && npx wrangler deploy` (Cloudflare account check first).
