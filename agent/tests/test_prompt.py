@@ -61,3 +61,33 @@ def test_system_prompt_states_phase4_rules():
     assert "search for an existing task before creating" in text
     # Advice answers directly and never proposes.
     assert "advice" in text and "do not propose changes" in text
+
+
+def test_context_without_time_format_is_unchanged(snap):
+    clock = Clock.from_snapshot(snap)
+    # Cassettes and CI replay depend on this output staying byte-identical.
+    assert render_context(snap, clock, time_format=None) == render_context(snap, clock)
+    assert "format" not in render_context(snap, clock)
+
+
+def test_context_in_12_hour_format(snap):
+    ctx = render_context(snap, Clock.from_snapshot(snap), time_format="12h")
+    assert "Now: Tue 2026-10-20 9:00 AM (America/New_York)" in ctx
+    assert ctx.splitlines()[-2] == (
+        "Write clock times for the user in 12-hour format (2:05 PM); "
+        "tool arguments stay HH:mm."
+    )
+
+
+def test_context_in_24_hour_format(snap):
+    ctx = render_context(snap, Clock.from_snapshot(snap), time_format="24h")
+    assert "Now: Tue 2026-10-20 09:00 (America/New_York)" in ctx
+    assert ctx.splitlines()[-2] == (
+        "Write clock times for the user in 24-hour format (14:05); "
+        "tool arguments stay HH:mm."
+    )
+
+
+def test_build_messages_passes_time_format(snap):
+    messages = build_messages("hi", [], snap, Clock.from_snapshot(snap), time_format="12h")
+    assert "12-hour format" in messages[-1].text
