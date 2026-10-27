@@ -12,6 +12,8 @@ import { toDateStr, fromDateStr } from '../src/lib/date.ts'
 import { makeSeed } from '../src/store/seed.ts'
 import { addDays, subDays } from 'date-fns'
 import type { RecurringTask } from '../src/types.ts'
+import { DEFAULT_SETTINGS } from '../src/types.ts'
+import { formatIsoTime, formatTime, formatTimesInText } from '../src/lib/format.ts'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = '') {
@@ -102,6 +104,27 @@ check(
   'dry cleaning does NOT smear onto today in calendar',
   !dcToday.some((i) => i.task.id === 'ot-drycleaning'),
 )
+
+// ── Time format (12h / 24h) ──
+check('time format defaults to 12h', DEFAULT_SETTINGS.timeFormat === '12h')
+check('12h morning', formatTime('09:00', '12h') === '9:00 AM')
+check('12h midnight', formatTime('00:00', '12h') === '12:00 AM')
+check('12h noon', formatTime('12:00', '12h') === '12:00 PM')
+check('12h evening', formatTime('17:52', '12h') === '5:52 PM')
+check('24h keeps HH:mm', formatTime('23:59', '24h') === '23:59' && formatTime('09:05', '24h') === '09:05')
+check('invalid time returned as is', formatTime('9:5', '12h') === '9:5' && formatTime('25:00', '12h') === '25:00')
+check(
+  'times in text, dates untouched',
+  formatTimesInText('Another open item is also set for 09:00 on 2026-10-22: Standup.', '12h') ===
+    'Another open item is also set for 9:00 AM on 2026-10-22: Standup.',
+)
+check('times in text, 24h unchanged', formatTimesInText('at 18:30 and 07:05', '24h') === 'at 18:30 and 07:05')
+check('two times in text', formatTimesInText('at 18:30 and 07:05', '12h') === 'at 6:30 PM and 7:05 AM')
+{
+  const iso = new Date(2026, 9, 30, 17, 52).toISOString()
+  check('iso time 12h', formatIsoTime(iso, '12h') === '5:52 PM')
+  check('iso time 24h', formatIsoTime(iso, '24h') === '17:52')
+}
 
 console.log('')
 if (failures === 0) {

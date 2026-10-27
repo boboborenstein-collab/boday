@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { fromDateStr } from './date'
-import type { RecurringTask } from '../types'
+import type { RecurringTask, TimeFormat } from '../types'
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -34,10 +34,31 @@ export function formatDateShort(dateStr: string): string {
   return format(fromDateStr(dateStr), 'MMM d')
 }
 
-/** "9:00 AM" from "09:00" */
-export function formatReminder(hhmm: string): string {
-  const [h, m] = hhmm.split(':').map(Number)
-  const period = h >= 12 ? 'PM' : 'AM'
-  const h12 = h % 12 === 0 ? 12 : h % 12
-  return `${h12}:${String(m).padStart(2, '0')} ${period}`
+const HHMM = /^([01]\d|2[0-3]):([0-5]\d)$/
+const HHMM_IN_TEXT = /\b([01]\d|2[0-3]):([0-5]\d)\b/g
+
+function clock(hours: number, minutes: number, fmt: TimeFormat): string {
+  const mm = String(minutes).padStart(2, '0')
+  if (fmt === '24h') return `${String(hours).padStart(2, '0')}:${mm}`
+  const period = hours >= 12 ? 'PM' : 'AM'
+  return `${hours % 12 === 0 ? 12 : hours % 12}:${mm} ${period}`
+}
+
+/** "09:00" → "9:00 AM" (12h) or "09:00" (24h). Anything that is not HH:mm is returned as is. */
+export function formatTime(hhmm: string, fmt: TimeFormat): string {
+  const match = HHMM.exec(hhmm)
+  if (!match) return hhmm
+  return clock(Number(match[1]), Number(match[2]), fmt)
+}
+
+/** Rewrites every HH:mm inside a sentence (e.g. server-written warnings). */
+export function formatTimesInText(text: string, fmt: TimeFormat): string {
+  return text.replace(HHMM_IN_TEXT, (_m, h: string, m: string) => clock(Number(h), Number(m), fmt))
+}
+
+/** Local clock time of an ISO timestamp. */
+export function formatIsoTime(iso: string, fmt: TimeFormat): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  return clock(date.getHours(), date.getMinutes(), fmt)
 }
