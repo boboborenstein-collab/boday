@@ -50,6 +50,7 @@ class ServerConfig(BaseModel):
     anthropic_api_key: str | None = None
     local_base_url: str | None = None
     local_model: str | None = None
+    local_effort: str | None = "none"
     cf_access_client_id: str | None = None
     cf_access_client_secret: str | None = None
     traces_dsn: str | None = None
@@ -69,6 +70,7 @@ class ServerConfig(BaseModel):
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY") or None,
             local_base_url=os.environ.get("BODAY_LOCAL_BASE_URL") or None,
             local_model=os.environ.get("BODAY_LOCAL_MODEL") or None,
+            local_effort=os.environ.get("BODAY_LOCAL_EFFORT", "none") or None,
             cf_access_client_id=os.environ.get("CF_ACCESS_CLIENT_ID") or None,
             cf_access_client_secret=os.environ.get("CF_ACCESS_CLIENT_SECRET") or None,
             traces_dsn=os.environ.get("AGENT_TRACES_DSN") or None,
@@ -189,6 +191,7 @@ def create_app(
                 cf_access_client_id=config.cf_access_client_id,
                 cf_access_client_secret=config.cf_access_client_secret,
                 resolve=request.app.state.resolve,
+                local_effort=config.local_effort,
             )
         except ProviderBuildError as exc:
             return JSONResponse(status_code=400, content=error_body(exc.code, exc.message))

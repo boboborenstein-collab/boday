@@ -35,6 +35,7 @@ def build_provider(
     cf_access_client_id: str | None,
     cf_access_client_secret: str | None,
     resolve,
+    local_effort: str | None = "none",
     transport_for_tests=None,
 ) -> tuple[Provider, str]:
     if settings.provider == "claude":
@@ -77,6 +78,8 @@ def build_provider(
         api_key=None,
         is_local=True,
         extra_headers=_cf_headers(cf_access_client_id, cf_access_client_secret),
+        # "none" turns off thinking; with it on, local runs timed out (ITERATION_LOG, Experiment 1).
+        reasoning_effort=local_effort,
         transport=local_transport,
     )
     return select_provider(local, _fallback(anthropic_api_key), transport=health_transport)
