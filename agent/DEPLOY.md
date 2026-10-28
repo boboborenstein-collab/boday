@@ -101,7 +101,7 @@ Local mode: Auto (owner only) sends the request to LM Studio on the Mac when it 
 
 - **LM Studio:** the server runs on `localhost:1234` with Just-in-Time model loading on, so `/v1/models` answers even when no model is in RAM and the first request loads it (about 19 s for `qwen/qwen3.6-35b-a3b`, inside the 90 s local budget). Idle models unload after 60 min. Turn on "run the LLM server on login" in LM Studio's settings.
 - **Tunnel:** `cloudflared` (Homebrew) runs a named tunnel `boday-llm` that serves `https://llm.expense-app.uk` → `http://localhost:1234`. Config in `~/.cloudflared/config.yml`; installed as a login service with `cloudflared service install`.
-- **Cloudflare Access:** a self-hosted application on `llm.expense-app.uk` with one policy, action *Service Auth*, include the service token `boday-agent`. Without the token the hostname answers 403. Store the token's two halves as secrets straight from the clipboard, never through a chat or a file:
+- **Cloudflare Access:** a self-hosted application on `llm.expense-app.uk` with one policy (Cloud Run sends `CF-Access-Client-Id` and `CF-Access-Client-Secret` on every local request): action *Service Auth*, include the service token `boday-agent`. Without the token the hostname answers 403. Store the token's two halves as secrets straight from the clipboard, never through a chat or a file:
 
   ```sh
   pbpaste | tr -d '\n' | gcloud secrets create cf-access-client-id --data-file=-
