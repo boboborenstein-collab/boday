@@ -71,7 +71,7 @@ Grant the service account access to it as above. Never commit the key or paste i
 
 ### Deploy command
 
-Deployed 2026-10-26 without Local mode: the two `CF_ACCESS_*` secrets and the `BODAY_LOCAL_*` variables were left out (all four are optional). Service URL: `https://boday-agent-430294896514.us-west1.run.app`. Add them with the full command below once the tunnel exists.
+Service URL: `https://boday-agent-430294896514.us-west1.run.app`. First deployed 2026-10-26 without Local mode; Local mode added 2026-10-28 (revision `boday-agent-00004-wsb`) with `--update-secrets` / `--update-env-vars`, which keep the rest. Each new secret needs the Secret Accessor grant above before the deploy, or the revision fails with "Permission denied on secret".
 
 Run from the repo root. Cloud Build builds `agent/Dockerfile`, so nothing is built on the Mac:
 
@@ -100,7 +100,7 @@ Rotating the key makes every saved API key unreadable. Ciphertexts are bound to 
 Local mode: Auto (owner only) sends the request to LM Studio on the Mac when it answers within 2 s, otherwise to Haiku.
 
 - **LM Studio:** the server runs on `localhost:1234` with Just-in-Time model loading on, so `/v1/models` answers even when no model is in RAM and the first request loads it (about 19 s for `qwen/qwen3.6-35b-a3b`, inside the 90 s local budget). Idle models unload after 60 min. Turn on "run the LLM server on login" in LM Studio's settings.
-- **Tunnel:** `cloudflared` (Homebrew) runs a named tunnel `boday-llm` that serves `https://llm.expense-app.uk` → `http://localhost:1234`. Config in `~/.cloudflared/config.yml`; installed as a login service with `cloudflared service install`.
+- **Tunnel:** `cloudflared` (Homebrew) runs a named tunnel `boday-llm` that serves `https://llm.expense-app.uk` → `http://localhost:1234`. Config in `~/.cloudflared/config.yml`; installed as a login service with `cloudflared service install`; the generated `~/Library/LaunchAgents/com.cloudflare.cloudflared.plist` has no `tunnel run` arguments, so add them (`plutil -insert ProgramArguments.1 -string tunnel`, then `.2 run`) or it exits at once.
 - **Cloudflare Access:** a self-hosted application on `llm.expense-app.uk` with one policy (Cloud Run sends `CF-Access-Client-Id` and `CF-Access-Client-Secret` on every local request): action *Service Auth*, include the service token `boday-agent`. Without the token the hostname answers 403. Store the token's two halves as secrets straight from the clipboard, never through a chat or a file:
 
   ```sh

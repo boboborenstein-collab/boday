@@ -25,9 +25,9 @@ and the plan for your track.
 | 3B baseline | Task B5 paid runs + write-up (Haiku, Sonnet, local Qwen, judge calibration) | ✅ Done — PR #10; see `agent/README.md` Results, `agent/evals/ITERATION_LOG.md` |
 | 4 | Experiments 1–2: Qwen thinking off, prompt rules (Haiku dev 91.7% → 99.6%, holdout 95.8%) | ✅ Done — PR #11; see `agent/evals/ITERATION_LOG.md` |
 | 5 deploy | Cloud Run (`boday-agent`, us-west1), Supabase `agent_traces`, secrets, app `VITE_AGENT_URL` | ✅ Live 2026-10-26, Haiku only (`agent/DEPLOY.md`) |
-| 5 local | Cloudflare tunnel + Access token for LM Studio, `BODAY_LOCAL_*` env vars | Later (optional) |
+| 5 local | Cloudflare tunnel + Access token for LM Studio, `BODAY_LOCAL_*` env vars | Live 2026-10-28 (PR #14, revision boday-agent-00004-wsb); live check: Mac up → Qwen, LM Studio stopped → Haiku |
 | 4 exp 3 | Judge sees completions + rubric fix (kept: 31% → 69% exact agreement); not-found prompt rule (rejected); `merge_user_prefs` security fix; root README | ✅ Done — PR #12 |
-| Later (optional) | Harness retry when a final answer ends in an unasked question (not-found cases); Local mode tunnel | — |
+| Later (optional) | Harness retry when a final answer ends in an unasked question (not-found cases) | — |
 
 ## Round 2 — two parallel tracks (done; kept for reference)
 
