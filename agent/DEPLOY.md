@@ -55,6 +55,7 @@ Plain environment variables. None of them is secret.
 - `ADMIN_EMAIL`
 - `BODAY_LOCAL_BASE_URL`
 - `BODAY_LOCAL_MODEL`
+- `BODAY_LOCAL_EFFORT` — optional, default `none` (thinking off for the local model; set it empty to send no `reasoning_effort` at all). Only BoDay's requests carry it; LM Studio's own settings are untouched.
 - `AGENT_ALLOWED_ORIGINS` — `https://boday.boapps.workers.dev,http://localhost:5173`
 - `PORT` — Cloud Run sets this itself; do not set it. The image defaults to 8080.
 
@@ -96,7 +97,19 @@ Rotating the key makes every saved API key unreadable. Ciphertexts are bound to 
 
 ## owner step — the Mac
 
-Ollama starts at login. `cloudflared` serves a hostname under `expense-app.uk` (the spec's example is `llm.expense-app.uk`). Create a Cloudflare Access service token. The Cloud Run service sends `CF-Access-Client-Id` and `CF-Access-Client-Secret`. Put the public `https` base URL (ending in `/v1` if Ollama is mounted there) in `BODAY_LOCAL_BASE_URL` and the chosen model id in `BODAY_LOCAL_MODEL`. Do not pick the model in this repo.
+Local mode: Auto (owner only) sends the request to LM Studio on the Mac when it answers within 2 s, otherwise to Haiku.
+
+- **LM Studio:** the server runs on `localhost:1234` with Just-in-Time model loading on, so `/v1/models` answers even when no model is in RAM and the first request loads it (about 19 s for `qwen/qwen3.6-35b-a3b`, inside the 90 s local budget). Idle models unload after 60 min. Turn on "run the LLM server on login" in LM Studio's settings.
+- **Tunnel:** `cloudflared` (Homebrew) runs a named tunnel `boday-llm` that serves `https://llm.expense-app.uk` → `http://localhost:1234`. Config in `~/.cloudflared/config.yml`; installed as a login service with `cloudflared service install`.
+- **Cloudflare Access:** a self-hosted application on `llm.expense-app.uk` with one policy, action *Service Auth*, include the service token `boday-agent`. Without the token the hostname answers 403. Store the token's two halves as secrets straight from the clipboard, never through a chat or a file:
+
+  ```sh
+  pbpaste | tr -d '\n' | gcloud secrets create cf-access-client-id --data-file=-
+  pbpaste | tr -d '\n' | gcloud secrets create cf-access-client-secret --data-file=-
+  ```
+
+- **Env:** `BODAY_LOCAL_BASE_URL=https://llm.expense-app.uk/v1`, `BODAY_LOCAL_MODEL=qwen/qwen3.6-35b-a3b`.
+- If the Mac sleeps, or LM Studio or the tunnel is not running, Auto falls back to Haiku and the trace says why (`auto: local unreachable ...`).
 
 ## owner step — the app
 

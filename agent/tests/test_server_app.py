@@ -563,3 +563,14 @@ def test_run_rejects_an_unknown_time_format():
     res = client.post("/agent/run", json=body, headers=_auth())
     assert res.status_code == 400
     assert res.json()["error"]["code"] == "INVALID_REQUEST"
+
+
+def test_local_effort_reads_env(monkeypatch):
+    from boday_agent.server.app import ServerConfig
+
+    monkeypatch.delenv("BODAY_LOCAL_EFFORT", raising=False)
+    assert ServerConfig.from_env().local_effort == "none"
+    monkeypatch.setenv("BODAY_LOCAL_EFFORT", "medium")
+    assert ServerConfig.from_env().local_effort == "medium"
+    monkeypatch.setenv("BODAY_LOCAL_EFFORT", "")
+    assert ServerConfig.from_env().local_effort is None

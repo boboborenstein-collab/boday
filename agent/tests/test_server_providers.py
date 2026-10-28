@@ -197,3 +197,32 @@ def test_claude_probe_gives_up_after_10s(monkeypatch):
     out = probe_connection(settings, **_kw(user_id="user-a", encryptor=enc))
     assert out["ok"] is True
     assert made[0].timeout == 10.0 and made[0].max_retries == 0
+
+
+def _auto_local(**overrides):
+    settings = RunSettings(provider="auto", model="ignored")
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, json={"data": []}))
+    return build_provider(
+        settings,
+        transport_for_tests=transport,
+        **_kw(
+            user_id="owner",
+            anthropic_api_key="server-key",
+            local_base_url="https://llm.example/v1",
+            local_model="local-model",
+            **overrides,
+        ),
+    )
+
+
+def test_auto_local_turns_thinking_off_by_default():
+    provider, _reason = _auto_local()
+    assert provider.is_local is True
+    assert provider.reasoning_effort == "none"
+
+
+def test_auto_local_effort_is_configurable():
+    provider, _reason = _auto_local(local_effort="low")
+    assert provider.reasoning_effort == "low"
+    provider, _reason = _auto_local(local_effort=None)
+    assert provider.reasoning_effort is None
